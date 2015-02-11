@@ -1,0 +1,107 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="../../webcomponentsjs/webcomponents-lite.js"></script> 
+  <script src="../../web-component-tester/browser.js"></script> 
+  <script src="../../fetch/fetch.js"></script> 
+  <link rel="import" href="../../polymer/polymer.html">
+  <link rel="import" href="../../core-asset/core-asset.html">
+
+
+  <script src="../hydrolysis.js"></script> 
+</head>
+<body>
+  <core-asset id="parsetarget" href="static/html-parse-target.html"></core-asset>
+  <core-asset id="parseerror" href="static/js-parse-error.js"></core-asset>
+  <core-asset id="modules" href="static/js-modules.js"></core-asset>
+  <script>
+    var hyd = require('hydrolysis');
+    suite('parser throws errors', function() {
+      /* Two js documents, one with an error and one with a module declaration. */
+      var parseError;
+      suiteSetup(function(done) {
+        parseError = document.querySelector("#parseerror").content;
+        done();
+      });
+
+      test('js syntax error', function() {
+        try {
+          hyd.jsParse(parseError);
+        } catch (err) {
+          assert.equal(err.lineNumber, 18);
+          assert.equal(err.column, 34);
+        }
+      });
+
+    });
+    suite('module metadata', function(){
+      var parsed;
+      suiteSetup(function() {
+        parsed = hyd.jsParse(document.querySelector("#modules").content);
+      }
+
+      test('Find all modulate calls', function() {
+        console.log(parsed);
+        assert.equal(parsed.modules.length, 2);
+      });
+
+      test('Find all modulate dependencies', function() {
+        var foundDeps = false;
+        for (var i = 0; i < parsed.modules.length; i++) {
+          var module = parsed.modules[i];
+          if (module.is == "x-resizer") {
+            console.log(module);
+            assert.equal(module.deps.length, 2);
+            foundDeps = true;
+          }
+        }
+        assert(foundDeps);
+      });
+
+      test('Find all modulate properties', function() {
+        var foundProps = false;
+        for (var i = 0; i < parsed.modules.length; i++) {
+          var module = parsed.modules[i];
+          if (module.is == "x-resizable") {
+            assert.equal(module.properties.length, 3);
+            assert.equal(module.properties[0].name, "resizableAttached");
+            foundProps = true;
+          }
+        }
+        assert(foundProps);
+      });
+
+      test('Find all module parent', function() {
+        var foundParent = false;
+        for (var i = 0; i < parsed.modules.length; i++) {
+          var module = parsed.modules[i];
+          if (module.is == "x-resizer") {
+            assert.equal(module.extends, "x-resizable");
+            foundParent = true;
+          }
+        }
+        assert(foundParent);
+      });
+
+      test('All polymer calls have associated metadata', function() {
+      });
+
+
+
+      test('Find all polymer calls', function() {
+      });
+
+      test('Polymer call has a description', function() {
+      });
+
+      test('Polymer call has ', function() {
+      });
+
+      
+
+
+    });
+  </script>
+</body>
+</html>

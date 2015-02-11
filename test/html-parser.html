@@ -1,0 +1,32 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="../../webcomponentsjs/webcomponents-lite.js"></script> 
+  <script src="../../web-component-tester/browser.js"></script> 
+  <link rel="import" href="../../polymer/polymer.html">
+
+
+  <script src="../hydrolysis.js"></script> 
+  <link id="parsetarget" rel="import" href="static/html-parse-target.html">
+</head>
+<body>
+  <script>
+    suite('parser returns expected ASTs', function() {
+      var hyd = require('hydrolysis');
+      var parseTarget = document.getElementById("parsetarget").import.documentElement.innerHTML;
+      var registry = hyd.importParse(parseTarget);
+
+      test('find all templates', function() {
+        assert.isDefined(registry.template, "The returned registry should find templates");
+        assert.equal(registry.template.length, 3);
+      });
+
+      test('find all scripts', function() {
+        assert.isDefined(registry.script, "The returned registry should find scripts");
+        assert.equal(registry.script.length, 2);
+      });
+    });
+  </script> 
+</body>
+</html>
