@@ -19,7 +19,7 @@ Polymer({
    * @event error
    */
 
-  published: {
+  publish: {
     /**
      * I am a string!
      */
