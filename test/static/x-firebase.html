@@ -20,7 +20,7 @@ Polymer({
    * @event error
    */
 
-  published: {
+  publish: {
     /**
      * Firebase location mapped to `data`.
      * @attribute location
@@ -296,7 +296,7 @@ Polymer({
     this.dataChange();
     // discard any observations so we don't send this value back to the
     // server, it may already be stale from the server's perspective
-    this.discardObservations();      
+    this.discardObservations();
   },
 
   updateData: function(snapshot) {
