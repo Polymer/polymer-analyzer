@@ -34,8 +34,8 @@
           assert.equal(err.column, 34);
         }
       });
-
     });
+
     suite('module metadata', function(){
       var parsed;
       suiteSetup(function() {
@@ -84,8 +84,8 @@
         }
         assert(foundParent);
       });
-
     });
+
     suite('element metadata', function(){
       var parsed;
       suiteSetup(function() {
@@ -100,7 +100,7 @@
       test('Polymer elements are named', function() {
         console.log(parsed);
         assert.equal(parsed.elements[0].is, 'test-element');
-        assert.equal(parsed.elements[1].is, 'firebase-element');
+        assert.equal(parsed.elements[1].is, 'x-firebase');
       });
 
       test('Find all published properties', function() {
@@ -110,7 +110,7 @@
           if (element.is == "test-element") {
             console.log(element);
             var published = 0;
-            for (var j = 0; j < element.properties; j++) {
+            for (var j = 0; j < element.properties.length; j++) {
               if (element.properties[j].published) {
                 published++;
               }
@@ -130,7 +130,7 @@
           if (element.is == "test-element") {
             console.log(element);
             var published = 0;
-            for (var j = 0; j < element.properties; j++) {
+            for (var j = 0; j < element.properties.length; j++) {
               if (element.properties[j].name == "objectNotify") {
                 foundNotify = true;
               }
@@ -141,23 +141,23 @@
       });
 
       test('Find all methods', function() {
-        var foundProps = false;
+        var foundMethods = false;
         for (var i = 0; i < parsed.elements.length; i++) {
           var element = parsed.elements[i];
           if (element.is == "x-firebase") {
             console.log(element);
-            var methdos = 0;
-            for (var j = 0; j < element.methods; j++) {
-              if (element.methods[j]) {
+            var methods = 0;
+            for (var j = 0; j < element.properties.length; j++) {
+              if (element.properties[j].type == "Function") {
                 methods++;
               }
             }
             if (methods == 31) {
-              foundProps = true;
+              foundMethods = true;
             }
           }
         }
-        assert(foundProps);
+        assert(foundMethods);
       });
 
 
