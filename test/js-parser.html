@@ -85,20 +85,6 @@
         assert(foundParent);
       });
 
-      test('All polymer calls have associated metadata', function() {
-      });
-
-
-
-      test('Find all polymer calls', function() {
-      });
-
-      test('Polymer call has a description', function() {
-      });
-
-      test('Polymer call has ', function() {
-      });
-
     });
     suite('element metadata', function(){
       var parsed;
@@ -118,8 +104,8 @@
           if (element.is == "test-element") {
             console.log(element);
             var published = 0;
-            for (var i = 0; i < element.properties; i++) {
-              if (element.properties[i].published) {
+            for (var j = 0; j < element.properties; j++) {
+              if (element.properties[j].published) {
                 published++;
               }
             }
@@ -132,23 +118,20 @@
       });
 
       test('Published properties have notify values', function() {
-        var foundProps = false;
+        var foundNotify = false;
         for (var i = 0; i < parsed.elements.length; i++) {
           var element = parsed.elements[i];
           if (element.is == "test-element") {
             console.log(element);
             var published = 0;
-            for (var i = 0; i < element.properties; i++) {
-              if (element.properties[i].name == ) {
-                published++;
+            for (var j = 0; j < element.properties; j++) {
+              if (element.properties[j].name == "objectNotify") {
+                foundNotify = true;
               }
-            }
-            if (published == 6) {
-              foundProps = true;
             }
           }
         }
-        assert(foundProps);
+        assert(foundNotify);
       });
 
       test('Find all methods', function() {
@@ -158,12 +141,12 @@
           if (element.is == "x-firebase") {
             console.log(element);
             var methdos = 0;
-            for (var i = 0; i < element.methods; i++) {
-              if (element.methods[i] !== undefined) {
+            for (var j = 0; j < element.methods; j++) {
+              if (element.methods[j]) {
                 methods++;
               }
             }
-            if (methods == 6) {
+            if (methods == 31) {
               foundProps = true;
             }
           }
