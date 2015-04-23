@@ -52,7 +52,7 @@
 
       test('finds calls to Polymer.Base.addFeature, in order', function() {
         assert.equal(parsed.features.length, 2);
-        assert.equal(parsed.features[0].properties.length, 7);
+        assert.equal(parsed.features[0].properties.length, 6);
         assert.equal(parsed.features[1].properties.length, 1);
       });
 
@@ -63,8 +63,7 @@
         assert.equal(properties[2].type, 'string');
         assert.equal(properties[3].type, 'Array');
         assert.equal(properties[4].type, 'Object');
-        assert.equal(properties[5].type, 'Object');
-        assert.equal(properties[6].type, 'Function');
+        assert.equal(properties[5].type, 'Function');
       });
 
       test('finds globally attached documentation', function() {
@@ -111,7 +110,7 @@
             }
           }
         }
-        assert.equal(published, 6);
+        assert.equal(published, 7);
       });
 
       test('Extracts configured property types', function() {
