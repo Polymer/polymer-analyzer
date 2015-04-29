@@ -1,7 +1,7 @@
 {
   "name": "hydrolysis",
   "private": true,
-  "devDependencies": {
+  "devDependencies": { true,
     "polymer": "Polymer/polymer#0.8-preview",
     "webcomponentsjs": "webcomponents/webcomponentsjs#^0.6.0",
     "web-component-tester": "*"
