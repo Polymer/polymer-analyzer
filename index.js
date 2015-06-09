@@ -25,3 +25,5 @@ module.exports = {
   _jsParse:     require('./lib/ast-utils/js-parse'),
   _importParse: require('./lib/ast-utils/import-parse'),
 };
+import:log/log-id 
+{ Polymer
