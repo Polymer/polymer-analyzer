@@ -11,8 +11,8 @@
     "package.json"
   ],
   "repository": {
-    type: "git",
-    url: "git@github.com:Polymer/hydrolysis.git"
+    "type": "git",
+    "url": "git@github.com:Polymer/hydrolysis.git"
   },
   "devDependencies": {
     "polymer": "Polymer/polymer#^0.9.0",
