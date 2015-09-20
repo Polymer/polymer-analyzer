@@ -243,10 +243,14 @@ Polymer({
   valueLoaded: function(snapshot) {
     this.valueLoading = false;
     if (this.ref.key() !== snapshot.key()) {
-      this.log && console.warn('squelching stale response [%s]', snapshot.key());
+      if (this.log) {
+        console.warn('squelching stale response [%s]', snapshot.key());
+      }
       return;
     }
-    this.log && console.log('acquired value ' + this.location);
+    if(this.log) {
+      console.log('acquired value ' + this.location);
+    }
     this.dataReady = true;
     this._remoteValueChanged = true;
     this._updateData(snapshot.val());
@@ -319,7 +323,7 @@ Polymer({
   },
 
   priorityChanged: function() {
-    if (this.ref && (this.priority != null)) {
+    if (this.ref && (this.priority !== null)) {
       this.ref.setPriority(this.priority, this.errorHandler);
     }
   },
@@ -366,7 +370,9 @@ Polymer({
   },
 
   childEvent: function(kind, snapshot) {
-    this.log && console.log(kind, snapshot.key());
+    if (this.log)  {
+      console.log(kind, snapshot.key());
+    }
     if (this.childEvents) {
       this.fire(kind, {name: snapshot.key(), value: snapshot.val()});
     }
@@ -393,7 +399,7 @@ Polymer({
     var key = snapshot.key();
     if (this.data instanceof Array) {
       this.data.splice(key, 1);
-      if (data.length == 0) {
+      if (data.length === 0) {
         this._updateData(null);
       }
     } else if (this.data) {
@@ -442,7 +448,9 @@ Polymer({
 
   // api for manual commits
   commitProperty: function(key) {
-    this.log && console.log('commitProperty ' + key);
+    if (this.log) {
+      console.log('commitProperty ' + key);
+    }
     if (this.ref) {
       this.ref.child(key).set(this.data[key], this.errorHandler);
     }
@@ -453,9 +461,11 @@ Polymer({
   },
 
   commit: function() {
-    this.log && console.log('commit');
+    if (this.log) {
+      console.log('commit');
+    }
     if (this.ref) {
-      if (this.priority != null) {
+      if (this.priority !== null) {
         this.ref.setWithPriority(this.data || {}, this.priority, this.errorHandler);
       } else {
         this.ref.set(this.data || {}, this.errorHandler);
