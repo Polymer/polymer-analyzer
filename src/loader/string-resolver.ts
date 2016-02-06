@@ -46,7 +46,11 @@ export class StringResolver implements Resolver {
         return false;
       }
     } else {
-      if (uri.search(url) == -1) {
+      // This cast shouldn't really be necessary, since String#search takes any
+      // type, and if it's not a RegExp, calls new RexExp(o) on the argument.
+      // In this branch we know url is a string and can wrap it ourselves.
+      // This may be an issue with the ES6 core library typings.
+      if (uri.search(new RegExp(<string>url)) == -1) {
         return false;
       }
     }
