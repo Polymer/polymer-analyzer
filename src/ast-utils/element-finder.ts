@@ -32,7 +32,57 @@ export function elementFinder() {
   var propertyHandlers: PropertyHandlers = null;
 
   var visitors: Visitor = {
+
+    classDetected: false,
+
+    enterClassDeclaration: function enterClassDeclaration(node, parent) {
+      this.classDetected = true;
+      element = {
+        type: 'element',
+        desc: esutil.getAttachedComment(parent),
+        events: esutil.getEventComments(parent).map( function(event) {
+          return {desc: event};
+        }),
+        properties: [],
+        behaviors: [],
+        observers: []
+      };
+      propertyHandlers = declarationPropertyHandlers(element);
+    },
+
+    leaveClassDeclaration: function leaveClassDeclaration(node, parent) {
+      if (element) {
+        elements.push(element);
+        element = null;
+        propertyHandlers = null;
+      }
+    },
+
+    enterAssignmentExpression: function enterAssignmentExpression(node, parent) {
+      const left = <estree.MemberExpression>node.left;
+      if (left.object.type !== 'ThisExpression') {
+        return;
+      }
+      const prop = <estree.Identifier>left.property;
+      var name = prop.name;
+      if (name in propertyHandlers) {
+        propertyHandlers[name](node.right);
+      }
+    },
+
+    // FIXME
+    // enterMethodDefinition: function enterMethodDefinition(node, parent) {
+    //   const val = <estree.FunctionExpression>node.value;
+    //   element.properties.push(esutil.toPropertyDescriptor(val));
+    // },
+
     enterCallExpression: function enterCallExpression(node, parent) {
+
+      // When dealing with a class, enterCallExpression is called after the parsing actually starts
+      if (this.classDetected) {
+        return estraverse.VisitorOption.Skip;
+      }
+
       var callee = node.callee;
       if (callee.type == 'Identifier') {
         const ident = <estree.Identifier>callee;
@@ -62,6 +112,12 @@ export function elementFinder() {
       }
     },
     enterObjectExpression: function enterObjectExpression(node, parent) {
+
+      // When dealing with a class, there is no single object that we can parse to retrieve all properties
+      if (this.classDetected) {
+        return estraverse.VisitorOption.Skip;
+      }
+
       if (element && !element.properties) {
         element.properties = [];
         element.behaviors = [];
