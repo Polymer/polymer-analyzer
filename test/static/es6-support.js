@@ -23,20 +23,18 @@ class A {
         type: 'String',
         notify: true,
       },
-    };
+    }
+
+    this.observers = [
+      '_observer1(string)',
+      '_observer2(string)',
+    ]
   }
 
   get behaviors() {
     return [
       Behavior1,
       Behavior2,
-    ];
-  }
-
-  get observers() {
-    return [
-      '_observer1(string)',
-      '_observer2(string)',
     ];
   }
 
