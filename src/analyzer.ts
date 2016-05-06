@@ -261,7 +261,11 @@ export class Analyzer {
       return new Promise<AnalyzedDocument>((resolve, reject) => {
         setTimeout(() => {
           this._content[href] = content;
-          resolve(this._parseHTML(content, href));
+          try {
+            resolve(this._parseHTML(content, href));
+          } catch (err) {
+            reject(err);
+          }
         }, 0);
       }).catch(function(err){
         console.error("Error processing document at " + href);
