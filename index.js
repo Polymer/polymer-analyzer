@@ -9,7 +9,6 @@
  */
 
 'use strict';
-require("babel-polyfill");
 /**
  * Static analysis for Polymer.
  * @namespace hydrolysis
