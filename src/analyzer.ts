@@ -257,7 +257,7 @@ export class Analyzer {
   };
 
   load(href: string):Promise<AnalyzedDocument> {
-    return this.loader.request(href).then((content) => {
+    return <any>this.loader.request(href).then((content) => {
       return new Promise<AnalyzedDocument>((resolve, reject) => {
         setTimeout(() => {
           this._content[href] = content;
@@ -356,7 +356,7 @@ export class Analyzer {
           .then(function() {return depHrefs;})
           .catch(function(err) {throw err;});
     this.parsedDocuments[href] = parsed.ast;
-    this.html[href] = {
+    this.html[href] = <any>{
         href: href,
         htmlLoaded: htmlLoaded,
         metadataLoaded: metadataLoaded,
@@ -399,7 +399,7 @@ export class Analyzer {
         var fixedErr = <LocError>(new Error(message));
         fixedErr.location = {line: line, column: col};
         fixedErr.ownerDocument = script.__ownerDocument;
-        return Promise.reject<DocumentDescriptor>(fixedErr);
+        return Promise.reject<DocumentDescriptor>(<any>fixedErr);
       }
       if (parsedJs.elements) {
         parsedJs.elements.forEach((element) => {
