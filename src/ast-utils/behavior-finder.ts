@@ -158,7 +158,10 @@ export function behaviorFinder() {
       desc: comment,
       events: esutil.getEventComments(node).map( function(event) {
         return { desc: event};
-      })
+      }),
+      properties: [],
+      behaviors: [],
+      observers: []
     };
     propertyHandlers = declarationPropertyHandlers(currentBehavior);
 
