@@ -124,6 +124,10 @@ interface LoadOptions {
    * Default is `fs` in node and `xhr` in the browser.
    */
   resolver?: string;
+
+  /** Undeclared dependencies */
+  additionalImports?: Array<string>;
+
   /**
    * A predicate function that indicates which files should be ignored by
    * the loader. By default all files not located under the dirname
@@ -240,12 +244,24 @@ export class Analyzer {
 
     loader.addResolver(primaryResolver);
     if (options.content) {
-      loader.addResolver(new StringResolver({url: href, content: options.content}));
+      loader.addResolver(
+        new StringResolver({
+          url: href,
+          content: options.content
+        }
+      ));
     }
     loader.addResolver(new NoopResolver({test: options.filter}));
 
     var analyzer = new Analyzer(false, loader);
-    return analyzer.metadataTree(href).then((root) => {
+    let additionalImports = options.additionalImports || [];
+    console.log(additionalImports);
+    var dependenciesAnalyzed = Promise.all(additionalImports.map((dep) => {
+      return analyzer.metadataTree(dep);
+    }));
+
+    return dependenciesAnalyzed.then(() => analyzer.metadataTree(href))
+    .then((root) => {
       if (!options.noAnnotations) {
         analyzer.annotate();
       }
