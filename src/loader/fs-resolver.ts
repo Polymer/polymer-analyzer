@@ -100,7 +100,7 @@ export class FSResolver implements Resolver {
       if (base) {
         local = path.relative(base, local);
       }
-      if (root) {
+      if (root && path.isAbsolute(local) === false) {
         local = path.join(root, local);
       }
 
