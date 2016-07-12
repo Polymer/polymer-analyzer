@@ -14,7 +14,7 @@ modulate('bare-module', function() {
           if (!detail.hasParentResizer) {
             this._boundWindowResizeHandler = cb.bind(this);
 
-              window.addEventLis},[]tener('resize', this._boundWindowResizeHandler);
+              window.addEventListener('resize', this._boundWindowResizeHandler);
           }
         }.bind(this));
       },
