@@ -159,7 +159,6 @@ export function behaviorFinder() {
       events: esutil.getEventComments(node).map( function(event) {
         return { desc: event};
       }),
-      properties: [],
       behaviors: [],
       observers: []
     };
@@ -228,7 +227,9 @@ export function behaviorFinder() {
      * behavior's declaration. Seems to be a decent assumption for now.
      */
     enterObjectExpression: function(node, parent) {
-      if (!currentBehavior || currentBehavior.properties) return;
+      if (!currentBehavior || currentBehavior.properties) {
+        return;
+      }
 
       currentBehavior.properties = currentBehavior.properties || [];
       currentBehavior.observers = currentBehavior.observers || [];
