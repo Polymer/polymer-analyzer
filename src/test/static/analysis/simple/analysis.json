@@ -1,0 +1,33 @@
+{
+  "packages": [{
+    "elements": [{
+      "attributes": [],
+      "demos": [],
+      "description": "",
+      "events": [{
+        "description": "Fired when the `value` property changes.",
+        "name": "value-changed",
+        "type": "CustomEvent"
+      }],
+      "metadata": {},
+      "path": "simple-element.html",
+      "properties": [{
+          "name": "value",
+          "type": "String",
+          "description": "",
+          "metadata": {
+            "polymer": {
+              "notify": true
+            }
+          }
+      }],
+      "slots": [],
+      "styling": {
+        "classes": [],
+        "cssVariables": []
+      },
+      "superclass": "HTMLElement",
+      "tagname": "simple-element"
+    }]
+  }]
+}

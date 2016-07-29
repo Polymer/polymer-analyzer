@@ -2,9 +2,9 @@ export interface SerializedAnalysis { packages: Package[]; }
 
 export interface Package {
   /** The name of the package, like `paper-button` */
-  name: string;
+  name?: string;
   /** The version, extracted from package.json, bower.json, etc as available. */
-  version: string;
+  version?: string;
 
   /** The npm metadata of the package, if any. */
   npmPackage?: NpmPackage;
@@ -51,7 +51,7 @@ export interface Element {
    *
    * e.g. `MyElement`, `Polymer.PaperInput`
    */
-  classname: string;
+  classname?: string;
 
   /**
    * The class that this element extends.
