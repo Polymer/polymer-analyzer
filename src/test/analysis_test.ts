@@ -23,11 +23,25 @@ import {FSUrlLoader} from '../url-loader/fs-url-loader';
 suite('Analysis', function() {
   test('can construct an analysis', async function() {
     const dir = path.join(__dirname, 'static', 'analysis', 'simple');
-    const analyzer = new Analyzer({urlLoader: new FSUrlLoader(dir)});
-    analyzer.analyze('simple-element.html');
-    const analysis = await analyzer.resolve();
+    const analysis = await analyzeDir(dir).resolve();
     assert.deepEqual(
         analysis.serialize(),
         JSON.parse(fs.readFileSync(path.join(dir, 'analysis.json'), 'utf-8')));
   });
 });
+
+function analyzeDir(baseDir: string): Analyzer {
+  const analyzer = new Analyzer({urlLoader: new FSUrlLoader(baseDir)});
+  const _analyzeDir = (dir: string): void => {
+    for (const filename of fs.readdirSync(dir)) {
+      const fullPath = path.join(dir, filename);
+      if (fs.statSync(fullPath).isDirectory()) {
+        return _analyzeDir(fullPath);
+      } else {
+        analyzer.analyze(fullPath.substring(baseDir.length));
+      }
+    }
+  };
+  _analyzeDir(baseDir);
+  return analyzer;
+}

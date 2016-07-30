@@ -1,5 +1,12 @@
 {
   "packages": [{
+    "name": "simple-element",
+    "version": "1.0.0",
+    "npmPackage":{
+      "name": "simple-element",
+      "version": "1.0.0",
+      "description": "A super simple element."
+    },
     "elements": [{
       "attributes": [],
       "demos": [],

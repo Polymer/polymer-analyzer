@@ -1,6 +1,9 @@
+import * as path from 'path';
+
 import {Descriptor, DocumentDescriptor, ElementDescriptor, InlineDocumentDescriptor, PropertyDescriptor} from './ast/ast';
+import {JsonDocument} from './json/json-document';
 import {Document} from './parser/document';
-import {Element, Event, Property, SerializedAnalysis} from './serialized-analysis';
+import {Element, Event, Package, Property, SerializedAnalysis} from './serialized-analysis';
 
 export class Analysis {
   descriptors_: DocumentDescriptor[];
@@ -8,16 +11,33 @@ export class Analysis {
     this.descriptors_ = descriptors;
   }
 
-
-
   serialize(): SerializedAnalysis {
-    const elementDescriptors = gatherElements(this);
-    let elements: Element[] = [];
-    for (const elementDescriptorPair of elementDescriptors) {
-      elements.push(serializeElementDescriptor(
-          elementDescriptorPair[0], elementDescriptorPair[1]));
+    const packageGatherer = new PackageGatherer();
+    const elementsGatherer = new ElementGatherer();
+    const walker =
+        new AnalysisWalker(this).walk([packageGatherer, elementsGatherer]);
+
+    const packagesByDir = packageGatherer.packagesByDir;
+    const elements = elementsGatherer.elements;
+    const elementsByPackageDir = new Map<string, Element[]>();
+
+    for (const element of elementsGatherer.elements) {
+      const longestMatchingPackageDir =
+          Array.from(packagesByDir.keys())
+              .filter(dir => element.path.startsWith(dir))
+              .sort((a, b) => a.length - b.length)[0];
+      if (!longestMatchingPackageDir) {
+        if (!packagesByDir.has(null)) {
+          packagesByDir.set(null, {elements: []});
+        }
+        packagesByDir.get(null).elements.push(element);
+      } else {
+        packagesByDir.get(longestMatchingPackageDir).elements.push(element);
+        element.path = element.path.substring(longestMatchingPackageDir.length);
+      }
     }
-    return {packages: [{elements: elements}]};
+
+    return {packages: Array.from(packagesByDir.values())};
   }
 }
 
@@ -69,27 +89,57 @@ function serializePropertyDescriptor(p: PropertyDescriptor): Property {
   return property;
 }
 
-function gatherElements(analysis: Analysis) {
-  const gatherer = new ElementGatherer();
-  const walker = new AnalysisWalker(analysis).walk([gatherer]);
-  return Array.from(gatherer.elements).map((el) => {
-    return <[ElementDescriptor, string]>[el, gatherer.elementPaths.get(el)];
-  });
-}
+class PackageGatherer implements AnalysisVisitor {
+  private packageFiles: JsonDocument[] = [];
+  packagesByDir = new Map<string, Package>();
+  visitDocument(document: Document<any, any>, path: Descriptor[]): void {
+    if (document instanceof JsonDocument &&
+        (document.url.endsWith('package.json') ||
+         document.url.endsWith('bower.json'))) {
+      this.packageFiles.push(document);
+    }
+  }
 
-abstract class AnalysisVisitor {
-  visitDocumentDescriptor?(dd: DocumentDescriptor, path: Descriptor[]): void;
-  visitInlineDocumentDescriptor?
-      (dd: InlineDocumentDescriptor<any>, path: Descriptor[]): void;
-  visitElement?(element: ElementDescriptor, path: Descriptor[]): void;
-  visitDocument?(document: Document<any, any>, path: Descriptor[]): void;
+  done() {
+    for (const packageFile of this.packageFiles) {
+      const dirname = path.dirname(packageFile.url);
+      if (!this.packagesByDir.has(dirname)) {
+        this.packagesByDir.set(dirname, {elements: []});
+      }
+      const pckg = this.packagesByDir.get(dirname);
+      const fileContents: {name: string, version: string} =
+          <any>packageFile.ast;
+
+      const strictFields = ['name', 'version'];
+      for (const field of strictFields) {
+        if (!fileContents[field]) {
+          throw new Error(
+              `Found bad package metadata at ${packageFile.url}.` +
+              ` Missing field \`${field}\``);
+        }
+        if (pckg[field] && pckg[field] !== fileContents[field]) {
+          throw new Error(
+              `Conflict in package metadata for directory \`${dirname}\`.` +
+              ` ${field} was found to be \`${pckg[field]}\` but ` +
+              `${packageFile.url} has the value \`${fileContents[field]}\``);
+        }
+      }
+
+      pckg.name = fileContents.name;
+      pckg.version = fileContents.version;
+      if (packageFile.url.endsWith('bower.json')) {
+        pckg.bowerMetadata = fileContents;
+      } else if (packageFile.url.endsWith('package.json')) {
+        pckg.npmPackage = fileContents;
+      }
+    }
+  }
 }
 
 class ElementGatherer implements AnalysisVisitor {
-  elements = new Set<ElementDescriptor>();
-  elementPaths = new Map<ElementDescriptor, string>();
+  elements: Element[] = [];
+  private elementPaths = new Map<ElementDescriptor, string>();
   visitElement(element: ElementDescriptor, path: Descriptor[]): void {
-    this.elements.add(element);
     let pathToElement: string = null;
     for (const descriptor of path) {
       if (descriptor instanceof DocumentDescriptor) {
@@ -99,14 +149,26 @@ class ElementGatherer implements AnalysisVisitor {
     if (!pathToElement) {
       throw new Error(`Unable to determine path to element: ${element}`);
     }
-    if (this.elementPaths.has(element) &&
-        this.elementPaths.get(element) !== pathToElement) {
-      throw new Error(
-          `Found element ${element} at distinct paths: ` +
-          `${pathToElement} and ${this.elementPaths.get(element)}`);
+    if (this.elementPaths.has(element)) {
+      if (this.elementPaths.get(element) !== pathToElement) {
+        throw new Error(
+            `Found element ${element} at distinct paths: ` +
+            `${pathToElement} and ${this.elementPaths.get(element)}`);
+      }
+    } else {
+      this.elementPaths.set(element, pathToElement);
+      this.elements.push(serializeElementDescriptor(element, pathToElement));
     }
-    this.elementPaths.set(element, pathToElement);
   }
+}
+
+abstract class AnalysisVisitor {
+  visitDocumentDescriptor?(dd: DocumentDescriptor, path: Descriptor[]): void;
+  visitInlineDocumentDescriptor?
+      (dd: InlineDocumentDescriptor<any>, path: Descriptor[]): void;
+  visitElement?(element: ElementDescriptor, path: Descriptor[]): void;
+  visitDocument?(document: Document<any, any>, path: Descriptor[]): void;
+  done?(): void;
 }
 
 class AnalysisWalker {
@@ -119,6 +181,11 @@ class AnalysisWalker {
     this.path.length = 0;
     for (const descriptor of this.analysis.descriptors_) {
       this._walkDocumentDescriptor(descriptor, visitors);
+    }
+    for (const visitor of visitors) {
+      if (visitor.done) {
+        visitor.done();
+      }
     }
   }
 
