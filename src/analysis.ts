@@ -25,7 +25,7 @@ export class Analysis {
       const longestMatchingPackageDir =
           Array.from(packagesByDir.keys())
               .filter(dir => element.path.startsWith(dir))
-              .sort((a, b) => a.length - b.length)[0];
+              .sort((a, b) => b.length - a.length)[0];
       if (!longestMatchingPackageDir) {
         if (!packagesByDir.has(null)) {
           packagesByDir.set(null, {elements: []});
@@ -33,7 +33,12 @@ export class Analysis {
         packagesByDir.get(null).elements.push(element);
       } else {
         packagesByDir.get(longestMatchingPackageDir).elements.push(element);
-        element.path = element.path.substring(longestMatchingPackageDir.length);
+        let prefixLength = longestMatchingPackageDir.length;
+        if (!longestMatchingPackageDir.endsWith('/')) {
+          prefixLength += 1;
+        }
+        // We want element paths to be relative to the package directory.
+        element.path = element.path.substring(prefixLength);
       }
     }
 

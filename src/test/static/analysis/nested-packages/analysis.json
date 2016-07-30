@@ -1,0 +1,114 @@
+{
+  "packages": [
+    {
+      "elements": [
+        {
+          "tagname": "element-subdir",
+          "description": "",
+          "superclass": "HTMLElement",
+          "path": "element-subdir/element.html",
+          "attributes": [],
+          "properties": [],
+          "styling": {
+            "cssVariables": [],
+            "classes": []
+          },
+          "demos": [],
+          "slots": [],
+          "events": [],
+          "metadata": {}
+        },
+        {
+          "tagname": "outermost-element",
+          "description": "",
+          "superclass": "HTMLElement",
+          "path": "outermost-element.html",
+          "attributes": [],
+          "properties": [],
+          "styling": {
+            "cssVariables": [],
+            "classes": []
+          },
+          "demos": [],
+          "slots": [],
+          "events": [],
+          "metadata": {}
+        }
+      ],
+      "name": "outer-package",
+      "version": "1.0.0",
+      "bowerMetadata": {
+        "name": "outer-package",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "elements": [
+        {
+          "tagname": "an-element",
+          "description": "",
+          "superclass": "HTMLElement",
+          "path": "an-element.html",
+          "attributes": [],
+          "properties": [],
+          "styling": {
+            "cssVariables": [],
+            "classes": []
+          },
+          "demos": [],
+          "slots": [],
+          "events": [],
+          "metadata": {}
+        },
+        {
+          "tagname": "another-element",
+          "description": "",
+          "superclass": "HTMLElement",
+          "path": "subdir/another-element.html",
+          "attributes": [],
+          "properties": [],
+          "styling": {
+            "cssVariables": [],
+            "classes": []
+          },
+          "demos": [],
+          "slots": [],
+          "events": [],
+          "metadata": {}
+        }
+      ],
+      "name": "package-a",
+      "version": "1.0.1",
+      "npmPackage": {
+        "name": "package-a",
+        "version": "1.0.1"
+      }
+    },
+    {
+      "elements": [
+        {
+          "tagname": "element-b",
+          "description": "",
+          "superclass": "HTMLElement",
+          "path": "element.html",
+          "attributes": [],
+          "properties": [],
+          "styling": {
+            "cssVariables": [],
+            "classes": []
+          },
+          "demos": [],
+          "slots": [],
+          "events": [],
+          "metadata": {}
+        }
+      ],
+      "name": "package-b",
+      "version": "5.7.0",
+      "npmPackage": {
+        "name": "package-b",
+        "version": "5.7.0"
+      }
+    }
+  ]
+}

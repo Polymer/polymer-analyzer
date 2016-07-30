@@ -31,10 +31,17 @@ suite('Analysis', function() {
         `for fixture dir \`${path.basename(analysisFixtureDir)}\``;
     test(testName, async function() {
       const analysis = await analyzeDir(analysisFixtureDir).resolve();
-      assert.deepEqual(
-          analysis.serialize(),
-          JSON.parse(fs.readFileSync(
-              path.join(analysisFixtureDir, 'analysis.json'), 'utf-8')));
+      const pathToCanonical = path.join(analysisFixtureDir, 'analysis.json');
+      const serializedAnalysis = analysis.serialize();
+      try {
+        assert.deepEqual(
+            serializedAnalysis,
+            JSON.parse(fs.readFileSync(pathToCanonical, 'utf-8')));
+      } catch (e) {
+        console.log(
+            `Expected contents of ${pathToCanonical}:\n${JSON.stringify(serializedAnalysis, null, 2)}`);
+        throw e;
+      }
     });
   }
 });
@@ -45,7 +52,7 @@ function analyzeDir(baseDir: string): Analyzer {
     for (const filename of fs.readdirSync(dir)) {
       const fullPath = path.join(dir, filename);
       if (fs.statSync(fullPath).isDirectory()) {
-        return _analyzeDir(fullPath);
+        _analyzeDir(fullPath);
       } else {
         analyzer.analyze(fullPath.substring(baseDir.length));
       }
