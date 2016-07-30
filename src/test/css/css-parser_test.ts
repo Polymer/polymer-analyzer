@@ -26,11 +26,11 @@ suite('CssParser', () => {
 
     setup(() => {
       parser = new CssParser(<any>{
-        findImports(url: string, document: CssDocument): Array<any>/* */ {
-            return [];  //
+        findImports: function(url: string, document: CssDocument): Array<any> {
+          return [];
         },
-        parse(type: any, content: any, url: any): void /* */ {
-            return null;  //
+        parse: function(type: any, content: any, url: any): void {
+          return <any>null;
         },
       });
     });

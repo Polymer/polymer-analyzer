@@ -48,22 +48,22 @@ export class Analysis {
     const walker =
         new AnalysisWalker(this).walk([packageGatherer, elementsGatherer]);
 
-    const packagesByDir = packageGatherer.packagesByDir;
+    const packagesByDir: Map<string|null, Package> =
+        packageGatherer.packagesByDir;
     const elements = elementsGatherer.elements;
     const elementsByPackageDir = new Map<string, Element[]>();
 
     for (const element of elementsGatherer.elements) {
       const longestMatchingPackageDir =
-          Array.from(packagesByDir.keys())
-              .filter(dir => element.path.startsWith(dir))
+          (<string[]>Array.from(packagesByDir.keys())
+               .filter(dir => dir && element.path.startsWith(dir)))
               .sort((a, b) => b.length - a.length)[0];
       if (!longestMatchingPackageDir) {
-        if (!packagesByDir.has(null)) {
-          packagesByDir.set(null, {elements: []});
-        }
-        packagesByDir.get(null).elements.push(element);
+        let pckg = packagesByDir.get(null) || {elements: []};
+        pckg.elements.push(element);
+        packagesByDir.set(null, pckg);
       } else {
-        packagesByDir.get(longestMatchingPackageDir).elements.push(element);
+        packagesByDir.get(longestMatchingPackageDir)!.elements.push(element);
         let prefixLength = longestMatchingPackageDir.length;
         if (!longestMatchingPackageDir.endsWith('/')) {
           prefixLength += 1;
@@ -78,23 +78,27 @@ export class Analysis {
 }
 
 function serializeElementDescriptor(
-    elementDescriptor: ElementDescriptor, path: string): Element {
+    elementDescriptor: ElementDescriptor, path: string): Element|null {
   const propChangeEvents: Event[] =
-      elementDescriptor.properties.filter(p => p.notify)
+      (elementDescriptor.properties || [])
+          .filter(p => p.notify)
           .map(p => ({
                  name: `${p.name}-changed`,
                  type: 'CustomEvent',
                  description: `Fired when the \`${p.name}\` property changes.`
                }));
 
+  if (!elementDescriptor.is) {
+    return null;
+  }
+  const properties = elementDescriptor.properties || [];
   return {
     tagname: elementDescriptor.is,
     description: '',
     superclass: 'HTMLElement',
     path: path,
-    attributes:
-        computeAttributesFromPropertyDescriptors(elementDescriptor.properties),
-    properties: elementDescriptor.properties.map(serializePropertyDescriptor),
+    attributes: computeAttributesFromPropertyDescriptors(properties),
+    properties: properties.map(serializePropertyDescriptor),
     styling: {
       cssVariables: [],
       classes: [],
@@ -158,7 +162,7 @@ class PackageGatherer implements AnalysisVisitor {
       if (!this.packagesByDir.has(dirname)) {
         this.packagesByDir.set(dirname, {elements: []});
       }
-      const pckg = this.packagesByDir.get(dirname);
+      const pckg = <Package>this.packagesByDir.get(dirname);
       const fileContents: {name: string, version: string} =
           <any>packageFile.ast;
 
@@ -192,7 +196,7 @@ class ElementGatherer implements AnalysisVisitor {
   elements: Element[] = [];
   private elementPaths = new Map<ElementDescriptor, string>();
   visitElement(element: ElementDescriptor, path: Descriptor[]): void {
-    let pathToElement: string = null;
+    let pathToElement: string|null = null;
     for (const descriptor of path) {
       if (descriptor instanceof DocumentDescriptor) {
         pathToElement = descriptor.document.url;
@@ -209,7 +213,10 @@ class ElementGatherer implements AnalysisVisitor {
       }
     } else {
       this.elementPaths.set(element, pathToElement);
-      this.elements.push(serializeElementDescriptor(element, pathToElement));
+      const elem = serializeElementDescriptor(element, pathToElement);
+      if (elem) {
+        this.elements.push(elem);
+      }
     }
   }
 }
