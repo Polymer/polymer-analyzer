@@ -21,13 +21,22 @@ import {Analyzer} from '../analyzer';
 import {FSUrlLoader} from '../url-loader/fs-url-loader';
 
 suite('Analysis', function() {
-  test('can construct an analysis', async function() {
-    const dir = path.join(__dirname, 'static', 'analysis', 'simple');
-    const analysis = await analyzeDir(dir).resolve();
-    assert.deepEqual(
-        analysis.serialize(),
-        JSON.parse(fs.readFileSync(path.join(dir, 'analysis.json'), 'utf-8')));
-  });
+  const basedir = path.join(__dirname, 'static', 'analysis');
+  const analysisFixtureDirs = fs.readdirSync(basedir)
+                                  .map(p => path.join(basedir, p))
+                                  .filter(p => fs.statSync(p).isDirectory());
+
+  for (const analysisFixtureDir of analysisFixtureDirs) {
+    const testName = `correctly produces a serialized analysis.json ` +
+        `for fixture dir \`${path.basename(analysisFixtureDir)}\``;
+    test(testName, async function() {
+      const analysis = await analyzeDir(analysisFixtureDir).resolve();
+      assert.deepEqual(
+          analysis.serialize(),
+          JSON.parse(fs.readFileSync(
+              path.join(analysisFixtureDir, 'analysis.json'), 'utf-8')));
+    });
+  }
 });
 
 function analyzeDir(baseDir: string): Analyzer {
