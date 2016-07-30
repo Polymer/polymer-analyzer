@@ -16,7 +16,7 @@ import {assert} from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
 
-import {Analysis} from '../analysis';
+import {Analysis, ValidationError} from '../analysis';
 import {Analyzer} from '../analyzer';
 import {FSUrlLoader} from '../url-loader/fs-url-loader';
 
@@ -33,6 +33,7 @@ suite('Analysis', function() {
       const analysis = await analyzeDir(analysisFixtureDir).resolve();
       const pathToCanonical = path.join(analysisFixtureDir, 'analysis.json');
       const serializedAnalysis = analysis.serialize();
+      Analysis.validate(serializedAnalysis);
       try {
         assert.deepEqual(
             serializedAnalysis,
@@ -44,6 +45,19 @@ suite('Analysis', function() {
       }
     });
   }
+
+  test('throws when validating an invalid SerializedAnalysis', function() {
+    try {
+      Analysis.validate(<any>{});
+    } catch (err) {
+      assert.instanceOf(err, ValidationError);
+      let valError: ValidationError = err;
+      assert(valError.errors.length > 0);
+      assert.include(valError.message, 'requires property "packages"');
+      return;
+    }
+    throw new Error('expected Analysis validation to fail!');
+  });
 });
 
 function analyzeDir(baseDir: string): Analyzer {

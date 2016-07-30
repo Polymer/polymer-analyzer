@@ -1,3 +1,5 @@
+import * as fs from 'fs';
+import * as jsonschema from 'jsonschema';
 import * as path from 'path';
 
 import {Descriptor, DocumentDescriptor, ElementDescriptor, InlineDocumentDescriptor, PropertyDescriptor} from './ast/ast';
@@ -5,10 +7,39 @@ import {JsonDocument} from './json/json-document';
 import {Document} from './parser/document';
 import {Attribute, Element, Event, Package, Property, SerializedAnalysis} from './serialized-analysis';
 
+const validator = new jsonschema.Validator();
+const schema = JSON.parse(
+    fs.readFileSync(path.join(__dirname, 'analysis.schema.json'), 'utf-8'));
+
+export class ValidationError extends Error {
+  errors: jsonschema.ValidationError[];
+  constructor(result: jsonschema.ValidationResult) {
+    const message = `Unable to validate serialized Polymer analysis. ` +
+        `Got ${result.errors.length} errors: ` +
+        `${result.errors.map(err => '    ' + (err.message || err)).join('\n')}`;
+    super(message);
+    this.errors = result.errors;
+  }
+}
+
 export class Analysis {
   descriptors_: DocumentDescriptor[];
   constructor(descriptors: DocumentDescriptor[]) {
     this.descriptors_ = descriptors;
+  }
+
+  /**
+   * Throws if the given object isn't a valid SerializedAnalysis according to
+   * the JSON schema.
+   */
+  static validate(serializedAnalysis: SerializedAnalysis) {
+    const result = validator.validate(serializedAnalysis, schema);
+    if (result.throwError) {
+      throw result.throwError;
+    }
+    if (result.errors.length > 0) {
+      throw new ValidationError(result);
+    }
   }
 
   serialize(): SerializedAnalysis {
