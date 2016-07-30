@@ -1,40 +1,54 @@
 {
-  "packages": [{
-    "name": "simple-element",
-    "version": "1.0.0",
-    "npmPackage":{
+  "packages": [
+    {
       "name": "simple-element",
       "version": "1.0.0",
-      "description": "A super simple element."
-    },
-    "elements": [{
-      "attributes": [],
-      "demos": [],
-      "description": "",
-      "events": [{
-        "description": "Fired when the `value` property changes.",
-        "name": "value-changed",
-        "type": "CustomEvent"
-      }],
-      "metadata": {},
-      "path": "simple-element.html",
-      "properties": [{
-          "name": "value",
-          "type": "String",
-          "description": "",
-          "metadata": {
-            "polymer": {
-              "notify": true
-            }
-          }
-      }],
-      "slots": [],
-      "styling": {
-        "classes": [],
-        "cssVariables": []
+      "npmPackage": {
+        "name": "simple-element",
+        "version": "1.0.0",
+        "description": "A super simple element."
       },
-      "superclass": "HTMLElement",
-      "tagname": "simple-element"
-    }]
-  }]
+      "elements": [
+        {
+          "tagname": "simple-element",
+          "description": "",
+          "superclass": "HTMLElement",
+          "path": "simple-element.html",
+          "attributes": [
+            {
+              "name": "value",
+              "description": "",
+              "type": "String"
+            }
+          ],
+          "properties": [
+            {
+              "name": "value",
+              "type": "String",
+              "description": "",
+              "metadata": {
+                "polymer": {
+                  "notify": true
+                }
+              }
+            }
+          ],
+          "styling": {
+            "cssVariables": [],
+            "classes": []
+          },
+          "demos": [],
+          "slots": [],
+          "events": [
+            {
+              "name": "value-changed",
+              "type": "CustomEvent",
+              "description": "Fired when the `value` property changes."
+            }
+          ],
+          "metadata": {}
+        }
+      ]
+    }
+  ]
 }

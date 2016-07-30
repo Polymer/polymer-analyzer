@@ -3,7 +3,7 @@ import * as path from 'path';
 import {Descriptor, DocumentDescriptor, ElementDescriptor, InlineDocumentDescriptor, PropertyDescriptor} from './ast/ast';
 import {JsonDocument} from './json/json-document';
 import {Document} from './parser/document';
-import {Element, Event, Package, Property, SerializedAnalysis} from './serialized-analysis';
+import {Attribute, Element, Event, Package, Property, SerializedAnalysis} from './serialized-analysis';
 
 export class Analysis {
   descriptors_: DocumentDescriptor[];
@@ -61,7 +61,8 @@ function serializeElementDescriptor(
     description: '',
     superclass: 'HTMLElement',
     path: path,
-    attributes: [],
+    attributes:
+        computeAttributesFromPropertyDescriptors(elementDescriptor.properties),
     properties: elementDescriptor.properties.map(serializePropertyDescriptor),
     styling: {
       cssVariables: [],
@@ -92,6 +93,21 @@ function serializePropertyDescriptor(p: PropertyDescriptor): Property {
   }
   property.metadata = {polymer: polymerMetadata};
   return property;
+}
+
+function computeAttributesFromPropertyDescriptors(props: PropertyDescriptor[]):
+    Attribute[] {
+  return props.map(prop => {
+    const attribute:
+        Attribute = {name: prop.name, description: prop.desc || ''};
+    if (prop.type) {
+      attribute.type = prop.type;
+    }
+    if (prop.default) {
+      attribute.type = prop.type;
+    }
+    return attribute;
+  });
 }
 
 class PackageGatherer implements AnalysisVisitor {

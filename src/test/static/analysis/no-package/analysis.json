@@ -1,0 +1,40 @@
+{
+  "packages": [
+    {
+      "elements": [
+        {
+          "tagname": "el-el",
+          "description": "",
+          "superclass": "HTMLElement",
+          "path": "/el.html",
+          "attributes": [],
+          "properties": [],
+          "styling": {
+            "cssVariables": [],
+            "classes": []
+          },
+          "demos": [],
+          "slots": [],
+          "events": [],
+          "metadata": {}
+        },
+        {
+          "tagname": "sub-el",
+          "description": "",
+          "superclass": "HTMLElement",
+          "path": "/subdir/sub-el.html",
+          "attributes": [],
+          "properties": [],
+          "styling": {
+            "cssVariables": [],
+            "classes": []
+          },
+          "demos": [],
+          "slots": [],
+          "events": [],
+          "metadata": {}
+        }
+      ]
+    }
+  ]
+}
