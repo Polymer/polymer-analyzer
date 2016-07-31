@@ -98,7 +98,7 @@ function serializeElementDescriptor(
       (elementDescriptor.properties || [])
           .filter(p => p.notify)
           .map(p => ({
-                 name: `${p.name}-changed`,
+                 name: `${camelCaseToWordsWithHyphens(p.name)}-changed`,
                  type: 'CustomEvent',
                  description: `Fired when the \`${p.name}\` property changes.`
                }));
@@ -148,8 +148,10 @@ function serializePropertyDescriptor(p: PropertyDescriptor): Property {
 function computeAttributesFromPropertyDescriptors(props: PropertyDescriptor[]):
     Attribute[] {
   return props.map(prop => {
-    const attribute:
-        Attribute = {name: prop.name, description: prop.desc || ''};
+    const attribute: Attribute = {
+      name: camelCaseToWordsWithHyphens(prop.name),
+      description: prop.desc || ''
+    };
     if (prop.type) {
       attribute.type = prop.type;
     }
@@ -320,4 +322,12 @@ class AnalysisWalker {
       }
     }
   }
+}
+
+function camelCaseToWordsWithHyphens(camelCased: string): string {
+  return camelCased
+      .replace(
+          /(.)([A-Z])/g,
+          (_: string, c1: string, c2: string) => `${c1}-${c2.toLowerCase()}`)
+      .toLowerCase();
 }
