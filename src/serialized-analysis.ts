@@ -1,9 +1,48 @@
+/**
+ * @license
+ * Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+ * This code may only be used under the BSD style license found at
+ * polymer.github.io/LICENSE.txt
+ * The complete set of authors may be found at
+ * polymer.github.io/AUTHORS.txt
+ * The complete set of contributors may be found at
+ * polymer.github.io/CONTRIBUTORS.txt
+ * Code distributed by Google as part of the polymer project is also
+ * subject to an additional IP rights grant found at
+ * polymer.github.io/PATENTS.txt
+ */
+
 export interface SerializedAnalysis {
   // TODO(rictic): once this schema has stabilized, put the json file somewhere
   // and reference it like:
   // $schema: 'http://polymer-project.org/schema/v1/analysis.json';
   packages: Package[];
 }
+
+/**
+ * The base interface, holding properties common to all nodes.
+ */
+export interface Node {
+  /** Where this feature is defined in source code. */
+  sourceLocation?: {
+    /** Line number, zero indexed. */
+    line: number;
+    /** Column number, zero indexed. */
+    column: number;
+  };
+
+  /**
+   * An extension point for framework-specific metadata, as well as any
+   * metadata not yet standardized here such as what polyfills are needed,
+   * behaviors and mixins used, the framework that the element was written in,
+   * tags/categories, links to specs that the element implements, etc.
+   *
+   * Framework-specific metadata should be put into a sub-object with the name
+   * of that framework.
+   */
+  metadata?: any;
+}
+
 
 export interface Package {
   /** The name of the package, like `paper-button` */
@@ -21,7 +60,7 @@ export interface Package {
   elements: Element[];
 }
 
-export interface Element {
+export interface Element extends Node {
   /**
    * The path, relative to the base directory of the package.
    *
@@ -117,17 +156,9 @@ export interface Element {
     // Would be nice to document the default styling a bit here, whether it's
     // display: block or inline or whatever.
   };
-
-  /**
-   * An extension point for framework-specific metadata, as well as any
-   * metadata not yet standardized here such as what polyfills are needed,
-   * behaviors and mixins used, the framework that the element was written in,
-   * tags/categories, links to specs that the element implements, etc.
-   */
-  metadata: any;
 }
 
-export interface Attribute {
+export interface Attribute extends Node {
   /** The name of the attribute. e.g. `value`, `icon`, `should-collapse`. */
   name: string;
 
@@ -143,9 +174,12 @@ export interface Attribute {
 
   /** The default value of the attribute, if any. */
   defaultValue?: string;
+
+  // We need some way of representing that this attribute is associated with a
+  // property. TBD.
 }
 
-export interface Property {
+export interface Property extends Node {
   /** The name of the property. e.g. `value`, `icon`, `shouldCollapse`. */
   name: string;
 
@@ -165,16 +199,9 @@ export interface Property {
 
   /** Nested subproperties hanging off of this property. */
   properties?: Property[];
-
-  /**
-   * An extension point for framework-specific metadata, as well as any
-   * metadata not yet standardized here such as associated events and
-   * observers.
-   */
-  metadata?: any;
 }
 
-export interface Event {
+export interface Event extends Node {
   /** The name of the event. */
   name: string;
 
@@ -189,9 +216,12 @@ export interface Event {
 
   /** Information about the `detail` field of the event. */
   detail?: {properties: Property[]};
+
+  // Should we have a way of associating an event with an attribute or a
+  // property?
 }
 
-export interface Slot {
+export interface Slot extends Node {
   /** The name of the slot. e.g. `banner`, `body`, `tooltipContents` */
   name: string;
 

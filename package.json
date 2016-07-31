@@ -19,7 +19,8 @@
   "scripts": {
     "clean": "mkdir -p lib/ && rm -rf lib/",
     "compile": "tsc",
-    "build": "mkdir -p lib/ && cp -r src/test lib/ && npm run compile && typson schema src/serialized-analysis.ts SerializedAnalysis > lib/analysis.schema.json && node build-tools/fixup-schema.js",
+    "build": "mkdir -p lib/ && cp -r src/test lib/ && npm run compile && npm run generate-jsonschema",
+    "generate-jsonschema": "typson schema src/serialized-analysis.ts SerializedAnalysis > lib/analysis.schema.json && node build-tools/fixup-schema.js",
     "release": "npm run compile",
     "build:watch": "watch 'npm run build' ./src",
     "lint": "gulp lint",
