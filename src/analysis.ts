@@ -1,3 +1,17 @@
+/**
+ * @license
+ * Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+ * This code may only be used under the BSD style license found at
+ * http://polymer.github.io/LICENSE.txt
+ * The complete set of authors may be found at
+ * http://polymer.github.io/AUTHORS.txt
+ * The complete set of contributors may be found at
+ * http://polymer.github.io/CONTRIBUTORS.txt
+ * Code distributed by Google as part of the polymer project is also
+ * subject to an additional IP rights grant found at
+ * http://polymer.github.io/PATENTS.txt
+ */
+
 import * as fs from 'fs';
 import * as jsonschema from 'jsonschema';
 import * as path from 'path';
@@ -23,9 +37,10 @@ export class ValidationError extends Error {
 }
 
 export class Analysis {
-  descriptors_: DocumentDescriptor[];
+  _descriptors: DocumentDescriptor[];
+
   constructor(descriptors: DocumentDescriptor[]) {
-    this.descriptors_ = descriptors;
+    this._descriptors = descriptors;
   }
 
   /**
@@ -238,7 +253,7 @@ class AnalysisWalker {
   }
   walk(visitors: AnalysisVisitor[]) {
     this.path.length = 0;
-    for (const descriptor of this.analysis.descriptors_) {
+    for (const descriptor of this.analysis._descriptors) {
       this._walkDocumentDescriptor(descriptor, visitors);
     }
     for (const visitor of visitors) {
