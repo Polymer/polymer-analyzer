@@ -19,7 +19,7 @@ import * as path from 'path';
 import {Descriptor, DocumentDescriptor, ElementDescriptor, InlineDocumentDescriptor, PropertyDescriptor} from './ast/ast';
 import {JsonDocument} from './json/json-document';
 import {Document} from './parser/document';
-import {Attribute, Element, Event, Package, Property, SerializedAnalysis} from './serialized-analysis';
+import {AnalyzedPackage, Attribute, Element, Event, Property} from './serialized-analysis';
 
 const validator = new jsonschema.Validator();
 const schema = JSON.parse(
@@ -36,6 +36,7 @@ export class ValidationError extends Error {
   }
 }
 
+
 export class Analysis {
   _descriptors: DocumentDescriptor[];
 
@@ -47,8 +48,8 @@ export class Analysis {
    * Throws if the given object isn't a valid SerializedAnalysis according to
    * the JSON schema.
    */
-  static validate(serializedAnalysis: SerializedAnalysis) {
-    const result = validator.validate(serializedAnalysis, schema);
+  static validate(analyzedPackage: AnalyzedPackage) {
+    const result = validator.validate(analyzedPackage, schema);
     if (result.throwError) {
       throw result.throwError;
     }
@@ -57,13 +58,13 @@ export class Analysis {
     }
   }
 
-  serialize(): SerializedAnalysis {
+  serialize(): AnalyzedPackage[] {
     const packageGatherer = new PackageGatherer();
     const elementsGatherer = new ElementGatherer();
     const walker =
         new AnalysisWalker(this).walk([packageGatherer, elementsGatherer]);
 
-    const packagesByDir: Map<string|null, Package> =
+    const packagesByDir: Map<string|null, AnalyzedPackage> =
         packageGatherer.packagesByDir;
     const elements = elementsGatherer.elements;
     const elementsByPackageDir = new Map<string, Element[]>();
@@ -74,7 +75,8 @@ export class Analysis {
                .filter(dir => dir && element.path.startsWith(dir)))
               .sort((a, b) => b.length - a.length)[0];
       if (!longestMatchingPackageDir) {
-        let pckg = packagesByDir.get(null) || {elements: []};
+        let pckg =
+            packagesByDir.get(null) || {schema_version: '1.0.0', elements: []};
         pckg.elements.push(element);
         packagesByDir.set(null, pckg);
       } else {
@@ -88,7 +90,7 @@ export class Analysis {
       }
     }
 
-    return {packages: Array.from(packagesByDir.values())};
+    return Array.from(packagesByDir.values());
   }
 }
 
@@ -116,7 +118,7 @@ function serializeElementDescriptor(
     properties: properties.map(serializePropertyDescriptor),
     styling: {
       cssVariables: [],
-      classes: [],
+      selectors: [],
     },
     demos: (elementDescriptor.demos || []).map(d => d.path),
     slots: [],
@@ -164,7 +166,7 @@ function computeAttributesFromPropertyDescriptors(props: PropertyDescriptor[]):
 
 class PackageGatherer implements AnalysisVisitor {
   private packageFiles: JsonDocument[] = [];
-  packagesByDir = new Map<string, Package>();
+  packagesByDir = new Map<string, AnalyzedPackage>();
   visitDocument(document: Document<any, any>, path: Descriptor[]): void {
     if (document instanceof JsonDocument &&
         (document.url.endsWith('package.json') ||
@@ -177,33 +179,8 @@ class PackageGatherer implements AnalysisVisitor {
     for (const packageFile of this.packageFiles) {
       const dirname = path.dirname(packageFile.url);
       if (!this.packagesByDir.has(dirname)) {
-        this.packagesByDir.set(dirname, {elements: []});
-      }
-      const pckg = <Package>this.packagesByDir.get(dirname);
-      const fileContents: {name: string, version: string} =
-          <any>packageFile.ast;
-
-      const strictFields = ['name', 'version'];
-      for (const field of strictFields) {
-        if (!fileContents[field]) {
-          throw new Error(
-              `Found bad package metadata at ${packageFile.url}.` +
-              ` Missing field \`${field}\``);
-        }
-        if (pckg[field] && pckg[field] !== fileContents[field]) {
-          throw new Error(
-              `Conflict in package metadata for directory \`${dirname}\`.` +
-              ` ${field} was found to be \`${pckg[field]}\` but ` +
-              `${packageFile.url} has the value \`${fileContents[field]}\``);
-        }
-      }
-
-      pckg.name = fileContents.name;
-      pckg.version = fileContents.version;
-      if (packageFile.url.endsWith('bower.json')) {
-        pckg.bowerMetadata = fileContents;
-      } else if (packageFile.url.endsWith('package.json')) {
-        pckg.npmPackage = fileContents;
+        this.packagesByDir.set(
+            dirname, {schema_version: '1.0.0', elements: []});
       }
     }
   }

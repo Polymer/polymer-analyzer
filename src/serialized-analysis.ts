@@ -2,37 +2,22 @@
  * @license
  * Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
  * This code may only be used under the BSD style license found at
- * polymer.github.io/LICENSE.txt
+ * http://polymer.github.io/LICENSE.txt
  * The complete set of authors may be found at
- * polymer.github.io/AUTHORS.txt
+ * http://polymer.github.io/AUTHORS.txt
  * The complete set of contributors may be found at
- * polymer.github.io/CONTRIBUTORS.txt
+ * http://polymer.github.io/CONTRIBUTORS.txt
  * Code distributed by Google as part of the polymer project is also
  * subject to an additional IP rights grant found at
- * polymer.github.io/PATENTS.txt
+ * http://polymer.github.io/PATENTS.txt
  */
-// DO NOT SUBMIT without regex-removing the problematic parts of the orignal
-// license
-// before passing to typson.
-
-export interface SerializedAnalysis {
-  // TODO(rictic): once this schema has stabilized, put the json file somewhere
-  // and reference it like:
-  // $schema: 'http://polymer-project.org/schema/v1/analysis.json';
-  packages: Package[];
-}
 
 /**
- * The base interface, holding properties common to all nodes.
+ * The base interface, holding properties common to many nodes.
  */
 export interface Node {
   /** Where this feature is defined in source code. */
-  sourceLocation?: {
-    /** Line number, zero indexed. */
-    line: number;
-    /** Column number, zero indexed. */
-    column: number;
-  };
+  sourceLocation?: SourceLocation;
 
   /**
    * An extension point for framework-specific metadata, as well as any
@@ -46,20 +31,23 @@ export interface Node {
   metadata?: any;
 }
 
+export interface SourceLocation {
+  /** Line number, zero indexed. */
+  line: number;
+  /** Column number, zero indexed. */
+  column: number;
+  /**
+   * Path to file, relative to the package base. If not present, is the
+   * element's file.
+   */
+  file?: string;
+}
 
-export interface Package {
-  /** The name of the package, like `paper-button` */
-  name?: string;
-  /** The version, extracted from package.json, bower.json, etc as available. */
-  version?: string;
-
-  /** The npm metadata of the package, if any. */
-  npmPackage?: NpmPackage;
-
-  /** The bower metadata of the package, if any. */
-  bowerMetadata?: BowerMetadata;
-
-  /** Elements found inside the package. */
+export interface AnalyzedPackage {
+  schema_version: '1.0.0';
+  // TODO(rictic): once this schema has stabilized, put the json file somewhere
+  // and reference it like:
+  // $schema: 'http://polymer-project.org/schema/v1/analysis.json';
   elements: Element[];
 }
 
@@ -79,7 +67,8 @@ export interface Element extends Node {
   description: string;
 
   /**
-   * Paths, relative to `this.path` to demo pages for the element.
+   * Paths, relative to the base directory of the package, to demo pages for the
+   * element.
    *
    * e.g. `['demos/index.html', 'demos/extended.html']`
    */
@@ -126,11 +115,14 @@ export interface Element extends Node {
   /** Information useful for styling the element and its children. */
   styling: {
 
-    /** CSS Classes that produce built-in custom styling for the element. */
-    classes: {
-      /** The name of the class. e.g. `bright`, `cascade`, `ominous_pulsing` */
-      name: string;
-      /** A markdown description of the class and what effects it has. */
+    /** CSS selectors that the element recognizes on itself for styling. */
+    selectors: {
+      /** The CSS selector. e.g. `.bright`, `[height=5]`, `[cascade]`. */
+      value: string;
+      /**
+       * A markdown description of the effect of this selector matching
+       * on the element.
+       */
       description: string;
     }[];
 
@@ -175,7 +167,12 @@ export interface Attribute extends Node {
    */
   type?: string;
 
-  /** The default value of the attribute, if any. */
+  /**
+   * The default value of the attribute, if any.
+   *
+   * As attributes are always strings, this is the actual value, not a human
+   * readable description.
+   */
   defaultValue?: string;
 
   // We need some way of representing that this attribute is associated with a
@@ -197,7 +194,10 @@ export interface Property extends Node {
    */
   type: string;
 
-  /** A string representation of the default value. */
+  /**
+   * A string representation of the default value. Intended only to be human
+   * readable, so may be a description, an identifier name, etc.
+   */
   defaultValue?: string;
 
   /** Nested subproperties hanging off of this property. */
@@ -232,18 +232,4 @@ export interface Slot extends Node {
   description: string;
 
   // Something about fallback perhaps?
-}
-
-export interface NpmPackage {
-  name: string;
-  version: string;
-  description?: string;
-  // ... etc
-}
-
-export interface BowerMetadata {
-  name: string;
-  version: string;
-  description?: string;
-  // ... etc
 }

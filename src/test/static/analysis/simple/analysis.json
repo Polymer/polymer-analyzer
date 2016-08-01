@@ -1,13 +1,7 @@
 {
   "packages": [
     {
-      "name": "simple-element",
-      "version": "1.0.0",
-      "npmPackage": {
-        "name": "simple-element",
-        "version": "1.0.0",
-        "description": "A super simple element."
-      },
+      "schema_version": "1.0.0",
       "elements": [
         {
           "tagname": "simple-element",
@@ -35,7 +29,7 @@
           ],
           "styling": {
             "cssVariables": [],
-            "classes": []
+            "selectors": []
           },
           "demos": [],
           "slots": [],

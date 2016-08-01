@@ -1,6 +1,7 @@
 {
   "packages": [
     {
+      "schema_version": "1.0.0",
       "elements": [
         {
           "tagname": "el-el",
@@ -11,7 +12,7 @@
           "properties": [],
           "styling": {
             "cssVariables": [],
-            "classes": []
+            "selectors": []
           },
           "demos": [],
           "slots": [],
@@ -27,7 +28,7 @@
           "properties": [],
           "styling": {
             "cssVariables": [],
-            "classes": []
+            "selectors": []
           },
           "demos": [],
           "slots": [],

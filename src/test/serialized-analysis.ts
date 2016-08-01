@@ -1,7 +1,9 @@
-import {BowerMetadata, Element, SerializedAnalysis} from '../serialized-analysis';
+import {AnalyzedPackage, Element} from '../serialized-analysis';
+
 
 
 // An example, the correct compilation thereof acts as a test.
+// TODO(rictic): once the tests are typescript, move this there.
 const paperButtonElement: Element = {
   path: 'paper-button.html',
   tagname: 'paper-button',
@@ -19,9 +21,9 @@ const paperButtonElement: Element = {
       name: 'elevation',
       type: 'number',
       description: `
-  The z-depth of this element, from 0-5. Setting to 0 will remove the
-  shadow, and each increasing number greater than 0 will be "deeper"
-  than the last.`.trim()
+The z-depth of this element, from 0-5. Setting to 0 will remove the
+shadow, and each increasing number greater than 0 will be "deeper"
+than the last.`.trim()
     },
     {name: 'role', defaultValue: 'button'},
     {name: 'tabindex', defaultValue: '0'},
@@ -35,7 +37,7 @@ const paperButtonElement: Element = {
       defaultValue: 'false',
       metadata: {
         polymer: {reflectToAttribute: true, observer: '_calculateElevation'}
-      }
+      },
     },
     {
       name: 'elevation',
@@ -65,7 +67,7 @@ the ripple animation finishes to perform some action.`.trim(),
   }],
   slots: [{name: '', description: 'The body of the button.'}],
   styling: {
-    classes: [],
+    selectors: [],
     cssVariables: [
       {
         name: '--paper-button-ink-color',
@@ -173,44 +175,7 @@ Custom property | Description | Default
 
 };
 
-const paperButton: SerializedAnalysis = {
-  packages: [{
-    name: 'paper-button',
-    version: '1.0.12',
-    bowerMetadata: <BowerMetadata>{
-      'name': 'paper-button',
-      'version': '1.0.12',
-      'description': 'Material design button',
-      'authors': ['The Polymer Authors'],
-      'keywords':
-          ['web-components', 'web-component', 'polymer', 'paper', 'button'],
-      'main': 'paper-button.html',
-      'private': true,
-      'repository': {
-        'type': 'git',
-        'url': 'git://github.com/PolymerElements/paper-button.git'
-      },
-      'license': 'http://polymer.github.io/LICENSE.txt',
-      'homepage': 'https://github.com/PolymerElements/paper-button',
-      'dependencies': {
-        'polymer': 'Polymer/polymer#^1.1.0',
-        'iron-flex-layout': 'PolymerElements/iron-flex-layout#^1.0.0',
-        'paper-behaviors': 'PolymerElements/paper-behaviors#^1.0.0',
-        'paper-material': 'PolymerElements/paper-material#^1.0.0'
-      },
-      'devDependencies': {
-        'iron-component-page': 'PolymerElements/iron-component-page#^1.0.0',
-        'iron-demo-helpers': 'PolymerElements/iron-demo-helpers#^1.0.0',
-        'iron-icon': 'PolymerElements/iron-icon#^1.0.0',
-        'iron-icons': 'PolymerElements/iron-icons#^1.0.0',
-        'iron-test-helpers': 'PolymerElements/iron-test-helpers#^1.0.0',
-        'paper-styles': 'PolymerElements/paper-styles#^1.0.0',
-        'test-fixture': 'PolymerElements/test-fixture#^1.0.0',
-        'web-component-tester': '^4.0.0',
-        'webcomponentsjs': 'webcomponents/webcomponentsjs#^0.7.0'
-      },
-      'ignore': []
-    },
-    elements: [paperButtonElement]
-  }],
+const paperButton: AnalyzedPackage = {
+  schema_version: '1.0.0',
+  elements: [paperButtonElement]
 };

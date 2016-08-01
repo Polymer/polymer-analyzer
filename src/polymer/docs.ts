@@ -340,7 +340,7 @@ export function featureElement(features: FeatureDescriptor[]):
         return result.concat(feature.properties);
       }, []);
 
-  return {
+  return new ElementDescriptor({
     type: 'element',
     is: 'Polymer.Base',
     abstract: true,
@@ -356,7 +356,7 @@ export function featureElement(features: FeatureDescriptor[]):
     behaviors: [],
     demos: [],
     events: []
-  };
+  });
 }
 
 /**
@@ -420,7 +420,7 @@ export function parsePseudoElements(comments: string[]): ElementDescriptor[] {
     const parsedJsdoc = jsdoc.parseJsdoc(comment);
     const pseudoTag = jsdoc.getTag(parsedJsdoc, 'pseudoElement', 'name');
     if (pseudoTag) {
-      let element: ElementDescriptor = {
+      let element = new ElementDescriptor({
         is: pseudoTag,
         type: 'element',
         jsdoc: {description: parsedJsdoc.description, tags: parsedJsdoc.tags},
@@ -430,7 +430,7 @@ export function parsePseudoElements(comments: string[]): ElementDescriptor[] {
         events: [],
         demos: [],
         behaviors: []
-      };
+      });
       annotateElementHeader(element);
       elements.push(element);
     }

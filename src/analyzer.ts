@@ -31,6 +31,7 @@ import {JavaScriptParser} from './javascript/javascript-parser';
 import {JsonParser} from './json/json-parser';
 import {Document} from './parser/document';
 import {Parser} from './parser/parser';
+import {BehaviorFinder} from './polymer/behavior-finder';
 import {PolymerElementFinder} from './polymer/polymer-element-finder';
 import {UrlLoader} from './url-loader/url-loader';
 
@@ -51,7 +52,7 @@ export interface Options {
 export class Analyzer {
   private _parsers: Map<string, Parser<any>> = new Map<string, Parser<any>>([
     ['html', new HtmlParser(this)],
-    ['js', new JavaScriptParser(this)],
+    ['js', new JavaScriptParser()],
     ['css', new CssParser(this)],
     ['json', new JsonParser()],
   ]);
@@ -61,12 +62,12 @@ export class Analyzer {
       'html',
       [new HtmlImportFinder(), new HtmlScriptFinder(), new HtmlStyleFinder()]
     ],
-    ['js', [new PolymerElementFinder()]],
+    ['js', [new PolymerElementFinder(), new BehaviorFinder()]],
   ]);
 
   private _loader: UrlLoader;
   private _documents = new Map<string, Promise<Document<any, any>>>();
-  private _documentDescriptors = new Map<string, Promise<DocumentDescriptor>>();
+  _documentDescriptors = new Map<string, Promise<DocumentDescriptor>>();
 
   constructor(options: Options) {
     this._loader = options.urlLoader;

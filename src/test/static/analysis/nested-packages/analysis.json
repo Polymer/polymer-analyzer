@@ -11,7 +11,7 @@
           "properties": [],
           "styling": {
             "cssVariables": [],
-            "classes": []
+            "selectors": []
           },
           "demos": [],
           "slots": [],
@@ -27,7 +27,7 @@
           "properties": [],
           "styling": {
             "cssVariables": [],
-            "classes": []
+            "selectors": []
           },
           "demos": [],
           "slots": [],
@@ -35,12 +35,7 @@
           "metadata": {}
         }
       ],
-      "name": "outer-package",
-      "version": "1.0.0",
-      "bowerMetadata": {
-        "name": "outer-package",
-        "version": "1.0.0"
-      }
+      "schema_version": "1.0.0"
     },
     {
       "elements": [
@@ -53,7 +48,7 @@
           "properties": [],
           "styling": {
             "cssVariables": [],
-            "classes": []
+            "selectors": []
           },
           "demos": [],
           "slots": [],
@@ -69,7 +64,7 @@
           "properties": [],
           "styling": {
             "cssVariables": [],
-            "classes": []
+            "selectors": []
           },
           "demos": [],
           "slots": [],
@@ -77,12 +72,8 @@
           "metadata": {}
         }
       ],
-      "name": "package-a",
-      "version": "1.0.1",
-      "npmPackage": {
-        "name": "package-a",
-        "version": "1.0.1"
-      }
+
+      "schema_version": "1.0.0"
     },
     {
       "elements": [
@@ -95,7 +86,7 @@
           "properties": [],
           "styling": {
             "cssVariables": [],
-            "classes": []
+            "selectors": []
           },
           "demos": [],
           "slots": [],
@@ -103,12 +94,7 @@
           "metadata": {}
         }
       ],
-      "name": "package-b",
-      "version": "5.7.0",
-      "npmPackage": {
-        "name": "package-b",
-        "version": "5.7.0"
-      }
+      "schema_version": "1.0.0"
     }
   ]
 }
