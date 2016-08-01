@@ -16,14 +16,14 @@
           "path": "simple-element.html",
           "attributes": [
             {
-              "name": "value",
+              "name": "the-value",
               "description": "",
               "type": "String"
             }
           ],
           "properties": [
             {
-              "name": "value",
+              "name": "theValue",
               "type": "String",
               "description": "",
               "metadata": {
@@ -41,9 +41,9 @@
           "slots": [],
           "events": [
             {
-              "name": "value-changed",
+              "name": "the-value-changed",
               "type": "CustomEvent",
-              "description": "Fired when the `value` property changes."
+              "description": "Fired when the `theValue` property changes."
             }
           ],
           "metadata": {}

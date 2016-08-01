@@ -62,7 +62,7 @@ suite('Analysis', function() {
 
 function analyzeDir(baseDir: string): Analyzer {
   const analyzer = new Analyzer({urlLoader: new FSUrlLoader(baseDir)});
-  const _analyzeDir = (dir: string): void => {
+  function _analyzeDir(dir: string): void {
     for (const filename of fs.readdirSync(dir)) {
       const fullPath = path.join(dir, filename);
       if (fs.statSync(fullPath).isDirectory()) {

@@ -81,14 +81,15 @@ export class Analyzer {
    * @return {Promise<DocumentDescriptor>}
    */
   async analyze(url: string): Promise<DocumentDescriptor> {
-    if (this._documentDescriptors.has(url)) {
-      return this._documentDescriptors.get(url);
+    const cachedResult = this._documentDescriptors.get(url);
+    if (cachedResult) {
+      return cachedResult;
     }
-    let promise = (async() => {
+    const promise = (async() => {
       // Make sure we wait and return a Promise before doing any work, so that
       // the Promise can be cached.
       await Promise.resolve();
-      let document = await this.load(url);
+      const document = await this.load(url);
       return this.analyzeDocument(document);
     })();
     this._documentDescriptors.set(url, promise);
@@ -123,6 +124,8 @@ export class Analyzer {
         return this.analyzeSource(d.type, d.contents, document.url);
       } else if (d instanceof ImportDescriptor) {
         return this.analyze(d.url);
+      } else {
+        throw new Error(`Unexpected dependency type: ${d}`);
       }
     });
 
@@ -137,8 +140,9 @@ export class Analyzer {
    */
   async load(url: string): Promise<Document<any, any>> {
     // TODO(justinfagnani): normalize url
-    if (this._documents.has(url)) {
-      return this._documents.get(url);
+    const cachedResult = this._documents.get(url);
+    if (cachedResult) {
+      return cachedResult;
     }
     if (!this._loader.canLoad(url)) {
       throw new Error(`Can't load URL: ${url}`);
