@@ -54,10 +54,6 @@ suite('Analyzer', () => {
       await invertPromise(analyzer.load('/static/not-found'));
     });
 
-    test.skip('returns a Promise that rejects for malformed files', async() => {
-      await invertPromise(analyzer.load('/static/malformed.html'));
-    });
-
   });
 
   suite('analyze()', () => {
@@ -110,6 +106,11 @@ suite('Analyzer', () => {
       // check de-duplication
       assert.equal(inlineAndImports.dependencies[1], leaf);
     });
+
+    test('returns a Promise that rejects for malformed files', async() => {
+      await invertPromise(analyzer.analyze('/static/malformed.html'));
+    });
+
   });
 
   suite('getEntities()', () => {
@@ -182,14 +183,13 @@ suite('Analyzer', () => {
     });
 
     // ported from old js-parser_test.js
-    test.skip('parses events from classes', () => {
+    test('parses events from classes', () => {
       return analyzer.analyze('static/es6-support.js').then((document) => {
         let elements = <ElementDescriptor[]>document.entities.filter(
             (e) => e['type'] === 'element');
         assert.equal(elements.length, 2);
 
         let element1 = elements[0];
-        // TODO(justinfagnani): fix events
         assert.equal(element1.events.length, 1);
       });
     });
