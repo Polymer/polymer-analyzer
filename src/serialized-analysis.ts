@@ -11,6 +11,9 @@
  * subject to an additional IP rights grant found at
  * polymer.github.io/PATENTS.txt
  */
+// DO NOT SUBMIT without regex-removing the problematic parts of the orignal
+// license
+// before passing to typson.
 
 export interface SerializedAnalysis {
   // TODO(rictic): once this schema has stabilized, put the json file somewhere
