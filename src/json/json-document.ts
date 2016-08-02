@@ -12,23 +12,41 @@
  * http://polymer.github.io/PATENTS.txt
  */
 
-
 import {Document, Options} from '../parser/document';
 
-export interface Visitor { 'I should not have implemented this'(): never; }
+export type Json = JsonObject | JsonArray | number | string | boolean | null;
+export interface JsonObject { [key: string]: Json; }
+export interface JsonArray extends Array<Json> {}
 
-export class JsonDocument extends Document<Object, Visitor> {
+export interface Visitor { visit(node: Json): void; }
+
+export class JsonDocument extends Document<Json, Visitor> {
   type = 'json';
 
-  constructor(from: Options<Object>) {
+  constructor(from: Options<Json>) {
     super(from);
   }
 
   visit(visitors: Visitor[]) {
-    throw new Error('Not implemented');
+    this._visit(this.ast, visitors);
+  }
+
+  private _visit(node: Json, visitors: Visitor[]) {
+    for (const visitor of visitors) {
+      visitor.visit(node);
+    };
+    if (Array.isArray(node)) {
+      for (const value of node) {
+        this._visit(value, visitors);
+      }
+    } else if (typeof node === 'object' && node !== null) {
+      for (const value of Object.values(node)) {
+        this._visit(value, visitors);
+      }
+    }
   }
 
   forEachNode(callback: (node: any) => void) {
-    throw new Error('Not implemented');
+    this.visit([{visit: callback}]);
   }
 }
