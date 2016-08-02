@@ -20,6 +20,7 @@ import {Descriptor, DocumentDescriptor, ElementDescriptor, InlineDocumentDescrip
 import {JsonDocument} from './json/json-document';
 import {Document} from './parser/document';
 import {AnalyzedPackage, Attribute, Element, Event, Property} from './serialized-analysis';
+import {camelCaseToKebab, trimLeft} from './utils';
 
 const validator = new jsonschema.Validator();
 const schema = JSON.parse(
@@ -103,7 +104,7 @@ function serializeElementDescriptor(
       (elementDescriptor.properties || [])
           .filter(p => p.notify)
           .map(p => ({
-                 name: `${camelCaseToWordsWithHyphens(p.name)}-changed`,
+                 name: `${camelCaseToKebab(p.name)}-changed`,
                  type: 'CustomEvent',
                  description: `Fired when the \`${p.name}\` property changes.`
                }));
@@ -154,7 +155,7 @@ function computeAttributesFromPropertyDescriptors(props: PropertyDescriptor[]):
     Attribute[] {
   return props.map(prop => {
     const attribute: Attribute = {
-      name: camelCaseToWordsWithHyphens(prop.name),
+      name: camelCaseToKebab(prop.name),
       description: prop.desc || ''
     };
     if (prop.type) {
@@ -291,19 +292,4 @@ class AnalysisWalker {
       }
     }
   }
-}
-
-function camelCaseToWordsWithHyphens(camelCased: string): string {
-  return camelCased
-      .replace(
-          /(.)([A-Z])/g,
-          (_: string, c1: string, c2: string) => `${c1}-${c2.toLowerCase()}`)
-      .toLowerCase();
-}
-
-function trimLeft(str: string, char: string): string {
-  while (str[0] === char) {
-    str = str.substring(1);
-  }
-  return str;
 }
