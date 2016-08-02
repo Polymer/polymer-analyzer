@@ -168,19 +168,19 @@ function computeAttributesFromPropertyDescriptors(props: PropertyDescriptor[]):
 }
 
 class PackageGatherer implements AnalysisVisitor {
-  private packageFiles: JsonDocument[] = [];
+  private packageFiles: string[] = [];
   packagesByDir = new Map<string, AnalyzedPackage>();
-  visitDocument(document: Document<any, any>, path: Descriptor[]): void {
-    if (document instanceof JsonDocument &&
-        (document.url.endsWith('package.json') ||
-         document.url.endsWith('bower.json'))) {
-      this.packageFiles.push(document);
+  visitDocumentDescriptor(dd: DocumentDescriptor, path: Descriptor[]): void {
+    if (dd.document instanceof JsonDocument &&
+        (dd.document.url.endsWith('package.json') ||
+         dd.document.url.endsWith('bower.json'))) {
+      this.packageFiles.push(dd.document.url);
     }
   }
 
   done() {
     for (const packageFile of this.packageFiles) {
-      const dirname = path.dirname(packageFile.url);
+      const dirname = path.dirname(packageFile);
       if (!this.packagesByDir.has(dirname)) {
         this.packagesByDir.set(
             trimLeft(dirname, '/'), {schema_version: '1.0.0', elements: []});
@@ -223,7 +223,6 @@ abstract class AnalysisVisitor {
   visitInlineDocumentDescriptor?
       (dd: InlineDocumentDescriptor<any>, path: Descriptor[]): void;
   visitElement?(element: ElementDescriptor, path: Descriptor[]): void;
-  visitDocument?(document: Document<any, any>, path: Descriptor[]): void;
   done?(): void;
 }
 
@@ -261,7 +260,6 @@ class AnalysisWalker {
     for (const dependency of dd.dependencies) {
       this._walkEntity(dependency, visitors);
     }
-    this._walkDocument(dd.document, visitors);
     this.path.pop();
   }
 
@@ -290,15 +288,6 @@ class AnalysisWalker {
     for (const visitor of visitors) {
       if (visitor.visitElement) {
         visitor.visitElement(element, this.path);
-      }
-    }
-  }
-
-  private _walkDocument(
-      document: Document<any, any>, visitors: AnalysisVisitor[]) {
-    for (const visitor of visitors) {
-      if (visitor.visitDocument) {
-        visitor.visitDocument(document, this.path);
       }
     }
   }
