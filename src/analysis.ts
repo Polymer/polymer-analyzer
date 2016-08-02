@@ -38,7 +38,7 @@ export class ValidationError extends Error {
 
 
 export class Analysis {
-  _descriptors: DocumentDescriptor[];
+  private _descriptors: DocumentDescriptor[];
 
   constructor(descriptors: DocumentDescriptor[]) {
     this._descriptors = descriptors;
@@ -66,8 +66,9 @@ export class Analysis {
   serialize(packagePath?: string): AnalyzedPackage {
     const packageGatherer = new PackageGatherer();
     const elementsGatherer = new ElementGatherer();
-    const walker =
-        new AnalysisWalker(this).walk([packageGatherer, elementsGatherer]);
+    new AnalysisWalker(this._descriptors).walk([
+      packageGatherer, elementsGatherer
+    ]);
 
     const packagesByDir: Map<string, AnalyzedPackage> =
         packageGatherer.packagesByDir;
@@ -227,14 +228,14 @@ abstract class AnalysisVisitor {
 }
 
 class AnalysisWalker {
-  analysis: Analysis;
+  private descriptors: DocumentDescriptor[];
   private path: Descriptor[] = [];
-  constructor(analysis: Analysis) {
-    this.analysis = analysis;
+  constructor(descriptors: DocumentDescriptor[]) {
+    this.descriptors = descriptors;
   }
   walk(visitors: AnalysisVisitor[]) {
     this.path.length = 0;
-    for (const descriptor of this.analysis._descriptors) {
+    for (const descriptor of this.descriptors) {
       this._walkDocumentDescriptor(descriptor, visitors);
     }
     for (const visitor of visitors) {

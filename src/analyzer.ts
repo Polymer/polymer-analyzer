@@ -67,7 +67,7 @@ export class Analyzer {
 
   private _loader: UrlLoader;
   private _documents = new Map<string, Promise<Document<any, any>>>();
-  _documentDescriptors = new Map<string, Promise<DocumentDescriptor>>();
+  private _documentDescriptors = new Map<string, Promise<DocumentDescriptor>>();
 
   constructor(options: Options) {
     this._loader = options.urlLoader;
