@@ -44,7 +44,7 @@ export interface SourceLocation {
 }
 
 export interface AnalyzedPackage {
-  schema_version: '1.0.0';
+  schema_version: string;
   // TODO(rictic): once this schema has stabilized, put the json file somewhere
   // and reference it like:
   // $schema: 'http://polymer-project.org/schema/v1/analysis.json';

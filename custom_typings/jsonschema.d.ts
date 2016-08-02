@@ -13,7 +13,7 @@ declare module 'jsonschema' {
     message: string;
     name: string;
     property: string;
-    schema: string;
+    schema: any;
     stack: string;
   }
   export class Validator {

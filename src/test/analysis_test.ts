@@ -19,6 +19,7 @@ import * as path from 'path';
 import {Analysis, ValidationError} from '../analysis';
 import {Analyzer} from '../analyzer';
 import {ElementDescriptor} from '../ast/ast';
+import {AnalyzedPackage} from '../serialized-analysis';
 import {FSUrlLoader} from '../url-loader/fs-url-loader';
 
 
@@ -54,18 +55,42 @@ suite('Analysis', function() {
     });
   }
 
-  test.skip('throws when validating an invalid SerializedAnalysis', function() {
+  test('throws when validating a valid AnalyzedPackage', function() {
     try {
-      Analysis.validate(<any>{foo: 'bar'});
+      Analysis.validate(<any>{});
     } catch (err) {
       assert.instanceOf(err, ValidationError);
       let valError: ValidationError = err;
       assert(valError.errors.length > 0);
-      assert.include(valError.message, 'requires property "packages"');
+      assert.include(valError.message, `requires property "elements"`);
       return;
     }
     throw new Error('expected Analysis validation to fail!');
   });
+
+  test(`doesn't throw when validating a valid AnalyzedPackage`, function() {
+    Analysis.validate({elements: [], schema_version: '1.0.0'});
+  });
+
+  test(`doesn't throw when validating a version from the future`, function() {
+    Analysis.validate(
+        <any>{elements: [], schema_version: '1.0.1', new_field: 'stuff here'});
+  });
+
+  test(`throws when validating a bad version`, function() {
+    try {
+      Analysis.validate(<any>{
+        elements: [],
+        schema_version: '5.1.1',
+        new_field: 'stuff here'
+      });
+    } catch (e) {
+      assert.include(e.message, 'Invalid schema_version in AnalyzedPackage');
+      return;
+    }
+    throw new Error('expected Analysis validation to fail!');
+  });
+
 });
 
 function analyzeDir(baseDir: string): Analyzer {
