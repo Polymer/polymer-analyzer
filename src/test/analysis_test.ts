@@ -33,7 +33,7 @@ suite('Analysis', function() {
   for (const analysisFixtureDir of analysisFixtureDirs) {
     const testBaseName = path.basename(analysisFixtureDir);
     const testDefiner = onlyTests.has(testBaseName) ? test.only : test;
-    const testName = `correctly produces a serialized analysis.json ` +
+    const testName = `correctly produces a serialized elements.json ` +
         `for fixture dir \`${testBaseName}\``;
     testDefiner(testName, async function() {
       const analysis = await analyzeDir(analysisFixtureDir).resolve();
@@ -47,7 +47,7 @@ suite('Analysis', function() {
         packages.add(analysisFixtureDir);
       }
       for (const packagePath of packages) {
-        const pathToCanonical = path.join(packagePath || '', 'analysis.json');
+        const pathToCanonical = path.join(packagePath || '', 'elements.json');
         const renormedPackagePath = packagePath ?
             packagePath.substring(analysisFixtureDir.length + 1) :
             packagePath;
