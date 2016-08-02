@@ -15,18 +15,18 @@
 'use strict';
 
 const depcheck_lib = require('depcheck');
-const eslint_lib = require('gulp-eslint');
 const fs = require('fs-extra');
 const gulp = require('gulp');
-const mergeStream = require('merge-stream');
+const eslint_lib = require('gulp-eslint');
 const mocha = require('gulp-mocha');
-const path = require('path');
-const runSeq = require('run-sequence');
+const newer = require('gulp-newer');
+const shell = require('gulp-shell');
 const tslint_lib = require('gulp-tslint');
 const typescript = require('gulp-typescript');
-const shell = require('gulp-shell');
+const mergeStream = require('merge-stream');
+const path = require('path');
+const runSeq = require('run-sequence');
 const typescript_lib = require('typescript');
-const newer = require('gulp-newer');
 
 function task(name, deps, impl) {
   if (gulp.hasTask(name)) {
