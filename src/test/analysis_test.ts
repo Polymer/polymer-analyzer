@@ -16,7 +16,7 @@ import {assert} from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
 
-import {Analysis, ValidationError} from '../analysis';
+import {Analysis, ValidationError, generateElementMetadata} from '../analysis';
 import {Analyzer} from '../analyzer';
 import {ElementDescriptor} from '../ast/ast';
 import {AnalyzedPackage} from '../serialized-analysis';
@@ -51,7 +51,7 @@ suite('Analysis', function() {
         const renormedPackagePath = packagePath ?
             packagePath.substring(analysisFixtureDir.length + 1) :
             packagePath;
-        const analyzedPackages = analysis.serialize(renormedPackagePath);
+        const analyzedPackages = generateElementMetadata(analysis, renormedPackagePath);
         Analysis.validate(analyzedPackages);
 
         try {

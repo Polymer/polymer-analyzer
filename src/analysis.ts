@@ -38,10 +38,10 @@ export class ValidationError extends Error {
 
 
 export class Analysis {
-  private _descriptors: DocumentDescriptor[];
+  descriptors: DocumentDescriptor[];
 
   constructor(descriptors: DocumentDescriptor[]) {
-    this._descriptors = descriptors;
+    this.descriptors = descriptors;
   }
 
   /**
@@ -62,39 +62,39 @@ export class Analysis {
           `Expected 1.x.x, got ${analyzedPackage.schema_version}`);
     }
   }
+}
 
-  serialize(packagePath?: string): AnalyzedPackage {
-    const packageGatherer = new PackageGatherer();
-    const elementsGatherer = new ElementGatherer();
-    new AnalysisWalker(this._descriptors).walk([
-      packageGatherer, elementsGatherer
-    ]);
+export function generateElementMetadata(
+    analysis: Analysis, packagePath?: string): AnalyzedPackage {
+  const packageGatherer = new PackageGatherer();
+  const elementsGatherer = new ElementGatherer();
+  new AnalysisWalker(analysis.descriptors).walk([
+    packageGatherer, elementsGatherer
+  ]);
 
-    const packagesByDir: Map<string, AnalyzedPackage> =
-        packageGatherer.packagesByDir;
-    const elements = elementsGatherer.elements;
-    const elementsByPackageDir = new Map<string, Element[]>();
+  const packagesByDir: Map<string, AnalyzedPackage> =
+      packageGatherer.packagesByDir;
+  const elements = elementsGatherer.elements;
+  const elementsByPackageDir = new Map<string, Element[]>();
 
-    for (const element of elementsGatherer.elements) {
-      const matchingPackageDirs =
-          <string[]>Array.from(packagesByDir.keys())
-              .filter(dir => trimLeft(element.path, '/').startsWith(dir));
-      const longestMatchingPackageDir =
-          matchingPackageDirs.sort((a, b) => b.length - a.length)[0] || '';
+  for (const element of elementsGatherer.elements) {
+    const matchingPackageDirs =
+        <string[]>Array.from(packagesByDir.keys())
+            .filter(dir => trimLeft(element.path, '/').startsWith(dir));
+    const longestMatchingPackageDir =
+        matchingPackageDirs.sort((a, b) => b.length - a.length)[0] || '';
 
-      if (longestMatchingPackageDir === '' && !packagesByDir.has('')) {
-        packagesByDir.set('', {schema_version: '1.0.0', elements: []});
-      }
-      packagesByDir.get(longestMatchingPackageDir)!.elements.push(element);
-      // We want element paths to be relative to the package directory.
-      element.path = trimLeft(
-          trimLeft(element.path, '/')
-              .substring(longestMatchingPackageDir.length),
-          '/');
+    if (longestMatchingPackageDir === '' && !packagesByDir.has('')) {
+      packagesByDir.set('', {schema_version: '1.0.0', elements: []});
     }
-
-    return packagesByDir.get(packagePath);
+    packagesByDir.get(longestMatchingPackageDir)!.elements.push(element);
+    // We want element paths to be relative to the package directory.
+    element.path = trimLeft(
+        trimLeft(element.path, '/').substring(longestMatchingPackageDir.length),
+        '/');
   }
+
+  return packagesByDir.get(packagePath);
 }
 
 function serializeElementDescriptor(
