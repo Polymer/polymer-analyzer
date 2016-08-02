@@ -38,19 +38,31 @@ suite('Analysis', function() {
     testDefiner(testName, async function() {
       const analysis = await analyzeDir(analysisFixtureDir).resolve();
 
-      const pathToCanonical = path.join(analysisFixtureDir, 'analysis.json');
-      const serializedAnalyses = analysis.serialize();
-      for (const analyzedPackages of serializedAnalyses) {
-        Analysis.validate(analyzedPackages);
+      const packages = new Set<string|null>(mapI(
+          filterI(
+              walkRecursively(analysisFixtureDir),
+              (p) => p.endsWith('bower.json') || p.endsWith('package.json')),
+          (p) => path.dirname(p)));
+      if (packages.size === 0) {
+        packages.add(analysisFixtureDir);
       }
-      try {
-        assert.deepEqual(
-            {packages: serializedAnalyses},
-            JSON.parse(fs.readFileSync(pathToCanonical, 'utf-8')));
-      } catch (e) {
-        console.log(
-            `Expected contents of ${pathToCanonical}:\n${JSON.stringify(serializedAnalyses, null, 2)}`);
-        throw e;
+      for (const packagePath of packages) {
+        const pathToCanonical = path.join(packagePath || '', 'analysis.json');
+        const renormedPackagePath = packagePath ?
+            packagePath.substring(analysisFixtureDir.length + 1) :
+            packagePath;
+        const analyzedPackages = analysis.serialize(renormedPackagePath);
+        Analysis.validate(analyzedPackages);
+
+        try {
+          assert.deepEqual(
+              analyzedPackages,
+              JSON.parse(fs.readFileSync(pathToCanonical, 'utf-8')));
+        } catch (e) {
+          console.log(
+              `Expected contents of ${pathToCanonical}:\n${JSON.stringify(analyzedPackages, null, 2)}`);
+          throw e;
+        }
       }
     });
   }
@@ -95,16 +107,35 @@ suite('Analysis', function() {
 
 function analyzeDir(baseDir: string): Analyzer {
   const analyzer = new Analyzer({urlLoader: new FSUrlLoader(baseDir)});
-  function _analyzeDir(dir: string): void {
-    for (const filename of fs.readdirSync(dir)) {
-      const fullPath = path.join(dir, filename);
-      if (fs.statSync(fullPath).isDirectory()) {
-        _analyzeDir(fullPath);
-      } else {
-        analyzer.analyze(fullPath.substring(baseDir.length));
-      }
-    }
-  };
-  _analyzeDir(baseDir);
+  for (const filename of walkRecursively(baseDir)) {
+    analyzer.analyze(filename.substring(baseDir.length));
+  }
   return analyzer;
+}
+
+function* filterI<T>(it: Iterable<T>, pred: (t: T) => boolean): Iterable<T> {
+  for (const inst of it) {
+    if (pred(inst)) {
+      yield inst;
+    }
+  }
+}
+
+function* mapI<T, U>(it: Iterable<T>, trans: (t: T) => U): Iterable<U> {
+  for (const inst of it) {
+    yield trans(inst);
+  }
+}
+
+function* walkRecursively(dir: string): Iterable<string> {
+  for (const filename of fs.readdirSync(dir)) {
+    const fullPath = path.join(dir, filename);
+    if (fs.statSync(fullPath).isDirectory()) {
+      for (const f of walkRecursively(fullPath)) {
+        yield f;
+      }
+    } else {
+      yield fullPath;
+    }
+  }
 }

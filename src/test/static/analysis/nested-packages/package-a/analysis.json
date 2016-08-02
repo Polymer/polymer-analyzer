@@ -1,11 +1,11 @@
+
 {
-  "schema_version": "1.0.0",
   "elements": [
     {
-      "tagname": "el-el",
+      "tagname": "an-element",
       "description": "",
       "superclass": "HTMLElement",
-      "path": "el.html",
+      "path": "an-element.html",
       "attributes": [],
       "properties": [],
       "styling": {
@@ -18,10 +18,10 @@
       "metadata": {}
     },
     {
-      "tagname": "sub-el",
+      "tagname": "another-element",
       "description": "",
       "superclass": "HTMLElement",
-      "path": "subdir/sub-el.html",
+      "path": "subdir/another-element.html",
       "attributes": [],
       "properties": [],
       "styling": {
@@ -33,5 +33,7 @@
       "events": [],
       "metadata": {}
     }
-  ]
+  ],
+
+  "schema_version": "1.0.0"
 }

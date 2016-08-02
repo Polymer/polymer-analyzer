@@ -63,39 +63,36 @@ export class Analysis {
     }
   }
 
-  serialize(): AnalyzedPackage[] {
+  serialize(packagePath?: string): AnalyzedPackage {
     const packageGatherer = new PackageGatherer();
     const elementsGatherer = new ElementGatherer();
     const walker =
         new AnalysisWalker(this).walk([packageGatherer, elementsGatherer]);
 
-    const packagesByDir: Map<string|null, AnalyzedPackage> =
+    const packagesByDir: Map<string, AnalyzedPackage> =
         packageGatherer.packagesByDir;
     const elements = elementsGatherer.elements;
     const elementsByPackageDir = new Map<string, Element[]>();
 
     for (const element of elementsGatherer.elements) {
+      const matchingPackageDirs =
+          <string[]>Array.from(packagesByDir.keys())
+              .filter(dir => trimLeft(element.path, '/').startsWith(dir));
       const longestMatchingPackageDir =
-          (<string[]>Array.from(packagesByDir.keys())
-               .filter(dir => dir && element.path.startsWith(dir)))
-              .sort((a, b) => b.length - a.length)[0];
-      if (!longestMatchingPackageDir) {
-        let pckg =
-            packagesByDir.get(null) || {schema_version: '1.0.0', elements: []};
-        pckg.elements.push(element);
-        packagesByDir.set(null, pckg);
-      } else {
-        packagesByDir.get(longestMatchingPackageDir)!.elements.push(element);
-        let prefixLength = longestMatchingPackageDir.length;
-        if (!longestMatchingPackageDir.endsWith('/')) {
-          prefixLength += 1;
-        }
-        // We want element paths to be relative to the package directory.
-        element.path = element.path.substring(prefixLength);
+          matchingPackageDirs.sort((a, b) => b.length - a.length)[0] || '';
+
+      if (longestMatchingPackageDir === '' && !packagesByDir.has('')) {
+        packagesByDir.set('', {schema_version: '1.0.0', elements: []});
       }
+      packagesByDir.get(longestMatchingPackageDir)!.elements.push(element);
+      // We want element paths to be relative to the package directory.
+      element.path = trimLeft(
+          trimLeft(element.path, '/')
+              .substring(longestMatchingPackageDir.length),
+          '/');
     }
 
-    return Array.from(packagesByDir.values());
+    return packagesByDir.get(packagePath);
   }
 }
 
@@ -185,7 +182,7 @@ class PackageGatherer implements AnalysisVisitor {
       const dirname = path.dirname(packageFile.url);
       if (!this.packagesByDir.has(dirname)) {
         this.packagesByDir.set(
-            dirname, {schema_version: '1.0.0', elements: []});
+            trimLeft(dirname, '/'), {schema_version: '1.0.0', elements: []});
       }
     }
   }
@@ -312,4 +309,11 @@ function camelCaseToWordsWithHyphens(camelCased: string): string {
           /(.)([A-Z])/g,
           (_: string, c1: string, c2: string) => `${c1}-${c2.toLowerCase()}`)
       .toLowerCase();
+}
+
+function trimLeft(str: string, char: string): string {
+  while (str[0] === char) {
+    str = str.substring(1);
+  }
+  return str;
 }
