@@ -168,18 +168,18 @@ function computeAttributesFromPropertyDescriptors(props: PropertyDescriptor[]):
 }
 
 class PackageGatherer implements AnalysisVisitor {
-  private packageFiles: string[] = [];
+  private _packageFiles: string[] = [];
   packagesByDir = new Map<string, AnalyzedPackage>();
   visitDocumentDescriptor(dd: DocumentDescriptor, path: Descriptor[]): void {
     if (dd.document instanceof JsonDocument &&
         (dd.document.url.endsWith('package.json') ||
          dd.document.url.endsWith('bower.json'))) {
-      this.packageFiles.push(dd.document.url);
+      this._packageFiles.push(dd.document.url);
     }
   }
 
   done() {
-    for (const packageFile of this.packageFiles) {
+    for (const packageFile of this._packageFiles) {
       const dirname = path.dirname(packageFile);
       if (!this.packagesByDir.has(dirname)) {
         this.packagesByDir.set(
@@ -227,14 +227,14 @@ abstract class AnalysisVisitor {
 }
 
 class AnalysisWalker {
-  private descriptors: DocumentDescriptor[];
-  private path: Descriptor[] = [];
+  private _documents: DocumentDescriptor[];
+  private _path: Descriptor[] = [];
   constructor(descriptors: DocumentDescriptor[]) {
-    this.descriptors = descriptors;
+    this._documents = descriptors;
   }
   walk(visitors: AnalysisVisitor[]) {
-    this.path.length = 0;
-    for (const descriptor of this.descriptors) {
+    this._path.length = 0;
+    for (const descriptor of this._documents) {
       this._walkDocumentDescriptor(descriptor, visitors);
     }
     for (const visitor of visitors) {
@@ -246,11 +246,11 @@ class AnalysisWalker {
 
   private _walkDocumentDescriptor(
       dd: DocumentDescriptor, visitors: AnalysisVisitor[]) {
-    this.path.push(dd);
+    this._path.push(dd);
 
     for (const visitor of visitors) {
       if (visitor.visitDocumentDescriptor) {
-        visitor.visitDocumentDescriptor(dd, this.path);
+        visitor.visitDocumentDescriptor(dd, this._path);
       }
     }
 
@@ -260,14 +260,14 @@ class AnalysisWalker {
     for (const dependency of dd.dependencies) {
       this._walkEntity(dependency, visitors);
     }
-    this.path.pop();
+    this._path.pop();
   }
 
   private _walkInlineDocumentDescriptor(
       dd: InlineDocumentDescriptor<any>, visitors: AnalysisVisitor[]) {
     for (const visitor of visitors) {
       if (visitor.visitInlineDocumentDescriptor) {
-        visitor.visitInlineDocumentDescriptor(dd, this.path);
+        visitor.visitInlineDocumentDescriptor(dd, this._path);
       }
     }
   }
@@ -287,7 +287,7 @@ class AnalysisWalker {
       element: ElementDescriptor, visitors: AnalysisVisitor[]) {
     for (const visitor of visitors) {
       if (visitor.visitElement) {
-        visitor.visitElement(element, this.path);
+        visitor.visitElement(element, this._path);
       }
     }
   }
