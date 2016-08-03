@@ -7,7 +7,7 @@ import {Descriptor, DocumentDescriptor, ElementDescriptor, InlineDocumentDescrip
 import {Attribute, Element, Elements, Event, Property} from './elements-metadata';
 import {JsonDocument} from './json/json-document';
 import {Document} from './parser/document';
-import {camelCaseToKebab, trimLeft} from './utils';
+import {trimLeft} from './utils';
 
 
 export function generateElementMetadata(
@@ -46,9 +46,9 @@ function serializeElementDescriptor(
     elementDescriptor: ElementDescriptor, path: string): Element|null {
   const propChangeEvents: Event[] =
       (elementDescriptor.properties || [])
-          .filter(p => p.notify)
+          .filter(p => p.notify && propertyToAttributeName(p.name))
           .map(p => ({
-                 name: `${camelCaseToKebab(p.name)}-changed`,
+                 name: `${propertyToAttributeName(p.name)}-changed`,
                  type: 'CustomEvent',
                  description: `Fired when the \`${p.name}\` property changes.`
                }));
@@ -97,9 +97,9 @@ function serializePropertyDescriptor(p: PropertyDescriptor): Property {
 
 function computeAttributesFromPropertyDescriptors(props: PropertyDescriptor[]):
     Attribute[] {
-  return props.map(prop => {
+  return props.filter(prop => propertyToAttributeName(prop.name)).map(prop => {
     const attribute: Attribute = {
-      name: camelCaseToKebab(prop.name),
+      name: propertyToAttributeName(prop.name),
       description: prop.desc || ''
     };
     if (prop.type) {
@@ -236,4 +236,22 @@ class AnalysisWalker {
       }
     }
   }
+}
+
+/**
+ * Implements Polymer core's translation of property names to attribute names.
+ *
+ * Returns null if the property name cannot be so converted.
+ */
+function propertyToAttributeName(propertyName: string): string|null {
+  // Polymer core will not map a property name that starts with an uppercase
+  // character onto an attribute.
+  if (propertyName[0].toUpperCase() === propertyName[0]) {
+    return null;
+  }
+  return propertyName
+      .replace(
+          /(.)([A-Z])/g,
+          (_: string, c1: string, c2: string) => `${c1}-${c2.toLowerCase()}`)
+      .toLowerCase();
 }

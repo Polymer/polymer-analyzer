@@ -16,11 +16,8 @@ import * as fs from 'fs';
 import * as jsonschema from 'jsonschema';
 import * as path from 'path';
 
-import {Descriptor, DocumentDescriptor, ElementDescriptor, InlineDocumentDescriptor, PropertyDescriptor} from './ast/ast';
-import {Attribute, Element, Elements, Event, Property} from './elements-metadata';
-import {JsonDocument} from './json/json-document';
-import {Document} from './parser/document';
-import {camelCaseToKebab, trimLeft} from './utils';
+import {DocumentDescriptor} from './ast/ast';
+import {Elements} from './elements-metadata';
 
 const validator = new jsonschema.Validator();
 const schema = JSON.parse(

@@ -12,14 +12,6 @@
  * http://polymer.github.io/PATENTS.txt
  */
 
-export function camelCaseToKebab(camelCased: string): string {
-  return camelCased
-      .replace(
-          /(.)([A-Z])/g,
-          (_: string, c1: string, c2: string) => `${c1}-${c2.toLowerCase()}`)
-      .toLowerCase();
-}
-
 export function trimLeft(str: string, char: string): string {
   let leftEdge = 0;
   while (str[leftEdge] === char) {
