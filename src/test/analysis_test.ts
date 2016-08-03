@@ -19,7 +19,7 @@ import * as path from 'path';
 import {Analysis, ValidationError, generateElementMetadata} from '../analysis';
 import {Analyzer} from '../analyzer';
 import {ElementDescriptor} from '../ast/ast';
-import {AnalyzedPackage} from '../elements-metadata';
+import {Elements} from '../elements-metadata';
 import {FSUrlLoader} from '../url-loader/fs-url-loader';
 
 

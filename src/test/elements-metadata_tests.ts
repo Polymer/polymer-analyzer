@@ -1,4 +1,4 @@
-import {AnalyzedPackage, Element} from '../elements-metadata';
+import {Elements, Element} from '../elements-metadata';
 
 
 
@@ -174,7 +174,7 @@ Custom property | Description | Default
 
 };
 
-const paperButton: AnalyzedPackage = {
+const paperButton: Elements = {
   schema_version: '1.0.0',
   elements: [paperButtonElement]
 };

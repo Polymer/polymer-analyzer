@@ -43,7 +43,7 @@ export interface SourceLocation {
   file?: string;
 }
 
-export interface AnalyzedPackage {
+export interface Elements {
   schema_version: string;
   // TODO(rictic): once this schema has stabilized, put the json file somewhere
   // and reference it like:

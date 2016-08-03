@@ -17,7 +17,7 @@ import * as jsonschema from 'jsonschema';
 import * as path from 'path';
 
 import {Descriptor, DocumentDescriptor, ElementDescriptor, InlineDocumentDescriptor, PropertyDescriptor} from './ast/ast';
-import {AnalyzedPackage, Attribute, Element, Event, Property} from './elements-metadata';
+import {Elements, Attribute, Element, Event, Property} from './elements-metadata';
 import {JsonDocument} from './json/json-document';
 import {Document} from './parser/document';
 import {camelCaseToKebab, trimLeft} from './utils';
@@ -49,7 +49,7 @@ export class Analysis {
    * Throws if the given object isn't a valid AnalyzedPackage according to
    * the JSON schema.
    */
-  static validate(analyzedPackage: AnalyzedPackage) {
+  static validate(analyzedPackage: Elements) {
     const result = validator.validate(analyzedPackage, schema);
     if (result.throwError) {
       throw result.throwError;
@@ -66,14 +66,14 @@ export class Analysis {
 }
 
 export function generateElementMetadata(
-    analysis: Analysis, packagePath?: string): AnalyzedPackage {
+    analysis: Analysis, packagePath?: string): Elements {
   const packageGatherer = new PackageGatherer();
   const elementsGatherer = new ElementGatherer();
   new AnalysisWalker(analysis.descriptors).walk([
     packageGatherer, elementsGatherer
   ]);
 
-  const packagesByDir: Map<string, AnalyzedPackage> =
+  const packagesByDir: Map<string, Elements> =
       packageGatherer.packagesByDir;
   const elements = elementsGatherer.elements;
   const elementsByPackageDir = new Map<string, Element[]>();
@@ -170,7 +170,7 @@ function computeAttributesFromPropertyDescriptors(props: PropertyDescriptor[]):
 
 class PackageGatherer implements AnalysisVisitor {
   private _packageFiles: string[] = [];
-  packagesByDir = new Map<string, AnalyzedPackage>();
+  packagesByDir = new Map<string, Elements>();
   visitDocumentDescriptor(dd: DocumentDescriptor, path: Descriptor[]): void {
     if (dd.document instanceof JsonDocument &&
         (dd.document.url.endsWith('package.json') ||
