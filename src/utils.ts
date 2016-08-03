@@ -21,8 +21,9 @@ export function camelCaseToKebab(camelCased: string): string {
 }
 
 export function trimLeft(str: string, char: string): string {
-  while (str[0] === char) {
-    str = str.substring(1);
+  let leftEdge = 0;
+  while (str[leftEdge] === char) {
+    leftEdge++;
   }
-  return str;
+  return str.substring(leftEdge);
 }
