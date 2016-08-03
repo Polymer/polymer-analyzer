@@ -8,7 +8,7 @@
       "path": "simple-element.html",
       "attributes": [
         {
-          "name": "d-ef",
+          "name": "d-e-f",
           "description": "",
           "type": "String"
         },
@@ -58,7 +58,7 @@
       "slots": [],
       "events": [
         {
-          "name": "d-ef-changed",
+          "name": "d-e-f-changed",
           "type": "CustomEvent",
           "description": "Fired when the `dEF` property changes."
         },

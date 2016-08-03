@@ -263,9 +263,6 @@ function propertyToAttributeName(propertyName: string): string|null {
   if (propertyName[0].toUpperCase() === propertyName[0]) {
     return null;
   }
-  return propertyName
-      .replace(
-          /(.)([A-Z])/g,
-          (_: string, c1: string, c2: string) => `${c1}-${c2.toLowerCase()}`)
-      .toLowerCase();
+  return propertyName.replace(
+      /([A-Z])/g, (_: string, c1: string) => `-${c1.toLowerCase()}`);
 }
