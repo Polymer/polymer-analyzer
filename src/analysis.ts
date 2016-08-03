@@ -17,9 +17,9 @@ import * as jsonschema from 'jsonschema';
 import * as path from 'path';
 
 import {Descriptor, DocumentDescriptor, ElementDescriptor, InlineDocumentDescriptor, PropertyDescriptor} from './ast/ast';
+import {AnalyzedPackage, Attribute, Element, Event, Property} from './elements-metadata';
 import {JsonDocument} from './json/json-document';
 import {Document} from './parser/document';
-import {AnalyzedPackage, Attribute, Element, Event, Property} from './elements-metadata';
 import {camelCaseToKebab, trimLeft} from './utils';
 
 const validator = new jsonschema.Validator();
@@ -192,7 +192,7 @@ class PackageGatherer implements AnalysisVisitor {
 
 class ElementGatherer implements AnalysisVisitor {
   elements: Element[] = [];
-  private elementPaths = new Map<ElementDescriptor, string>();
+  private _elementPaths = new Map<ElementDescriptor, string>();
   visitElement(element: ElementDescriptor, path: Descriptor[]): void {
     let pathToElement: string|null = null;
     for (const descriptor of path) {
@@ -203,14 +203,14 @@ class ElementGatherer implements AnalysisVisitor {
     if (!pathToElement) {
       throw new Error(`Unable to determine path to element: ${element}`);
     }
-    if (this.elementPaths.has(element)) {
-      if (this.elementPaths.get(element) !== pathToElement) {
+    if (this._elementPaths.has(element)) {
+      if (this._elementPaths.get(element) !== pathToElement) {
         throw new Error(
             `Found element ${element} at distinct paths: ` +
-            `${pathToElement} and ${this.elementPaths.get(element)}`);
+            `${pathToElement} and ${this._elementPaths.get(element)}`);
       }
     } else {
-      this.elementPaths.set(element, pathToElement);
+      this._elementPaths.set(element, pathToElement);
       const elem = serializeElementDescriptor(element, pathToElement);
       if (elem) {
         this.elements.push(elem);
