@@ -25,7 +25,7 @@ import {trimLeft} from './utils';
 
 
 export function generateElementMetadata(
-    analysis: Analysis, packagePath?: string): Elements {
+    analysis: Analysis, packagePath: string): Elements|undefined {
   const packageGatherer = new PackageGatherer();
   const elementsGatherer = new ElementGatherer();
   new AnalysisWalker(analysis.descriptors).walk([
@@ -113,7 +113,7 @@ function computeAttributesFromPropertyDescriptors(props: PropertyDescriptor[]):
     Attribute[] {
   return props.filter(prop => propertyToAttributeName(prop.name)).map(prop => {
     const attribute: Attribute = {
-      name: propertyToAttributeName(prop.name),
+      name: propertyToAttributeName(prop.name)!,
       description: prop.desc || ''
     };
     if (prop.type) {

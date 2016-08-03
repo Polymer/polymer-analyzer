@@ -24,7 +24,7 @@ import {generateElementMetadata} from '../generate-elements';
 import {FSUrlLoader} from '../url-loader/fs-url-loader';
 
 
-const onlyTests = new Set([]);  // Should be empty when not debugging.
+const onlyTests = new Set<string>([]);  // Should be empty when not debugging.
 suite('Analysis', function() {
   const basedir = path.join(__dirname, 'static', 'analysis');
   const analysisFixtureDirs = fs.readdirSync(basedir)
@@ -39,7 +39,7 @@ suite('Analysis', function() {
     testDefiner(testName, async function() {
       const analysis = await analyzeDir(analysisFixtureDir).resolve();
 
-      const packages = new Set<string|null>(mapI(
+      const packages = new Set<string>(mapI(
           filterI(
               walkRecursively(analysisFixtureDir),
               (p) => p.endsWith('bower.json') || p.endsWith('package.json')),

@@ -46,7 +46,7 @@ export class Analysis {
    * Throws if the given object isn't a valid AnalyzedPackage according to
    * the JSON schema.
    */
-  static validate(analyzedPackage: Elements) {
+  static validate(analyzedPackage: Elements|null|undefined) {
     const result = validator.validate(analyzedPackage, schema);
     if (result.throwError) {
       throw result.throwError;
@@ -54,10 +54,10 @@ export class Analysis {
     if (result.errors.length > 0) {
       throw new ValidationError(result);
     }
-    if (!/^1\.\d+\.\d+$/.test(analyzedPackage.schema_version)) {
+    if (!/^1\.\d+\.\d+$/.test(analyzedPackage!.schema_version)) {
       throw new Error(
           `Invalid schema_version in AnalyzedPackage. ` +
-          `Expected 1.x.x, got ${analyzedPackage.schema_version}`);
+          `Expected 1.x.x, got ${analyzedPackage!.schema_version}`);
     }
   }
 }

@@ -5,6 +5,8 @@
         "moduleResolution": "node",
         "isolatedModules": false,
         "noImplicitAny": true,
+        // TODO: enable these
+        // "strictNullChecks": true,
         "removeComments": false,
         "preserveConstEnums": true,
         "suppressImplicitAnyIndexErrors": true,

@@ -239,7 +239,8 @@ function _annotateEvent(descriptor: EventDescriptor): EventDescriptor {
   annotate(descriptor);
   // process @event
   const eventTag = jsdoc.getTag(descriptor.jsdoc, 'event');
-  descriptor.name = eventTag ? eventTag.description : 'N/A';
+  descriptor.name =
+      (eventTag && eventTag.description) ? eventTag.description : 'N/A';
 
   const tags = (descriptor.jsdoc && descriptor.jsdoc.tags || []);
   // process @params
@@ -352,10 +353,6 @@ export function featureElement(features: FeatureDescriptor[]):
         'The properties reflected here are the combined view of all ' +
         'features found in this library. There may be more properties ' +
         'added via other libraries, as well.',
-    observers: [],
-    behaviors: [],
-    demos: [],
-    events: []
   });
 }
 
@@ -425,11 +422,7 @@ export function parsePseudoElements(comments: string[]): ElementDescriptor[] {
         type: 'element',
         jsdoc: {description: parsedJsdoc.description, tags: parsedJsdoc.tags},
         properties: [],
-        desc: parsedJsdoc.description,
-        observers: [],
-        events: [],
-        demos: [],
-        behaviors: []
+        desc: parsedJsdoc.description
       });
       annotateElementHeader(element);
       elements.push(element);
