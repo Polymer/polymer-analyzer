@@ -26,6 +26,7 @@ suite('CssParser', () => {
 
     setup(() => {
       parser = new CssParser(<any>{
+        // These aren't method shorthand because clang-format misformats them.
         findImports: function(url: string, document: CssDocument): Array<any> {
           return [];
         },
