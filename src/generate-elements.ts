@@ -1,10 +1,24 @@
+/**
+ * @license
+ * Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+ * This code may only be used under the BSD style license found at
+ * http://polymer.github.io/LICENSE.txt
+ * The complete set of authors may be found at
+ * http://polymer.github.io/AUTHORS.txt
+ * The complete set of contributors may be found at
+ * http://polymer.github.io/CONTRIBUTORS.txt
+ * Code distributed by Google as part of the polymer project is also
+ * subject to an additional IP rights grant found at
+ * http://polymer.github.io/PATENTS.txt
+ */
+
 import * as fs from 'fs';
 import * as jsonschema from 'jsonschema';
 import * as path from 'path';
 
 import {Analysis} from './analysis';
 import {Descriptor, DocumentDescriptor, ElementDescriptor, InlineDocumentDescriptor, PropertyDescriptor} from './ast/ast';
-import {Attribute, Element, Elements, Event, Property} from './elements-metadata';
+import {Attribute, Element, Elements, Event, Property} from './elements-format';
 import {JsonDocument} from './json/json-document';
 import {Document} from './parser/document';
 import {trimLeft} from './utils';

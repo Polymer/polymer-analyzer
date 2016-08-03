@@ -17,7 +17,7 @@ import * as jsonschema from 'jsonschema';
 import * as path from 'path';
 
 import {DocumentDescriptor} from './ast/ast';
-import {Elements} from './elements-metadata';
+import {Elements} from './elements-format';
 
 const validator = new jsonschema.Validator();
 const schema = JSON.parse(
