@@ -16,10 +16,11 @@ import {assert} from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
 
-import {Analysis, ValidationError, generateElementMetadata} from '../analysis';
+import {Analysis, ValidationError} from '../analysis';
 import {Analyzer} from '../analyzer';
 import {ElementDescriptor} from '../ast/ast';
 import {Elements} from '../elements-metadata';
+import {generateElementMetadata} from '../generate-elements';
 import {FSUrlLoader} from '../url-loader/fs-url-loader';
 
 
@@ -51,7 +52,8 @@ suite('Analysis', function() {
         const renormedPackagePath = packagePath ?
             packagePath.substring(analysisFixtureDir.length + 1) :
             packagePath;
-        const analyzedPackages = generateElementMetadata(analysis, renormedPackagePath);
+        const analyzedPackages =
+            generateElementMetadata(analysis, renormedPackagePath);
         Analysis.validate(analyzedPackages);
 
         try {
