@@ -91,7 +91,7 @@ export class Analyzer {
       // the Promise can be cached.
       await Promise.resolve();
       const document = await this.load(url);
-      return this.analyzeDocument(document);
+      return this._analyzeDocument(document);
     })();
     this._documentDescriptors.set(url, promise);
     return promise;
@@ -104,16 +104,16 @@ export class Analyzer {
   /**
    * Parses and analyzes a document from source.
    */
-  async analyzeSource(type: string, contents: string, url: string):
+  private async _analyzeSource(type: string, contents: string, url: string):
       Promise<DocumentDescriptor> {
     let document = this.parse(type, contents, url);
-    return this.analyzeDocument(document);
+    return this._analyzeDocument(document);
   }
 
   /**
    * Analyzes a parsed Document object.
    */
-  async analyzeDocument(document: Document<any, any>):
+  private async _analyzeDocument(document: Document<any, any>):
       Promise<DocumentDescriptor> {
     let entities = await this.getEntities(document);
 
@@ -122,7 +122,7 @@ export class Analyzer {
             e instanceof ImportDescriptor);
     let analyzeDependencies = dependencyDescriptors.map((d) => {
       if (d instanceof InlineDocumentDescriptor) {
-        return this.analyzeSource(d.type, d.contents, document.url);
+        return this._analyzeSource(d.type, d.contents, document.url);
       } else if (d instanceof ImportDescriptor) {
         return this.analyze(d.url);
       } else {
