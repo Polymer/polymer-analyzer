@@ -19,7 +19,7 @@ import * as path from 'path';
 import {Descriptor, DocumentDescriptor, ElementDescriptor, InlineDocumentDescriptor, PropertyDescriptor} from './ast/ast';
 import {JsonDocument} from './json/json-document';
 import {Document} from './parser/document';
-import {AnalyzedPackage, Attribute, Element, Event, Property} from './serialized-analysis';
+import {AnalyzedPackage, Attribute, Element, Event, Property} from './elements-metadata';
 import {camelCaseToKebab, trimLeft} from './utils';
 
 const validator = new jsonschema.Validator();

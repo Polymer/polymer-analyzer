@@ -99,7 +99,7 @@ task('test', ['build'], () => {
 });
 
 task('json-schema', function() {
-  const inPath = 'src/serialized-analysis.ts';
+  const inPath = 'src/elements-metadata.ts';
   const outPath = 'lib/analysis.schema.json';
   return gulp.src(inPath).pipe(newer(outPath)).pipe(shell([
     `./node_modules/.bin/typescript-json-schema --required ${inPath} AnalyzedPackage > ${outPath}.temp`,

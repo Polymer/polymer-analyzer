@@ -1,9 +1,8 @@
-import {AnalyzedPackage, Element} from '../serialized-analysis';
+import {AnalyzedPackage, Element} from '../elements-metadata';
 
 
 
 // An example, the correct compilation thereof acts as a test.
-// TODO(rictic): once the tests are typescript, move this there.
 const paperButtonElement: Element = {
   path: 'paper-button.html',
   tagname: 'paper-button',
