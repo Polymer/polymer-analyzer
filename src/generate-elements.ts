@@ -296,7 +296,7 @@ function propertyToAttributeName(propertyName: string): string|null {
       /([A-Z])/g, (_: string, c1: string) => `-${c1.toLowerCase()}`);
 }
 
-function correctSourceLocation(
+export function correctSourceLocation(
     sourceLocation: SourceLocation,
     locationOffset?: LocationOffset): SourceLocation|undefined {
   if (!locationOffset)
