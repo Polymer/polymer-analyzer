@@ -64,7 +64,7 @@ export function matchesCallExpression(
  */
 export function objectKeyToString(key: estree.Node): string {
   if (key.type === 'Identifier') {
-    return CLOSURE_CONSTRUCTOR_MAP[key.name] || key.name;
+    return key.name;
   }
   if (key.type === 'Literal') {
     return key.value.toString();
@@ -75,7 +75,7 @@ export function objectKeyToString(key: estree.Node): string {
   }
 }
 
-const CLOSURE_CONSTRUCTOR_MAP = {
+export const CLOSURE_CONSTRUCTOR_MAP = {
   'Boolean': 'boolean',
   'Number': 'number',
   'String': 'string',
