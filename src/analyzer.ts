@@ -108,16 +108,15 @@ export class Analyzer {
       type: string, contents: string, url: string,
       locationOffset?: LocationOffset): Promise<DocumentDescriptor> {
     let document = this.parse(type, contents, url);
-    const documentDescriptor = await this._analyzeDocument(document);
-    documentDescriptor.locationOffset = locationOffset;
-    return documentDescriptor;
+    return await this._analyzeDocument(document, locationOffset);
   }
 
   /**
    * Analyzes a parsed Document object.
    */
-  private async _analyzeDocument(document: Document<any, any>):
-      Promise<DocumentDescriptor> {
+  private async _analyzeDocument(
+      document: Document<any, any>,
+      locationOffset?: LocationOffset): Promise<DocumentDescriptor> {
     let entities = await this.getEntities(document);
 
     let dependencyDescriptors: Descriptor[] = entities.filter(
@@ -136,7 +135,8 @@ export class Analyzer {
 
     let dependencies = await Promise.all(analyzeDependencies);
 
-    return new DocumentDescriptor(document, dependencies, entities);
+    return new DocumentDescriptor(
+        document, dependencies, entities, locationOffset);
   }
 
   /**

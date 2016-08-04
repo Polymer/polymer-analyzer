@@ -23,14 +23,15 @@ export class DocumentDescriptor implements Descriptor {
   document: Document<any, any>;
   dependencies: Descriptor[];
   entities: Descriptor[];
-  locationOffset: LocationOffset;
+  locationOffset?: LocationOffset;
 
   constructor(
       document: Document<any, any>, dependencies: Descriptor[],
-      entities: Descriptor[]) {
+      entities: Descriptor[], locationOffset?: LocationOffset) {
     this.document = document;
     this.dependencies = dependencies;
     this.entities = entities;
+    this.locationOffset = locationOffset;
   }
 
   get url() {
