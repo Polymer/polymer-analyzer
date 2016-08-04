@@ -96,21 +96,23 @@ function serializeElementDescriptor(
 }
 
 function serializePropertyDescriptor(
-    p: PropertyDescriptor, locationOffset?: LocationOffset): Property {
+    propertyDescriptor: PropertyDescriptor,
+    locationOffset?: LocationOffset): Property {
   const property: Property = {
-    name: p.name,
-    type: p.type || '?',
-    description: p.desc || '',
-    sourceLocation: correctSourceLocation(p.sourceLocation, locationOffset)
+    name: propertyDescriptor.name,
+    type: propertyDescriptor.type || '?',
+    description: propertyDescriptor.desc || '',
+    sourceLocation:
+        correctSourceLocation(propertyDescriptor.sourceLocation, locationOffset)
   };
-  if (p.default) {
-    property.defaultValue = JSON.stringify(p.default);
+  if (propertyDescriptor.default) {
+    property.defaultValue = JSON.stringify(propertyDescriptor.default);
   }
   const polymerMetadata: any = {};
   const polymerMetadataFields = ['notify', 'observer', 'readOnly'];
   for (const field of polymerMetadataFields) {
-    if (field in p) {
-      polymerMetadata[field] = p[field];
+    if (field in propertyDescriptor) {
+      polymerMetadata[field] = propertyDescriptor[field];
     }
   }
   property.metadata = {polymer: polymerMetadata};
