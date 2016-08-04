@@ -162,7 +162,7 @@ class PackageGatherer implements AnalysisVisitor {
 class ElementGatherer implements AnalysisVisitor {
   elements: Element[] = [];
   private _elementPaths = new Map<ElementDescriptor, string>();
-  visitElement(element: ElementDescriptor, path: Descriptor[]): void {
+  visitElement(elementDescriptor: ElementDescriptor, path: Descriptor[]): void {
     let pathToElement: string|null = null;
     let locationOffset: LocationOffset;
     for (const descriptor of path) {
@@ -172,20 +172,21 @@ class ElementGatherer implements AnalysisVisitor {
       }
     }
     if (!pathToElement) {
-      throw new Error(`Unable to determine path to element: ${element}`);
+      throw new Error(
+          `Unable to determine path to element: ${elementDescriptor}`);
     }
-    if (this._elementPaths.has(element)) {
-      if (this._elementPaths.get(element) !== pathToElement) {
+    if (this._elementPaths.has(elementDescriptor)) {
+      if (this._elementPaths.get(elementDescriptor) !== pathToElement) {
         throw new Error(
-            `Found element ${element} at distinct paths: ` +
-            `${pathToElement} and ${this._elementPaths.get(element)}`);
+            `Found element ${elementDescriptor} at distinct paths: ` +
+            `${pathToElement} and ${this._elementPaths.get(elementDescriptor)}`);
       }
     } else {
-      this._elementPaths.set(element, pathToElement);
-      const elem =
-          serializeElementDescriptor(element, pathToElement, locationOffset);
-      if (elem) {
-        this.elements.push(elem);
+      this._elementPaths.set(elementDescriptor, pathToElement);
+      const element = serializeElementDescriptor(
+          elementDescriptor, pathToElement, locationOffset);
+      if (element) {
+        this.elements.push(element);
       }
     }
   }
