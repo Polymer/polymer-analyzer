@@ -18,6 +18,9 @@ import * as estree from 'estree';
 
 import {BehaviorDescriptor, PropertyDescriptor} from '../ast/ast';
 
+import {getSourceLocation} from './javascript-document';
+import * as jsdoc from './jsdoc';
+
 
 /**
  * Returns whether an Espree node matches a particular object path.
@@ -61,7 +64,7 @@ export function matchesCallExpression(
  */
 export function objectKeyToString(key: estree.Node): string {
   if (key.type === 'Identifier') {
-    return key.name;
+    return CLOSURE_CONSTRUCTOR_MAP[key.name] || key.name;
   }
   if (key.type === 'Literal') {
     return key.value.toString();
@@ -149,11 +152,15 @@ export function toPropertyDescriptor(node: estree.Property):
       node[`${node.kind}ter`] = true;
     }
   }
+  let description =
+      jsdoc.removeLeadingAsterisks(getAttachedComment(node) || '').trim();
+
   const result: PropertyDescriptor = {
     name: objectKeyToString(node.key),
     type: type,
-    desc: getAttachedComment(node),
-    javascriptNode: node
+    desc: description,
+    javascriptNode: node,
+    sourceLocation: getSourceLocation(node)
   };
 
   if (type === 'Function') {

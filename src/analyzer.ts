@@ -18,7 +18,7 @@ import * as path from 'path';
 import * as urlLib from 'url';
 
 import {Analysis} from './analysis';
-import {Descriptor, DocumentDescriptor, ImportDescriptor, InlineDocumentDescriptor} from './ast/ast';
+import {Descriptor, DocumentDescriptor, ImportDescriptor, InlineDocumentDescriptor, LocationOffset} from './ast/ast';
 import {CssParser} from './css/css-parser';
 import {EntityFinder} from './entity/entity-finder';
 import {findEntities} from './entity/find-entities';
@@ -104,10 +104,13 @@ export class Analyzer {
   /**
    * Parses and analyzes a document from source.
    */
-  private async _analyzeSource(type: string, contents: string, url: string):
-      Promise<DocumentDescriptor> {
+  private async _analyzeSource(
+      type: string, contents: string, url: string,
+      locationOffset?: LocationOffset): Promise<DocumentDescriptor> {
     let document = this.parse(type, contents, url);
-    return this._analyzeDocument(document);
+    const documentDescriptor = await this._analyzeDocument(document);
+    documentDescriptor.locationOffset = locationOffset;
+    return documentDescriptor;
   }
 
   /**
@@ -122,7 +125,8 @@ export class Analyzer {
             e instanceof ImportDescriptor);
     let analyzeDependencies = dependencyDescriptors.map((d) => {
       if (d instanceof InlineDocumentDescriptor) {
-        return this._analyzeSource(d.type, d.contents, document.url);
+        return this._analyzeSource(
+            d.type, d.contents, document.url, d.locationOffset);
       } else if (d instanceof ImportDescriptor) {
         return this.analyze(d.url);
       } else {
