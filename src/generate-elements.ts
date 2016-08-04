@@ -298,11 +298,9 @@ function propertyToAttributeName(propertyName: string): string|null {
 function correctSourceLocation(
     sourceLocation: SourceLocation,
     locationOffset?: LocationOffset): SourceLocation|undefined {
-  if (!sourceLocation) {
-    return undefined;
-  }
-  locationOffset = locationOffset || {line: 0, col: 0};
-  return {
+  if (!locationOffset)
+    return sourceLocation;
+  return sourceLocation && {
     line: sourceLocation.line + locationOffset.line,
     // The location offset column only matters for the first line.
     column: sourceLocation.column +
