@@ -45,22 +45,7 @@ export class HtmlScriptFinder implements HtmlEntityFinder {
           entities.push(
               new ImportDescriptor<ASTNode>('html-script', importUrl, node));
         } else {
-          let locationOffset: LocationOffset|undefined = undefined;
-          let scriptContentsLocation =
-              node.childNodes[0] && node.childNodes[0].__location;
-          if (scriptContentsLocation) {
-            if (isLocationInfo(scriptContentsLocation)) {
-              locationOffset = {
-                line: scriptContentsLocation.line - 1,
-                col: scriptContentsLocation.col
-              };
-            } else {
-              locationOffset = {
-                line: scriptContentsLocation.startTag.line - 1,
-                col: scriptContentsLocation.startTag.endOffset,
-              };
-            }
-          }
+          const locationOffset = getLocationOffsetOfStartOfTextContent(node);
           let contents = dom5.getTextContent(node);
           entities.push(new InlineDocumentDescriptor<ASTNode>(
               'js', contents, node, locationOffset));
@@ -75,4 +60,24 @@ export class HtmlScriptFinder implements HtmlEntityFinder {
 function isLocationInfo(loc: LocationInfo|
                         ElementLocationInfo): loc is LocationInfo {
   return 'line' in loc;
+}
+
+function getLocationOffsetOfStartOfTextContent(node: ASTNode) {
+  let locationOffset: LocationOffset|undefined;
+  let scriptContentsLocation =
+      node.childNodes[0] && node.childNodes[0].__location;
+  if (scriptContentsLocation) {
+    if (isLocationInfo(scriptContentsLocation)) {
+      locationOffset = {
+        line: scriptContentsLocation.line - 1,
+        col: scriptContentsLocation.col
+      };
+    } else {
+      locationOffset = {
+        line: scriptContentsLocation.startTag.line - 1,
+        col: scriptContentsLocation.startTag.endOffset,
+      };
+    }
+  }
+  return locationOffset;
 }
