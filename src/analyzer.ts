@@ -28,6 +28,7 @@ import {JavaScriptParser} from './javascript/javascript-parser';
 import {JsonParser} from './json/json-parser';
 import {ParsedDocument} from './parser/document';
 import {Parser} from './parser/parser';
+import {Measurement, TelemetryTracker} from './perf/telemetry';
 import {BehaviorFinder} from './polymer/behavior-finder';
 import {DomModuleFinder} from './polymer/dom-module-finder';
 import {PolymerElementFinder} from './polymer/polymer-element-finder';
@@ -51,7 +52,7 @@ export interface Options {
  * finders which do the actual work of understanding different file types.
  */
 export class Analyzer {
-  private _parsers: Map<string, Parser<any>> = new Map<string, Parser<any>>([
+  private _parsers = new Map<string, Parser<ParsedDocument<any, any>>>([
     ['html', new HtmlParser()],
     ['js', new JavaScriptParser()],
     ['css', new CssParser()],
@@ -80,6 +81,7 @@ export class Analyzer {
   private _parsedDocuments =
       new Map<string, Promise<ParsedDocument<any, any>>>();
   private _scannedDocuments = new Map<string, Promise<ScannedDocument>>();
+  private _telemetry = new TelemetryTracker();
 
   constructor(options: Options) {
     this._loader = options.urlLoader;
@@ -115,7 +117,14 @@ export class Analyzer {
     }
 
     const scannedDocument = await this._analyzeResolved(resolvedUrl, contents);
-    return Document.makeRootDocument(scannedDocument);
+    const doneTiming = this._telemetry.start('Document.makeRootDocument', url);
+    const document = Document.makeRootDocument(scannedDocument);
+    doneTiming();
+    return document;
+  }
+
+  async getTelemetryMeasurements(): Promise<Measurement[]> {
+    return this._telemetry.getMeasurements();
   }
 
   private async _analyzeResolved(resolvedUrl: string, contents?: string):
@@ -154,6 +163,9 @@ export class Analyzer {
   private async _analyzeDocument(
       document: ParsedDocument<any, any>, maybeLocationOffset?: LocationOffset,
       maybeAttachedComment?: string): Promise<ScannedDocument> {
+    if (document == null) {
+      return null;
+    }
     const locationOffset =
         maybeLocationOffset || {line: 0, col: 0, filename: document.url};
     let entities = await this._getEntities(document);
@@ -169,9 +181,15 @@ export class Analyzer {
       firstEntity.applyHtmlComment(maybeAttachedComment);
     }
 
-    let scannedDependencies: ScannedFeature[] = entities.filter(
+    // HACK HACK HACK(rictic): remote this in upcoming PR that propagates errors
+    //     correctly. This filter should be gone by end of August 2016.
+    entities = entities.filter(
+        e => !(
+            e instanceof ScannedImport && /fonts.googleapis.com/.test(e.url)));
+
+    const scannedDependencies: ScannedFeature[] = entities.filter(
         (e) => e instanceof InlineParsedDocument || e instanceof ScannedImport);
-    let analyzeDependencies =
+    const analyzeDependencies =
         scannedDependencies.map(async(scannedDependency) => {
           if (scannedDependency instanceof InlineParsedDocument) {
             const locationOffset: LocationOffset = {
@@ -187,7 +205,8 @@ export class Analyzer {
             scannedDependency.scannedDocument.isInline = true;
             return scannedDocument;
           } else if (scannedDependency instanceof ScannedImport) {
-            const scannedDocument = await this._analyzeResolved(scannedDependency.url);
+            const scannedDocument =
+                await this._analyzeResolved(scannedDependency.url);
             scannedDependency.scannedDocument = scannedDocument;
             return scannedDocument;
           } else {
@@ -195,7 +214,8 @@ export class Analyzer {
           }
         });
 
-    let dependencies = await Promise.all(analyzeDependencies);
+    let dependencies =
+        (await Promise.all(analyzeDependencies)).filter(s => !!s);
 
     return new ScannedDocument(
         document, dependencies, entities, locationOffset);
@@ -217,11 +237,15 @@ export class Analyzer {
       // Make sure we wait and return a Promise before doing any work, so that
       // the Promise can be cached.
       await Promise.resolve();
-      let content = providedContents == null ?
+      const content = providedContents == null ?
           await this._loader.load(resolvedUrl) :
           providedContents;
       let extension = path.extname(resolvedUrl).substring(1);
-      return this._parse(extension, content, resolvedUrl);
+
+      const doneTiming = this._telemetry.start('parse', 'resolvedUrl');
+      const parsedDoc = this._parse(extension, content, resolvedUrl);
+      doneTiming();
+      return parsedDoc;
     })();
     this._parsedDocuments.set(resolvedUrl, promise);
     return promise;

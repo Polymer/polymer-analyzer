@@ -84,6 +84,7 @@ export class Document implements Feature {
   private constructor(base: ScannedDocument, rootDocument?: Document) {
     if (rootDocument == null) {
       this._rootDocument = this;
+      this._initIndexes();
     } else {
       if (!base.isInline) {
         const existingInstance = rootDocument.getOnlyAtId('document', base.url);
@@ -105,6 +106,7 @@ export class Document implements Feature {
     this.kinds = new Set(['document', `${this.parsedDocument.type}-document`]);
     this._addFeature(this);
   }
+
 
   private _isResolved = false;
   private _resolve(base: ScannedDocument) {
@@ -146,6 +148,9 @@ export class Document implements Feature {
   getByKind(kind: 'import'): Set<Import>;
   getByKind(kind: string): Set<Feature>;
   getByKind(kind: string): Set<Feature> {
+    if (this._featuresByKind) {
+      return this._featuresByKind.get(kind) || new Set();
+    }
     return this._getByKind(kind, new Set());
   }
 
@@ -156,6 +161,10 @@ export class Document implements Feature {
   getById(kind: 'document', url: string): Set<Document>;
   getById(kind: string, identifier: string): Set<Feature>;
   getById(kind: string, identifier: string): Set<Feature> {
+    if (this._featuresByKindAndId) {
+      const idMap = this._featuresByKindAndId.get(kind);
+      return (idMap && idMap.get(identifier)) || new Set();
+    }
     const result = new Set<Feature>();
     for (const featureOfKind of this.getByKind(kind)) {
       if (featureOfKind.identifiers.has(identifier)) {
@@ -202,7 +211,28 @@ export class Document implements Feature {
     return result;
   }
 
+  getFeatures(): Set<Feature> {
+    const result = new Set<Feature>();
+    this._getFeatures(result, new Set<Document>());
+    return result;
+  }
+
+  private _getFeatures(
+      inProgress: Set<Feature>, documentsWalked: Set<Document>) {
+    if (documentsWalked.has(this)) {
+      return;
+    }
+    documentsWalked.add(this);
+    for (const feature of this._localFeatures) {
+      inProgress.add(feature);
+      if (feature instanceof Document) {
+        feature._getFeatures(inProgress, documentsWalked);
+      }
+    }
+  }
+
   private _addFeature(feature: Feature) {
+    this._rootDocument._indexFeature(feature);
     this._localFeatures.add(feature);
   }
 
@@ -233,5 +263,31 @@ export class Document implements Feature {
     }
 
     return result;
+  }
+
+  private _featuresByKind: Map<string, Set<Feature>> = null;
+  private _featuresByKindAndId: Map<string, Map<string, Set<Feature>>> = null;
+  private _initIndexes() {
+    if (this._rootDocument !== this) {
+      throw new Error('Currently we only intend to index the root document.');
+    }
+    this._featuresByKind = new Map<string, Set<Feature>>();
+    this._featuresByKindAndId = new Map<string, Map<string, Set<Feature>>>();
+  }
+
+  private _indexFeature(feature: Feature) {
+    for (const kind of feature.kinds) {
+      const kindSet = this._featuresByKind.get(kind) || new Set<Feature>();
+      kindSet.add(feature);
+      this._featuresByKind.set(kind, kindSet);
+      for (const id of feature.identifiers) {
+        const identifiersMap = this._featuresByKindAndId.get(kind) ||
+            new Map<string, Set<Feature>>();
+        this._featuresByKindAndId.set(kind, identifiersMap);
+        const idSet = identifiersMap.get(id) || new Set<Feature>();
+        identifiersMap.set(id, idSet);
+        idSet.add(feature);
+      }
+    }
   }
 }

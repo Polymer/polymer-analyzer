@@ -23,6 +23,7 @@
     "lint": "gulp lint",
     "test": "npm run clean && npm run build && npm run lint && mocha",
     "quicktest": "npm run build && mocha",
+    "benchmark": "npm run build && time node lib/perf/parse-all-benchmark.js",
     "test:watch": "watchy -w src/ -- npm run quicktest --loglevel=silent",
     "format": "find src test | grep '\\.js$\\|\\.ts$' | xargs ./node_modules/.bin/clang-format --style=file -i"
   },
@@ -68,6 +69,7 @@
     "espree": "^3.1.7",
     "estraverse": "^3.1.0",
     "parse5": "^2.1.5",
+    "performance-now": "^0.2.0",
     "shady-css-parser": "0.0.8"
   }
 }
