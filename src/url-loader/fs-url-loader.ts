@@ -69,22 +69,20 @@ export class FSUrlLoader extends UrlLoader {
     return true;
   }
 
-  async getCompletions(partialPath: string) {
-    if (!partialPath.endsWith('/')) {
-      partialPath = pathlib.dirname(partialPath);
-    }
-    const fullPath = this.getFilePath(partialPath);
+  async getCompletions(dirname: string) {
+    const fullPath = this.getFilePath(dirname);
     const files = await new Promise<string[]>((resolve, reject) => {
       fs.readdir(fullPath, (err, files) => {
         err ? reject(err) : resolve(files);
       });
     });
     return await Promise.all(files.map(async(f) => {
-      const fullPath = pathlib.join(partialPath, f);
-      if (await isDir(pathlib.join(this.root, fullPath))) {
-        return `${fullPath}/`;
+      const fullPathToFile = pathlib.join(fullPath, f);
+      const relativePath = pathlib.relative(this.root, fullPathToFile);
+      if (await isDir(fullPathToFile)) {
+        return `${relativePath}/`;
       }
-      return fullPath;
+      return relativePath;
     }));
   }
 };

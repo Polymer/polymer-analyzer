@@ -75,11 +75,17 @@ suite('FSUrlLoader', function() {
       assert.equal(loader.offersCompletions(), true);
     });
     test('can get completions', async function() {
-      const completions = await loader.getCompletions('./inline');
+      const completions = await loader.getCompletions('./');
       assert.deepEqual(completions, [
         'subfolder/', 'inline-and-imports.html', 'inline-only.html',
         'leaf.html', 'root.html'
       ].sort());
+    });
+    test('can get completions in a subfolder', async function() {
+      const completions = await loader.getCompletions('./subfolder');
+      assert.deepEqual(
+          completions,
+          ['subfolder/in-folder.html', 'subfolder/subfolder-sibling.html']);
     });
   });
 });

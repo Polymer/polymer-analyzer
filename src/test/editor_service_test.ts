@@ -16,7 +16,7 @@ import {assert} from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
 
-import {AttributesCompletion, EditorService, ElementCompletion, Severity, Warning} from '../editor-service';
+import {AttributesCompletion, EditorService, ElementCompletion, ResourcePathCompletion, Severity, Warning} from '../editor-service';
 import {FSUrlLoader} from '../url-loader/fs-url-loader';
 import {PackageUrlResolver} from '../url-loader/package-url-resolver';
 
@@ -342,6 +342,56 @@ suite('EditorService', function() {
               indexFile, localAttributePosition),
           attributeTypeahead);
     });
+
+    testName = 'Provide completions for html import paths.';
+    test(testName, async function() {
+      await editorService.fileChanged(
+          'dependencies/index.html', `<link rel="import" href="./">`);
+      const completions = await editorService.getTypeaheadCompletionsFor(
+          'dependencies/index.html', {line: 0, column: 27});
+      const expected: ResourcePathCompletion = {
+        kind: 'resource-paths',
+        paths: [
+          'subfolder/', 'inline-and-imports.html', 'inline-only.html',
+          'leaf.html', 'root.html'
+        ].sort(),
+        prefix: './',
+      };
+      assert.deepEqual(completions, expected);
+    });
+
+    testName = 'Provide completions for html import paths in subdirectories';
+    test(testName, async function() {
+      await editorService.fileChanged(
+          'dependencies/subfolder/index.html', `<link rel="import" href="./">`);
+      const completions = await editorService.getTypeaheadCompletionsFor(
+          'dependencies/subfolder/index.html', {line: 0, column: 27});
+      const expected: ResourcePathCompletion = {
+        kind: 'resource-paths',
+        paths: ['in-folder.html', 'subfolder-sibling.html'].sort(),
+        prefix: './',
+      };
+      assert.deepEqual(completions, expected);
+    });
+
+    testName = `Provide completions for html import paths` +
+        ` in subdirectories that reach up`;
+    test(testName, async function() {
+      await editorService.fileChanged(
+          'dependencies/subfolder/index.html',
+          `<link rel="import" href="../">`);
+      const completions = await editorService.getTypeaheadCompletionsFor(
+          'dependencies/subfolder/index.html', {line: 0, column: 27});
+      const expected = {
+        kind: 'resource-paths',
+        paths: [
+          '../inline-and-imports.html', '../inline-only.html', '../leaf.html',
+          '../root.html'
+        ].sort(),
+        prefix: '../'
+      };
+      assert.deepEqual(completions, expected);
+    });
   });
 
   suite('getWarnings', function() {
@@ -360,8 +410,8 @@ suite('EditorService', function() {
                              severity: Severity.ERROR,
                              sourceRange: {
                                file: 'editor-service/index.html',
-                               start: {line: 0, column: 0},
-                               end: {line: 0, column: badImport.length}
+                               start: {line: 0, column: 19},
+                               end: {line: 0, column: 47}
                              }
                            }]);
       assert.match(
@@ -381,8 +431,8 @@ suite('EditorService', function() {
             severity: Severity.ERROR,
             sourceRange: {
               file: 'editor-service/index.html',
-              start: {line: 0, column: 0},
-              end: {line: 0, column: 35}
+              start: {line: 0, column: 8},
+              end: {line: 0, column: 34}
             }
           }]);
     });

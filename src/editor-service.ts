@@ -12,11 +12,15 @@
  * http://polymer.github.io/PATENTS.txt
  */
 
+import * as dom5 from 'dom5';
 import * as parse5 from 'parse5';
+import * as path from 'path';
 
 import {Analyzer, Options as AnalyzerOptions} from './analyzer';
 import {Document, Element, Property, ScannedProperty, SourceRange} from './ast/ast';
 import {ParsedHtmlDocument} from './html/html-document';
+import {UrlLoader} from './url-loader/url-loader';
+import {UrlResolver} from './url-loader/url-resolver';
 
 export interface Position {
   /** Line number in file, starting from 0. */
@@ -25,10 +29,16 @@ export interface Position {
   column: number;
 }
 
-export type TypeaheadCompletion = ElementCompletion | AttributesCompletion;
+export type TypeaheadCompletion =
+    ElementCompletion | AttributesCompletion | ResourcePathCompletion;
 export interface ElementCompletion {
   kind: 'element-tags';
   elements: {tagname: string, description: string, expandTo?: string}[];
+}
+export interface ResourcePathCompletion {
+  kind: 'resource-paths';
+  paths: string[];
+  prefix: string;
 }
 export interface AttributesCompletion {
   kind: 'attributes';
@@ -65,7 +75,11 @@ export class WarningCarryingException extends Error {
 
 export class EditorService {
   private _analyzer: Analyzer;
+  private _urlLoader: UrlLoader;
+  private _urlResolver?: UrlResolver;
   constructor(options: AnalyzerOptions) {
+    this._urlLoader = options.urlLoader;
+    this._urlResolver = options.urlResolver;
     this._analyzer = new Analyzer(options);
   }
 
@@ -116,6 +130,35 @@ export class EditorService {
         })
       };
     } else if (location.kind === 'attribute') {
+      if (location.element.nodeName === 'link' &&
+          location.attribute === 'href') {
+        const partial = dom5.getAttribute(location.element, 'href') || '';
+        if (!this._urlLoader.offersCompletions()) {
+          return undefined;
+        }
+        const expandedPath = path.join(path.dirname(localPath), partial);
+        const resolvedPath =
+            this._urlResolver && this._urlResolver.canResolve(expandedPath) ?
+            this._urlResolver.resolve(expandedPath) :
+            expandedPath;
+        const files = await this._urlLoader.getCompletions(resolvedPath);
+        const relativePaths = files.map(f => {
+          const relPath = path.relative(path.dirname(localPath), f);
+          if (relPath === '') {
+            return null;
+          }
+          if (f.endsWith('/') && !relPath.endsWith('/')) {
+            return `${relPath}/`;
+          }
+          return relPath;
+        });
+        return {
+          kind: 'resource-paths',
+          paths: relativePaths.filter(f => f != null),
+          prefix: partial
+        };
+      }
+
       const elements = document.getById('element', location.element.nodeName);
       let attributes: AttributeCompletion[] = [];
       for (const element of elements) {
@@ -234,11 +277,10 @@ function _getLocationInfoForPosition(
             location.startTag.col + node.nodeName.length + 1) {
           return {kind: 'tagName', element: node};
         }
-        for (const attrName in location.startTag.attrs) {
-          const attributeLocation = location.startTag.attrs[attrName];
-          if (isPositionInsideLocation(position, attributeLocation)) {
-            return {kind: 'attribute', attribute: attrName, element: node};
-          }
+        const attrLocation =
+            getAttributeLocation(location.startTag.attrs, position, node);
+        if (attrLocation) {
+          return attrLocation;
         }
         // We're in the attributes section, but not over any particular
         // attribute.
@@ -250,6 +292,13 @@ function _getLocationInfoForPosition(
     } else if (node.nodeName && isPositionInsideLocation(position, location)) {
       if (position.column < location.col + node.nodeName.length + 1) {
         return {kind: 'tagName', element: node};
+      }
+      if (location['attrs']) {
+        const attrLocation =
+            getAttributeLocation(location['attrs'], position, node);
+        if (attrLocation) {
+          return attrLocation;
+        }
       }
       return {kind: 'attribute', attribute: null, element: node};
     }
@@ -296,4 +345,16 @@ function concatMap<I, O>(inputs: Iterable<I>, f: (i: I) => O[]): O[] {
     results = results.concat(f(input));
   }
   return results;
+}
+
+function getAttributeLocation(
+    attrs: parse5.AttributesLocationInfo, position: Position,
+    node: parse5.ASTNode): LocatedAttribute|undefined {
+  for (const attrName in attrs) {
+    const attributeLocation = attrs[attrName];
+    if (isPositionInsideLocation(position, attributeLocation)) {
+      return {kind: 'attribute', attribute: attrName, element: node};
+    }
+  }
+  return undefined;
 }

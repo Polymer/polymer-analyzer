@@ -28,11 +28,11 @@ export abstract class UrlLoader {
 
   /**
    * Given the partial path (e.g. that a user may be in the process of typing)
-   * of `pathSoFar`, return an array of paths that pathSoFar could complete to.
+   * of `dirname`, return an array of paths that dirname could complete to.
    *
-   * `pathSoFar` is a resolved URL relative to the package root.
+   * `dirname` is a resolved URL relative to the package root.
    */
-  async getCompletions(_pathSoFar: string): Promise<string[]> {
+  async getCompletions(_dirname: string): Promise<string[]> {
     return [];
   }
 }
