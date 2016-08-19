@@ -20,10 +20,11 @@ declare let window: any;
 /**
  * Resolves requests via the the DOM fetch API.
  */
-export class FetchUrlLoader implements UrlLoader {
+export class FetchUrlLoader extends UrlLoader {
   baseUrl: string;
 
   constructor(baseUrl: string) {
+    super();
     this.baseUrl = baseUrl;
   }
 
