@@ -15,6 +15,7 @@
 import * as now from 'performance-now';
 
 export interface Measurement {
+  /** The time that the measured operation took, in milliseconds. */
   elapsedTime: number;
   /**
    * A descriptive category for the measured operation, e.g. 'parse' or
