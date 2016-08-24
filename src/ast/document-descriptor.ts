@@ -74,6 +74,11 @@ export class Document implements Feature {
   // just filtering out by feature.sourceLocation.file === this.url;
   private _localFeatures = new Set<Feature>();
 
+  /**
+   * True after this document and all of its children are finished resolving.
+   */
+  private _doneResolving = false;
+
   static makeRootDocument(scannedDocument: ScannedDocument): Document {
     const result = new Document(scannedDocument);
     result._addFeature(result);
@@ -107,13 +112,17 @@ export class Document implements Feature {
     this._addFeature(this);
   }
 
-
-  private _isResolved = false;
+  /**
+   * To handle recursive dependency graphs we must track whether we've started
+   * resolving this Document so that we can reliably early exit even if one
+   * of our dependencies tries to resolve this document.
+   */
+  private _begunResolving = false;
   private _resolve(base: ScannedDocument) {
-    if (this._isResolved) {
+    if (this._begunResolving) {
       return;
     }
-    this._isResolved = true;
+    this._begunResolving = true;
     const dependenciesByUrl = new Map(
         base.dependencies.map((sd) => <[string, ScannedDocument]>[sd.url, sd]));
     let i = 0;  // DELETE ME
@@ -138,6 +147,7 @@ export class Document implements Feature {
         this._addFeature(feature);
       }
     }
+    this._doneResolving = true;
   }
 
   getByKind(kind: 'element'): Set<Element>;
@@ -149,7 +159,13 @@ export class Document implements Feature {
   getByKind(kind: string): Set<Feature>;
   getByKind(kind: string): Set<Feature> {
     if (this._featuresByKind) {
+      // We have a fast index! Use that.
       return this._featuresByKind.get(kind) || new Set();
+    } else if (this._doneResolving) {
+      // We're done discovering features in this document and its children so
+      // we can safely build up the indexes.
+      this._buildIndexes();
+      return this.getByKind(kind);
     }
     return this._getByKind(kind, new Set());
   }
@@ -162,8 +178,14 @@ export class Document implements Feature {
   getById(kind: string, identifier: string): Set<Feature>;
   getById(kind: string, identifier: string): Set<Feature> {
     if (this._featuresByKindAndId) {
+      // We have a fast index! Use that.
       const idMap = this._featuresByKindAndId.get(kind);
       return (idMap && idMap.get(identifier)) || new Set();
+    } else if (this._doneResolving) {
+      // We're done discovering features in this document and its children so
+      // we can safely build up the indexes.
+      this._buildIndexes();
+      return this.getById(kind, identifier);
     }
     const result = new Set<Feature>();
     for (const featureOfKind of this.getByKind(kind)) {
@@ -268,9 +290,6 @@ export class Document implements Feature {
   private _featuresByKind: Map<string, Set<Feature>> = null;
   private _featuresByKindAndId: Map<string, Map<string, Set<Feature>>> = null;
   private _initIndexes() {
-    if (this._rootDocument !== this) {
-      throw new Error('Currently we only intend to index the root document.');
-    }
     this._featuresByKind = new Map<string, Set<Feature>>();
     this._featuresByKindAndId = new Map<string, Map<string, Set<Feature>>>();
   }
@@ -288,6 +307,26 @@ export class Document implements Feature {
         identifiersMap.set(id, idSet);
         idSet.add(feature);
       }
+    }
+  }
+
+  private _buildIndexes() {
+    if (this._rootDocument === this) {
+      throw new Error(
+          '_buildIndexes should only be called on non-root documents.');
+    }
+    if (this._featuresByKind) {
+      throw new Error(
+          'Tried to build indexes multiple times. This should never happen.');
+    }
+    if (!this._doneResolving) {
+      throw new Error(
+          `Tried to build indexes before finished resolving. ` +
+          `Need to wait until afterwards or the indexes would be incomplete.`);
+    }
+    this._initIndexes();
+    for (const feature of this.getFeatures()) {
+      this._indexFeature(feature);
     }
   }
 }
