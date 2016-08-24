@@ -73,7 +73,7 @@ function existsSync(fn: string): boolean {
 }
 
 const fakeFileContents =
-    filesToAnalyze.map(fn => `<link rel="import" href="${fn}">`).join('\n');
+    filesToAnalyze.map((fn) => `<link rel="import" href="${fn}">`).join('\n');
 
 function padLeft(str: string, num: number): string {
   if (str.length < num) {
@@ -82,7 +82,7 @@ function padLeft(str: string, num: number): string {
   return str;
 }
 
-const measure = async() => {
+async function measure() {
   let document: any;
   for (let i = 0; i < 10; i++) {
     document = await analyzer.analyzeRoot('ephemeral.html', fakeFileContents);
@@ -147,9 +147,9 @@ class Averager<K> {
 
   entries(): Iterable<[K, number]> {
     const entries = this.count.keys().map(
-        k => <[K, number]>[k, this.elapsed.get(k) / this.count.get(k)]);
+        (k) => <[K, number]>[k, this.elapsed.get(k) / this.count.get(k)]);
     return entries.sort((a, b) => a[1] - b[1]);
   }
 }
 
-measure().catch(err => console.log(err.stack));
+measure().catch((err) => console.log(err.stack));

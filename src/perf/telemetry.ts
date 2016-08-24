@@ -23,6 +23,7 @@ export interface Measurement {
 export class TelemetryTracker {
   private _measurements: Measurement[] = [];
   private _promises: Promise<any>[] = [];
+
   async getMeasurements(): Promise<Measurement[]> {
     await Promise.all(this._promises);
     return this._measurements;

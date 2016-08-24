@@ -81,7 +81,7 @@ export class Analyzer {
   private _parsedDocuments =
       new Map<string, Promise<ParsedDocument<any, any>>>();
   private _scannedDocuments = new Map<string, Promise<ScannedDocument>>();
-  private _telemetry = new TelemetryTracker();
+  private _telemetryTracker = new TelemetryTracker();
 
   constructor(options: Options) {
     this._loader = options.urlLoader;
@@ -117,27 +117,28 @@ export class Analyzer {
     }
 
     const scannedDocument = await this._analyzeResolved(resolvedUrl, contents);
-    const doneTiming = this._telemetry.start('Document.makeRootDocument', url);
+    const doneTiming =
+        this._telemetryTracker.start('Document.makeRootDocument', url);
     const document = Document.makeRootDocument(scannedDocument);
     doneTiming();
     return document;
   }
 
   async getTelemetryMeasurements(): Promise<Measurement[]> {
-    return this._telemetry.getMeasurements();
+    return this._telemetryTracker.getMeasurements();
   }
 
   private async _analyzeResolved(resolvedUrl: string, contents?: string):
       Promise<ScannedDocument> {
-    let cachedResult = this._scannedDocuments.get(resolvedUrl);
+    const cachedResult = this._scannedDocuments.get(resolvedUrl);
     if (cachedResult) {
       return cachedResult;
     }
-    let promise = (async() => {
+    const promise = (async() => {
       // Make sure we wait and return a Promise before doing any work, so that
       // the Promise is cached before anything else happens.
       await Promise.resolve();
-      let document = await this._loadResolved(resolvedUrl, contents);
+      const document = await this._loadResolved(resolvedUrl, contents);
       return this._analyzeDocument(document);
     })();
     this._scannedDocuments.set(resolvedUrl, promise);
@@ -151,8 +152,8 @@ export class Analyzer {
       type: string, contents: string, url: string,
       locationOffset?: LocationOffset,
       attachedComment?: string): Promise<ScannedDocument> {
-    let resolvedUrl = this._resolveUrl(url);
-    let document = this._parse(type, contents, resolvedUrl);
+    const resolvedUrl = this._resolveUrl(url);
+    const document = this._parse(type, contents, resolvedUrl);
     return await this._analyzeDocument(
         document, locationOffset, attachedComment);
   }
@@ -163,6 +164,8 @@ export class Analyzer {
   private async _analyzeDocument(
       document: ParsedDocument<any, any>, maybeLocationOffset?: LocationOffset,
       maybeAttachedComment?: string): Promise<ScannedDocument> {
+    // TODO(rictic): We shouldn't be calling _analyzeDocument with
+    // null/undefined.
     if (document == null) {
       return null;
     }
@@ -214,7 +217,7 @@ export class Analyzer {
           }
         });
 
-    let dependencies =
+    const dependencies =
         (await Promise.all(analyzeDependencies)).filter(s => !!s);
 
     return new ScannedDocument(
@@ -233,16 +236,16 @@ export class Analyzer {
     // Use an immediately executed async function to create the final Promise
     // synchronously so we can store it in this._documents before any other
     // async operations to avoid any race conditions.
-    let promise = (async() => {
+    const promise = (async() => {
       // Make sure we wait and return a Promise before doing any work, so that
       // the Promise can be cached.
       await Promise.resolve();
       const content = providedContents == null ?
           await this._loader.load(resolvedUrl) :
           providedContents;
-      let extension = path.extname(resolvedUrl).substring(1);
+      const extension = path.extname(resolvedUrl).substring(1);
 
-      const doneTiming = this._telemetry.start('parse', 'resolvedUrl');
+      const doneTiming = this._telemetryTracker.start('parse', 'resolvedUrl');
       const parsedDoc = this._parse(extension, content, resolvedUrl);
       doneTiming();
       return parsedDoc;
@@ -253,7 +256,7 @@ export class Analyzer {
 
   private _parse(type: string, contents: string, url: string):
       ParsedDocument<any, any> {
-    let parser = this._parsers.get(type);
+    const parser = this._parsers.get(type);
     if (parser == null) {
       throw new Error(`No parser for for file type ${type}`);
     }
@@ -266,7 +269,7 @@ export class Analyzer {
 
   private async _getEntities(document: ParsedDocument<any, any>):
       Promise<ScannedFeature[]> {
-    let finders = this._entityFinders.get(document.type);
+    const finders = this._entityFinders.get(document.type);
     if (finders) {
       return findEntities(document, finders);
     }
