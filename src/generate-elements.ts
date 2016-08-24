@@ -144,9 +144,9 @@ function serializeAttribute(
 
 function resolveSourceRangePath(
     elementPath: string,
-    sourceRange: ResolvedSourceRange|undefined): (SourceRange | undefined) {
+    sourceRange?: ResolvedSourceRange): (SourceRange | undefined) {
   if (!sourceRange) {
-    return undefined;
+    return;
   }
   if (!sourceRange.file) {
     return sourceRange;

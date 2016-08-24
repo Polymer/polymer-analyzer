@@ -24,30 +24,30 @@ suite('correctSourceRange', function() {
         SourceRange = {file: 'foo', start: zeroPosition, end: zeroPosition};
     const zeroLocationOffset: LocationOffset = {line: 0, col: 0};
 
-    assert.equal(undefined, correctSourceRange(undefined, undefined));
-    assert.equal(undefined, correctSourceRange(undefined, zeroLocationOffset));
+    assert.equal(correctSourceRange(undefined, undefined), undefined);
+    assert.equal(correctSourceRange(undefined, zeroLocationOffset), undefined);
     assert.deepEqual(
-        zeroSourceRange, correctSourceRange(zeroSourceRange, undefined));
+        correctSourceRange(zeroSourceRange, undefined), zeroSourceRange);
   });
   test('handles source locations on the first line', function() {
     assert.deepEqual(
-        {line: 1, column: 2},
-        correctPosition({line: 0, column: 1}, {line: 1, col: 1}));
+        correctPosition({line: 0, column: 1}, {line: 1, col: 1}),
+        {line: 1, column: 2});
   });
   test(
       'does not change column offsets for ' +
           'source locations after the first',
       function() {
         assert.deepEqual(
-            {line: 2, column: 1},
-            correctPosition({line: 1, column: 1}, {line: 1, col: 1}));
+            correctPosition({line: 1, column: 1}, {line: 1, col: 1}),
+            {line: 2, column: 1}, );
       });
 
   test('does not modify its input', function() {
     const input: Position = {line: 5, column: 5};
     const offset: LocationOffset = {line: 5, col: 5};
     const expected: Position = {line: 10, column: 5};
-    assert.deepEqual(expected, correctPosition(input, offset));
-    assert.deepEqual({line: 5, column: 5}, input);
+    assert.deepEqual(correctPosition(input, offset), expected);
+    assert.deepEqual(input, {line: 5, column: 5});
   });
 });
