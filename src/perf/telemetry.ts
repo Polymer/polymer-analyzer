@@ -16,7 +16,16 @@ import * as now from 'performance-now';
 
 export interface Measurement {
   elapsedTime: number;
+  /**
+   * A descriptive category for the measured operation, e.g. 'parse' or
+   * 'resolve'.
+   */
   kind: string;
+  /**
+   * A helpful identifier for the item that the measured operation was working
+   * on. e.g. a url or file path like
+   * './bower_components/paper-button/paper-button.html'
+   */
   identifier: string;
 }
 
