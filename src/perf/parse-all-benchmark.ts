@@ -14,6 +14,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import * as now from 'performance-now';
 
 import {Analyzer} from '../analyzer';
 import {FSUrlLoader} from '../url-loader/fs-url-loader';
@@ -83,6 +84,7 @@ function padLeft(str: string, num: number): string {
 }
 
 async function measure() {
+  const start = now();
   let document: any;
   for (let i = 0; i < 10; i++) {
     document = await analyzer.analyzeRoot('ephemeral.html', fakeFileContents);
@@ -92,6 +94,8 @@ async function measure() {
   printMeasurements(measurements);
 
   console.log(`\n\n\n${document.getFeatures().size} total features resolved.`);
+  console.log(
+      `${((now() - start) / 1000).toFixed(2)} seconds total elapsed time`);
 };
 
 function printMeasurements(measurements: Measurement[]) {
@@ -123,7 +127,10 @@ function printMeasurements(measurements: Measurement[]) {
 
 class Counter<K> {
   private _map = new Map<K, number>();
-  add(k: K, v = 1) {
+  add(k: K, v?: number) {
+    if (v == null) {
+      v = 1;
+    }
     let i = this._map.get(k) || 0;
     this._map.set(k, i + v);
   }
@@ -152,4 +159,4 @@ class Averager<K> {
   }
 }
 
-measure().catch((err) => console.log(err.stack));
+measure().catch(((err) => console.log(err.stack) && process.exit(1)));
