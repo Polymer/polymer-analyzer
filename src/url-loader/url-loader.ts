@@ -30,7 +30,7 @@ export abstract class UrlLoader {
    * Given the partial path (e.g. that a user may be in the process of typing)
    * of `dirname`, return an array of paths that dirname could complete to.
    *
-   * `dirname` is a resolved URL relative to the package root.
+   * `dirname` is a URL that has been resolved by out URL resolver.
    */
   async getCompletions(_dirname: string): Promise<string[]> {
     return [];
