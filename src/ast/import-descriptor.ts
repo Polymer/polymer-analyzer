@@ -35,16 +35,21 @@ export class ScannedImport implements ScannedFeature, Resolvable {
   scannedDocument: ScannedDocument;
 
   sourceRange: SourceRange;
+  urlRange?: SourceRange;
 
-  constructor(type: string, url: string, sourceRange: SourceRange) {
+  constructor(
+      type: string, url: string, sourceRange: SourceRange,
+      // note that this isn't an optional param, you have to at least try
+      urlRange: (SourceRange|undefined)) {
     this.type = type;
     this.url = url;
     this.sourceRange = sourceRange;
+    this.urlRange = urlRange;
   }
 
   resolve(_contextDocument: Document): Import {
     // The caller will set import.document;
-    return new Import(this.url, this.type, this.sourceRange);
+    return new Import(this.url, this.type, this.sourceRange, this.urlRange);
   }
 }
 
@@ -55,12 +60,16 @@ export class Import implements Feature {
   identifiers = new Set();
   kinds: Set<string>;
   sourceRange: SourceRange;
+  urlRange?: SourceRange;
 
-  constructor(url: string, type: string, sourceRange: SourceRange) {
+  constructor(
+      url: string, type: string, sourceRange: SourceRange,
+      urlRange: (SourceRange|undefined)) {
     this.url = url;
     this.type = type;
     this.kinds = new Set(['import', this.type]);
     this.sourceRange = sourceRange;
+    this.urlRange = urlRange;
   }
 
   toString() {

@@ -13,6 +13,7 @@
  */
 
 import {assert} from 'chai';
+import * as path from 'path';
 
 import {FSUrlLoader} from '../../url-loader/fs-url-loader';
 
@@ -64,5 +65,27 @@ suite('FSUrlLoader', function() {
 
   });
 
-
+  suite('getCompletions', () => {
+    const basedir = path.join(__dirname, '../', 'static', 'dependencies');
+    let loader: FSUrlLoader = <any>null;
+    setup(() => {
+      loader = new FSUrlLoader(basedir);
+    });
+    test('offers completions', function() {
+      assert.equal(loader.offersCompletions(), true);
+    });
+    test('can get completions', async function() {
+      const completions = await loader.getCompletions('./');
+      assert.deepEqual(completions, [
+        'subfolder/', 'inline-and-imports.html', 'inline-only.html',
+        'leaf.html', 'root.html'
+      ].sort());
+    });
+    test('can get completions in a subfolder', async function() {
+      const completions = await loader.getCompletions('./subfolder');
+      assert.deepEqual(
+          completions,
+          ['subfolder/in-folder.html', 'subfolder/subfolder-sibling.html']);
+    });
+  });
 });

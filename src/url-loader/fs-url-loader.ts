@@ -22,10 +22,11 @@ import {UrlLoader} from './url-loader';
 /**
  * Resolves requests via the file system.
  */
-export class FSUrlLoader implements UrlLoader {
+export class FSUrlLoader extends UrlLoader {
   root: string|undefined;
 
   constructor(root?: string) {
+    super();
     this.root = root;
   }
 
@@ -63,4 +64,32 @@ export class FSUrlLoader implements UrlLoader {
     }
     return this.root ? pathlib.join(this.root, pathname) : pathname;
   }
+
+  offersCompletions() {
+    return true;
+  }
+
+  async getCompletions(dirname: string) {
+    const fullPath = this.getFilePath(dirname);
+    const files = await new Promise<string[]>((resolve, reject) => {
+      fs.readdir(fullPath, (err, files) => {
+        err ? reject(err) : resolve(files);
+      });
+    });
+    return await Promise.all(files.map(async(f) => {
+      const fullPathToFile = pathlib.join(fullPath, f);
+      const relativePath = pathlib.relative(this.root, fullPathToFile);
+      if (await isDir(fullPathToFile)) {
+        return `${relativePath}/`;
+      }
+      return relativePath;
+    }));
+  }
 };
+
+async function isDir(fullPath: string): Promise<boolean> {
+  const stat = await new Promise<fs.Stats>((resolve, reject) => {
+    fs.stat(fullPath, (err, stat) => err ? reject(err) : resolve(stat));
+  });
+  return stat.isDirectory();
+}

@@ -147,7 +147,7 @@ export class Document implements Feature {
     this._doneResolving = true;
   }
 
-  private _resolveScannedImport(scannedImport: ScannedImport<any>) {
+  private _resolveScannedImport(scannedImport: ScannedImport) {
     const imprt = scannedImport.resolve(this._rootDocument);
     this._addFeature(imprt);
 
@@ -164,7 +164,7 @@ export class Document implements Feature {
     document._resolve(scannedDoc);
   }
 
-  private _resolveInlineDocument(inlineDoc: InlineParsedDocument<any>) {
+  private _resolveInlineDocument(inlineDoc: InlineParsedDocument) {
     if (!inlineDoc.scannedDocument) {
       // Parse error on the inline document.
       return;

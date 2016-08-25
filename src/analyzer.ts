@@ -215,7 +215,7 @@ export class Analyzer {
    * Scan an inline document found within a containing parsed doc.
    */
   private async _scanInlineDocument(
-      inlineDoc: InlineParsedDocument<any>,
+      inlineDoc: InlineParsedDocument,
       containingDocument: ParsedDocument<any, any>,
       warnings: Warning[]): Promise<ScannedDocument|null> {
     const locationOffset: LocationOffset = {
@@ -242,9 +242,8 @@ export class Analyzer {
     }
   }
 
-  private async _scanImport(
-      scannedImport: ScannedImport<any>,
-      warnings: Warning[]): Promise<ScannedDocument|null> {
+  private async _scanImport(scannedImport: ScannedImport, warnings: Warning[]):
+      Promise<ScannedDocument|null> {
     let scannedDocument: ScannedDocument;
     try {
       // HACK(rictic): this isn't quite right either, we need to get
@@ -262,7 +261,7 @@ export class Analyzer {
       warnings.push({
         code: 'could-not-load',
         message: `Unable to load import: ${error.message || error}`,
-        sourceRange: scannedImport.sourceRange,
+        sourceRange: scannedImport.urlRange || scannedImport.sourceRange,
         severity: Severity.ERROR
       });
       return null;

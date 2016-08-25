@@ -39,7 +39,8 @@ export class HtmlImportFinder implements HtmlEntityFinder {
         const href = dom5.getAttribute(node, 'href');
         const importUrl = resolveUrl(document.url, href);
         imports.push(new ScannedImport(
-            'html-import', importUrl, document.sourceRangeForNode(node)));
+            'html-import', importUrl, document.sourceRangeForNode(node),
+            document.sourceRangeForAttribute(node, 'href')));
       }
     });
     return imports;
