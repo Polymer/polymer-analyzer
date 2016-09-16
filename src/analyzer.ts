@@ -43,6 +43,11 @@ export interface Options {
   urlResolver?: UrlResolver;
   parsers?: Map<string, Parser<any>>;
   scanners?: Map<string, Scanner<any, any, any>[]>;
+  /*
+   * Map from url of an HTML Document to another HTML document it lazily depends
+   * on.
+   */
+  lazyEdges: Map<string, string>;
 }
 
 export class NoKnownParserError extends Error {};
@@ -63,18 +68,24 @@ export class Analyzer {
     ['json', new JsonParser()],
   ]);
 
+  private _lazyEdges: Map<string, string>;
+
   private scanners = new Map<string, Scanner<any, any, any>[]>([
     [
       'html',
       [
-        new HtmlImportScanner(), new HtmlScriptScanner(),
-        new HtmlStyleScanner(), new DomModuleScanner(), new CssImportScanner()
+        new HtmlImportScanner(this._lazyEdges),
+        new HtmlScriptScanner(),
+        new HtmlStyleScanner(),
+        new DomModuleScanner(),
+        new CssImportScanner()
       ]
     ],
     [
       'js',
       [
-        new PolymerElementScanner(), new BehaviorScanner(),
+        new PolymerElementScanner(),
+        new BehaviorScanner(),
         new VanillaElementScanner()
       ]
     ],
@@ -92,6 +103,7 @@ export class Analyzer {
     this._resolver = options.urlResolver;
     this._parsers = options.parsers || this._parsers;
     this.scanners = options.scanners || this.scanners;
+    this._lazyEdges = options.lazyEdges;
   }
 
   /**
