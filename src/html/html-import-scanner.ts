@@ -40,7 +40,7 @@ const isLazyImportNode = p.AND(
  * Scans for <link rel="import"> and <link rel="lazy-import">
  */
 export class HtmlImportScanner implements HtmlScanner {
-  constructor(private _lazyEdges?: Map<string, Array<string>>) {}
+  constructor(private _lazyEdges?: Map<string, string[]>) {}
 
   async scan(
       document: ParsedHtmlDocument,
