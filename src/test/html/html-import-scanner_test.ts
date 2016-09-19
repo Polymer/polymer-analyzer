@@ -62,4 +62,37 @@ suite('HtmlImportScanner', () => {
 
   });
 
+  suite('scan() with import map', () => {
+    let scanner: HtmlImportScanner;
+
+    setup(() => {
+      const lazyEdges = new Map<string, string[]>();
+      lazyEdges.set('test.html', ['lazy1.html', 'lazy2.html', 'lazy3.html']);
+      scanner = new HtmlImportScanner(lazyEdges);
+    });
+
+    test('injects synthetic html imports', async() => {
+      const contents = `<html><head>
+          <link rel="import" href="polymer.html">
+          <link rel="import" type="css" href="polymer.css">
+          <script src="foo.js"></script>
+          <link rel="stylesheet" href="foo.css"></link>
+        </head></html>`;
+      const document = new HtmlParser().parse(contents, 'test.html');
+      const visit = async(visitor: HtmlVisitor) => document.visit([visitor]);
+
+      const features = await scanner.scan(document, visit);
+      assert.equal(features.length, 4);
+      assert.equal(features[0].type, 'html-import');
+      assert.equal(features[0].url, 'polymer.html');
+      assert.equal(features[1].type, 'lazy-html-import');
+      assert.equal(features[1].url, 'lazy1.html');
+      assert.equal(features[2].type, 'lazy-html-import');
+      assert.equal(features[2].url, 'lazy2.html');
+      assert.equal(features[3].type, 'lazy-html-import');
+      assert.equal(features[3].url, 'lazy3.html');
+    });
+
+  });
+
 });

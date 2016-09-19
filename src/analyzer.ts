@@ -42,15 +42,18 @@ export interface Options {
   urlLoader: UrlLoader;
   urlResolver?: UrlResolver;
   parsers?: Map<string, Parser<any>>;
-  scanners?: Map<string, Scanner<any, any, any>[]>;
+  scanners?: ScannerTable;
   /*
    * Map from url of an HTML Document to another HTML document it lazily depends
    * on.
    */
-  lazyEdges: Map<string, string>;
+  lazyEdges?: LazyEdgeMap;
 }
 
 export class NoKnownParserError extends Error {};
+
+export interface ScannerTable extends Map<string, Scanner<any, any, any>[]> {}
+export interface LazyEdgeMap extends Map<string, string[]> {}
 
 /**
  * A static analyzer for web projects.
@@ -68,28 +71,9 @@ export class Analyzer {
     ['json', new JsonParser()],
   ]);
 
-  private _lazyEdges: Map<string, string>;
+  private _lazyEdges: Map<string, Array<string>>;
 
-  private scanners = new Map<string, Scanner<any, any, any>[]>([
-    [
-      'html',
-      [
-        new HtmlImportScanner(this._lazyEdges),
-        new HtmlScriptScanner(),
-        new HtmlStyleScanner(),
-        new DomModuleScanner(),
-        new CssImportScanner()
-      ]
-    ],
-    [
-      'js',
-      [
-        new PolymerElementScanner(),
-        new BehaviorScanner(),
-        new VanillaElementScanner()
-      ]
-    ],
-  ]);
+  private _scanners: ScannerTable;
 
   private _loader: UrlLoader;
   private _resolver: UrlResolver|undefined;
@@ -98,12 +82,32 @@ export class Analyzer {
   private _scannedDocuments = new Map<string, Promise<ScannedDocument>>();
   private _telemetryTracker = new TelemetryTracker();
 
+  private static _defaultScanners(lazyEdges: Map<string, string[]>) {
+    return new Map<string, Scanner<any, any, any>[]>([
+      [
+        'html',
+        [
+          new HtmlImportScanner(lazyEdges), new HtmlScriptScanner(),
+          new HtmlStyleScanner(), new DomModuleScanner(),
+          new CssImportScanner()
+        ]
+      ],
+      [
+        'js',
+        [
+          new PolymerElementScanner(), new BehaviorScanner(),
+          new VanillaElementScanner()
+        ]
+      ],
+    ]);
+  }
+
   constructor(options: Options) {
     this._loader = options.urlLoader;
     this._resolver = options.urlResolver;
     this._parsers = options.parsers || this._parsers;
-    this.scanners = options.scanners || this.scanners;
     this._lazyEdges = options.lazyEdges;
+    this._scanners = options.scanners || Analyzer._defaultScanners(this._lazyEdges);
   }
 
   /**
@@ -343,7 +347,7 @@ export class Analyzer {
 
   private async _getScannedFeatures(document: ParsedDocument<any, any>):
       Promise<ScannedFeature[]> {
-    const scanners = this.scanners.get(document.type);
+    const scanners = this._scanners.get(document.type);
     if (scanners) {
       return scan(document, scanners);
     }
