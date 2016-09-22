@@ -22,7 +22,7 @@ import {invertPromise} from '../test-utils';
 const pathToServer =
     path.join(__dirname, '../../editor-service/editor-server.js');
 
-suite('RemoteEditorService', function() {
+suite('RemoteEditorService', () => {
   /**
    * These are the tests. We run these tests using a few different ways of
    * communicating with the server.
@@ -40,19 +40,19 @@ suite('RemoteEditorService', function() {
     };
 
 
-    test('can create and initialize', async function() {
+    test('can create and initialize', async() => {
       await sendRequest({id: 0, value: initMessage});
       const response = await getNextResponse(0);
       assert.deepEqual(response, undefined);
     });
-    test('initializing twice is an error', async function() {
+    test('initializing twice is an error', async() => {
       await sendRequest({id: 0, value: initMessage});
       await getNextResponse(0);
       await sendRequest({id: 1, value: initMessage});
       const errorMessage = await invertPromise(getNextResponse(1));
       assert.equal(errorMessage, 'Already initialized!');
     });
-    test('the first request must be initialization', async function() {
+    test('the first request must be initialization', async() => {
       await sendRequest({id: 0, value: getWarningsMessage});
       const errorMessage = await invertPromise(getNextResponse(0));
       assert.equal(
@@ -61,7 +61,7 @@ suite('RemoteEditorService', function() {
               `'getWarningsFor' message before 'init'.`);
     });
     const testName = 'can perform editor service functions once initialized';
-    test(testName, async function() {
+    test(testName, async() => {
       await sendRequest({id: 0, value: initMessage});
       await getNextResponse(0);
       await sendRequest({id: 1, value: getWarningsMessage});
@@ -79,44 +79,46 @@ suite('RemoteEditorService', function() {
     });
   }
 
-  let suiteName =
-      'from node with child_process.fork() and process.send() for IPC';
-  suite(suiteName, function() {
-    let child: child_process.ChildProcess;
-    setup(() => {
-      child = child_process.fork(pathToServer);
-    });
-    teardown(() => {
-      child.kill();
-    });
+  suite(
+      'from node with child_process.fork() and process.send() for IPC', () => {
 
-    async function sendRequest(request: any) {
-      child.send(request);
-    };
+        let child: child_process.ChildProcess;
 
-    async function getNextResponse(expectedId: number) {
-      const message = await new Promise<any>((resolve) => {
-        child.once('message', function(msg: any) {
-          resolve(msg);
+        setup(() => {
+          child = child_process.fork(pathToServer);
         });
-      });
-      assert.equal(message.id, expectedId);
-      return new Promise((resolve, reject) => {
-        if (message.value.kind === 'resolution') {
-          resolve(message.value.resolution);
-        } else if (message.value.kind === 'rejection') {
-          reject(message.value.rejection);
-        }
-      });
-    };
 
-    editorServiceInterfaceTests(sendRequest, getNextResponse);
-  });
+        teardown(() => {
+          child.kill();
+        });
 
-  suiteName = 'from the command line with stdin and stdout';
-  suite(suiteName, function() {
+        async function sendRequest(request: any) {
+          child.send(request);
+        };
+
+        async function getNextResponse(expectedId: number) {
+          const message = await new Promise<any>((resolve) => {
+            child.once('message', function(msg: any) {
+              resolve(msg);
+            });
+          });
+          assert.equal(message.id, expectedId);
+          return new Promise((resolve, reject) => {
+            if (message.value.kind === 'resolution') {
+              resolve(message.value.resolution);
+            } else if (message.value.kind === 'rejection') {
+              reject(message.value.rejection);
+            }
+          });
+        };
+
+        editorServiceInterfaceTests(sendRequest, getNextResponse);
+      });
+
+  suite('from the command line with stdin and stdout', () => {
     let child: child_process.ChildProcess;
     let lines: NodeJS.ReadableStream;
+
     setup(() => {
       child = child_process.spawn(
           'node', [pathToServer], {stdio: ['pipe', 'pipe', 'pipe']});
@@ -124,6 +126,7 @@ suite('RemoteEditorService', function() {
       child.stdout.resume();
       lines = child.stdout.pipe(split());
     });
+
     teardown(() => {
       child.kill();
     });
