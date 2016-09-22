@@ -13,10 +13,10 @@
  */
 
 import {Analyzer} from '../analyzer';
-import {Severity, WarningCarryingException} from '../editor-service/editor-service';
 import {FSUrlLoader} from '../url-loader/fs-url-loader';
 import {PackageUrlResolver} from '../url-loader/package-url-resolver';
-import {WarningPrinter} from '../warnings';
+import {Severity, WarningCarryingException} from '../warning/warning';
+import {WarningPrinter} from '../warning/warning-printer';
 
 
 /**

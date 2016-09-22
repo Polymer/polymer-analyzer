@@ -17,10 +17,10 @@ import * as chalk from 'chalk';
 import * as memoryStreams from 'memory-streams';
 import * as path from 'path';
 
-import {Analyzer} from '../analyzer';
-import {Severity, Warning} from '../editor-service/editor-service';
-import {FSUrlLoader} from '../url-loader/fs-url-loader';
-import {WarningPrinter} from '../warnings';
+import {Analyzer} from '../../analyzer';
+import {FSUrlLoader} from '../../url-loader/fs-url-loader';
+import {Severity, Warning} from '../../warning/warning';
+import {WarningPrinter} from '../../warning/warning-printer';
 
 const dumbNameWarning: Warning = {
   message: 'This is a dumb name for an element.',
@@ -33,7 +33,7 @@ const dumbNameWarning: Warning = {
   }
 };
 
-const staticTestDir = path.join(__dirname, 'static');
+const staticTestDir = path.join(__dirname, '../static');
 
 suite('WarningPrinter', () => {
   let output: NodeJS.WritableStream;

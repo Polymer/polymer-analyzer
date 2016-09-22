@@ -14,48 +14,16 @@
 
 import * as chalk from 'chalk';
 
-import {Analyzer} from './analyzer';
-import {Severity, Warning} from './editor-service/editor-service';
-import {SourceRange} from './model/source-range';
+import {Analyzer} from '../analyzer';
+import {Severity, Warning} from './warning';
+import {SourceRange} from '../model/source-range';
 
 export type Verbosity = 'one-line' | 'full';
 
-export interface PrinterOptions {
+export interface Options {
   analyzer: Analyzer;
   verbosity?: Verbosity;
   color?: boolean;
-}
-
-export interface FilterOptions {
-  /**
-   * Warning codes like 'parse-error' or 'behavior-not-found' to filter out.
-   */
-  warningCodesToIgnore?: Set<string>;
-  /**
-   * All warnings below this level of severity will be filtered out.
-   */
-  minimumSeverity: Severity;
-}
-
-const defaultFilterOptions: FilterOptions = {
-  warningCodesToIgnore: new Set(),
-  minimumSeverity: Severity.INFO
-};
-
-export class WarningFilter {
-  constructor(private _options: FilterOptions) {
-    this._options = Object.assign({}, defaultFilterOptions, this._options);
-  }
-
-  shouldIgnore(warning: Warning) {
-    if (this._options.warningCodesToIgnore.has(warning.code)) {
-      return true;
-    }
-    if (warning.severity > this._options.minimumSeverity) {
-      return true;
-    }
-    return false;
-  }
 }
 
 const defaultPrinterOptions = {
@@ -67,8 +35,7 @@ export class WarningPrinter {
   _chalk: typeof chalk;
 
   constructor(
-      private _outStream: NodeJS.WritableStream,
-      private _options?: PrinterOptions) {
+      private _outStream: NodeJS.WritableStream, private _options?: Options) {
     this._options = Object.assign({}, defaultPrinterOptions, _options);
     // TODO(rictic): remove cast to `any` here once upstream PR has landed:
     //     https://github.com/DefinitelyTyped/DefinitelyTyped/pull/11411

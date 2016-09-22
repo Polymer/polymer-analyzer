@@ -17,7 +17,6 @@
 import * as path from 'path';
 
 import {CssParser} from './css/css-parser';
-import {Severity, Warning, WarningCarryingException} from './editor-service/editor-service';
 import {HtmlImportScanner} from './html/html-import-scanner';
 import {HtmlParser} from './html/html-parser';
 import {HtmlScriptScanner} from './html/html-script-scanner';
@@ -37,6 +36,7 @@ import {Scanner} from './scanning/scanner';
 import {UrlLoader} from './url-loader/url-loader';
 import {UrlResolver} from './url-loader/url-resolver';
 import {ElementScanner as VanillaElementScanner} from './vanilla-custom-elements/element-scanner';
+import {Severity, Warning, WarningCarryingException} from './warning/warning';
 
 export interface Options {
   urlLoader: UrlLoader;
