@@ -66,6 +66,8 @@ export class WarningPrinter {
       private _outStream: NodeJS.WritableStream,
       private _options?: PrinterOptions) {
     this._options = Object.assign({}, defaultPrinterOptions, _options);
+    // TODO(rictic): remove cast to `any` here once upstream PR has landed:
+    //     https://github.com/DefinitelyTyped/DefinitelyTyped/pull/11411
     this._chalk =
         new (chalk.constructor as any)({enabled: this._options.color});
   }
