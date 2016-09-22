@@ -12,6 +12,16 @@
  * http://polymer.github.io/PATENTS.txt
  */
 
+/**
+ * This file is a binary not a library, and should be run via
+ * `node editor-server.js` or `child_process.fork`
+ *
+ * Communication with this server is done via the Remote Editor Protocol via
+ * stdin and stdout, as well as the node process.on('message') IPC process.
+ *
+ * See 'remote-editor-protocol.ts' for details on the communication protocol.
+ */
+
 import * as split from 'split';
 import * as util from 'util';
 
