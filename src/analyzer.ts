@@ -226,8 +226,11 @@ export class Analyzer {
           if (scannedDependency instanceof InlineParsedDocument) {
             return this._scanInlineDocument(
                 scannedDependency, document, warnings);
-          } else if (scannedDependency instanceof ScannedImport && scannedDependency.type == 'html-import') {
-            return this._scanImport(scannedDependency, warnings);
+          } else if (scannedDependency instanceof ScannedImport) {
+            if (scannedDependency.type !== 'lazy-html-import') {
+              return this._scanImport(scannedDependency, warnings);
+            }
+            return null;
           } else {
             throw new Error(`Unexpected dependency type: ${scannedDependency}`);
           }
