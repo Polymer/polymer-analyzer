@@ -147,13 +147,13 @@ suite('RemoteEditorService', () => {
           await new Promise<string>(resolve => lines.once('data', resolve));
       const message = JSON.parse(line);
       assert.equal(message.id, expectedId);
-      return new Promise((resolve, reject) => {
-        if (message.value.kind === 'resolution') {
-          resolve(message.value.resolution);
-        } else if (message.value.kind === 'rejection') {
-          reject(message.value.rejection);
-        }
-      });
+      if (message.value.kind === 'resolution') {
+        return message.value.resolution;
+      } else if (message.value.kind === 'rejection') {
+        throw message.value.rejection;
+      }
+      throw new Error(
+          `Response with unexpected kind: ${util.inspect(message.value)}`);
     }
 
     editorServiceInterfaceTests(sendRequest, getNextResponse);
