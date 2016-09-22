@@ -18,6 +18,7 @@ import * as memoryStreams from 'memory-streams';
 import * as path from 'path';
 
 import {Severity, Warning} from '../editor-service';
+import {FSUrlLoader} from '../url-loader/fs-url-loader';
 import {Verbosity, WarningPrinter} from '../warnings';
 
 const dumbNameWarning: Warning = {
@@ -36,18 +37,19 @@ const staticTestDir = path.join(__dirname, 'static');
 suite('WarningPrinter', () => {
   let output: NodeJS.WritableStream;
   let printer: WarningPrinter;
+  let urlLoader: FSUrlLoader;
   setup(() => {
     output = new memoryStreams.WritableStream();
-    printer =
-        new WarningPrinter(output, {basedir: staticTestDir, color: false});
+    urlLoader = new FSUrlLoader(staticTestDir);
+    printer = new WarningPrinter(output, {urlLoader, color: false});
   });
-  test('can handle printing no warnings', () => {
-    printer.printWarnings([]);
+  test('can handle printing no warnings', async() => {
+    await printer.printWarnings([]);
     assert.equal(output.toString(), '');
   });
 
-  test('can format and print a basic warning', () => {
-    printer.printWarnings([dumbNameWarning]);
+  test('can format and print a basic warning', async() => {
+    await printer.printWarnings([dumbNameWarning]);
     const actual = output.toString();
     const expected = `
 class ClassDeclaration extends HTMLElement {}
@@ -58,20 +60,19 @@ vanilla-elements.js(0,6) warning [dumb-element-name] - This is a dumb name for a
     assert.equal(actual, expected);
   });
 
-  test('can format and print one-line warnings', () => {
+  test('can format and print one-line warnings', async() => {
     printer = new WarningPrinter(
-        output,
-        {basedir: staticTestDir, verbosity: Verbosity.OneLine, color: false});
-    printer.printWarnings([dumbNameWarning]);
+        output, {urlLoader, verbosity: Verbosity.OneLine, color: false});
+    await printer.printWarnings([dumbNameWarning]);
     const actual = output.toString();
     const expected =
         `vanilla-elements.js(0,6) warning [dumb-element-name] - This is a dumb name for an element.\n`;
     assert.equal(actual, expected);
   });
 
-  test('it adds color if configured to do so', () => {
-    printer = new WarningPrinter(output, {basedir: staticTestDir, color: true});
-    printer.printWarnings([dumbNameWarning]);
+  test('it adds color if configured to do so', async() => {
+    printer = new WarningPrinter(output, {urlLoader, color: true});
+    await printer.printWarnings([dumbNameWarning]);
     const actual = output.toString();
     assert.isTrue(chalk.hasColor(actual));
     const expected = `

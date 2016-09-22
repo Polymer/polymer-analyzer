@@ -12,11 +12,11 @@
  * http://polymer.github.io/PATENTS.txt
  */
 
-import {Analyzer} from './analyzer';
-import {Severity, WarningCarryingException} from './editor-service';
-import {FSUrlLoader} from './url-loader/fs-url-loader';
-import {PackageUrlResolver} from './url-loader/package-url-resolver';
-import {WarningPrinter} from './warnings';
+import {Analyzer} from '../analyzer';
+import {Severity, WarningCarryingException} from '../editor-service';
+import {FSUrlLoader} from '../url-loader/fs-url-loader';
+import {PackageUrlResolver} from '../url-loader/package-url-resolver';
+import {WarningPrinter} from '../warnings';
 
 
 /**
@@ -24,12 +24,11 @@ import {WarningPrinter} from './warnings';
  */
 async function main() {
   const basedir = process.cwd();
-  const analyzer = new Analyzer({
-    urlLoader: new FSUrlLoader(basedir),
-    urlResolver: new PackageUrlResolver()
-  });
+  const urlLoader = new FSUrlLoader(basedir);
+  const analyzer =
+      new Analyzer({urlLoader, urlResolver: new PackageUrlResolver()});
   const warnings = await getWarnings(analyzer, process.argv[2]);
-  const warningPrinter = new WarningPrinter(process.stderr, {basedir});
+  const warningPrinter = new WarningPrinter(process.stderr, {urlLoader});
   warningPrinter.printWarnings(warnings);
   const worstSeverity = Math.min.apply(Math, warnings.map(m => m.severity));
   if (worstSeverity === Severity.ERROR) {

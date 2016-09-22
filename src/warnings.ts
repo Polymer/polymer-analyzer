@@ -13,11 +13,10 @@
  */
 
 import * as chalk from 'chalk';
-import * as fs from 'fs';
-import * as path from 'path';
 
 import {SourceRange} from './ast/source-range';
 import {Severity, Warning} from './editor-service';
+import {UrlLoader} from './url-loader/url-loader';
 
 export enum Verbosity {
   OneLine,
@@ -25,7 +24,7 @@ export enum Verbosity {
 }
 
 export interface PrinterOptions {
-  basedir: string;
+  urlLoader: UrlLoader;
   verbosity?: Verbosity;
   color?: boolean;
 }
@@ -72,19 +71,19 @@ export class WarningPrinter {
         new (chalk.constructor as any)({enabled: this._options.color});
   }
 
-  printWarnings(warnings: Iterable<Warning>) {
+  async printWarnings(warnings: Iterable<Warning>) {
     for (const warning of warnings) {
-      this.printWarning(warning);
+      await this.printWarning(warning);
     }
   }
 
-  printWarning(warning: Warning) {
+  async printWarning(warning: Warning) {
     const severity = this._severityToString(warning.severity);
     const range = warning.sourceRange;
 
     if (this._options.verbosity >= Verbosity.Full) {
       this._outStream.write('\n');
-      const lineText = this._getTextOfLine(range.start.line, range.file);
+      const lineText = await this._getTextOfLine(range.start.line, range.file);
       this._outStream.write(`${lineText}\n`);
       const colorFunction = this._severityToColorFunction(warning.severity);
       const underlineText = getUnderlineText(lineText, range);
@@ -128,9 +127,8 @@ export class WarningPrinter {
                         } - encountered while printing warning.`);
     }
   }
-  private _getTextOfLine(line: number, localPath: string) {
-    const contents =
-        fs.readFileSync(path.join(this._options.basedir, localPath), 'utf-8');
+  private async _getTextOfLine(line: number, localPath: string) {
+    const contents = await this._options.urlLoader.load(localPath);
     return contents.split('\n')[line];
   }
 }
