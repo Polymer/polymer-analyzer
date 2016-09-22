@@ -282,6 +282,13 @@ export class Analyzer {
     return scannedDocument;
   }
 
+  /**
+   * Loads the content at the provided resolved URL.
+   *
+   * Currently does no caching. If the provided contents are given then they
+   * are used instead of hitting the UrlLoader (e.g. when you have in-memory
+   * contents that should override disk).
+   */
   async load(resolvedUrl: string, providedContents?: string) {
     if (!this._loader.canLoad(resolvedUrl)) {
       throw new Error(`Can't load URL: ${resolvedUrl}`);
