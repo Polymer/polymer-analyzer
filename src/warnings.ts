@@ -45,7 +45,7 @@ const defaultFilterOptions: FilterOptions = {
   minimumSeverity: Severity.INFO
 };
 
-export class WarningFilterer {
+export class WarningFilter {
   constructor(private _options: FilterOptions) {
     this._options = Object.assign({}, defaultFilterOptions, this._options);
   }
