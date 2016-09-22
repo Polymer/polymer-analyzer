@@ -20,7 +20,7 @@ import * as path from 'path';
 import {Analyzer} from '../analyzer';
 import {Severity, Warning} from '../editor-service/editor-service';
 import {FSUrlLoader} from '../url-loader/fs-url-loader';
-import {Verbosity, WarningPrinter} from '../warnings';
+import {WarningPrinter} from '../warnings';
 
 const dumbNameWarning: Warning = {
   message: 'This is a dumb name for an element.',
@@ -66,7 +66,7 @@ vanilla-elements.js(0,6) warning [dumb-element-name] - This is a dumb name for a
 
   test('can format and print one-line warnings', async() => {
     printer = new WarningPrinter(
-        output, {analyzer, verbosity: Verbosity.OneLine, color: false});
+        output, {analyzer, verbosity: 'one-line', color: false});
     await printer.printWarnings([dumbNameWarning]);
     const actual = output.toString();
     const expected =

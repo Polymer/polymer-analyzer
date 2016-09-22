@@ -18,10 +18,7 @@ import {Analyzer} from './analyzer';
 import {Severity, Warning} from './editor-service/editor-service';
 import {SourceRange} from './model/source-range';
 
-export enum Verbosity {
-  OneLine,
-  Full,
-}
+export type Verbosity = 'one-line' | 'full';
 
 export interface PrinterOptions {
   analyzer: Analyzer;
@@ -62,7 +59,7 @@ export class WarningFilter {
 }
 
 const defaultPrinterOptions = {
-  verbosity: Verbosity.Full,
+  verbosity: 'full',
   color: true
 };
 
@@ -92,7 +89,7 @@ export class WarningPrinter {
     const severity = this._severityToString(warning.severity);
     const range = warning.sourceRange;
 
-    if (this._options.verbosity >= Verbosity.Full) {
+    if (this._options.verbosity === 'full') {
       this._outStream.write('\n');
       const lineText = await this._getTextOfLine(range.start.line, range.file);
       this._outStream.write(`${lineText}\n`);
