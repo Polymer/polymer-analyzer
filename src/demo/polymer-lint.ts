@@ -13,7 +13,7 @@
  */
 
 import {Analyzer} from '../analyzer';
-import {Severity, WarningCarryingException} from '../editor-service';
+import {Severity, WarningCarryingException} from '../editor-service/editor-service';
 import {FSUrlLoader} from '../url-loader/fs-url-loader';
 import {PackageUrlResolver} from '../url-loader/package-url-resolver';
 import {WarningPrinter} from '../warnings';
@@ -24,11 +24,12 @@ import {WarningPrinter} from '../warnings';
  */
 async function main() {
   const basedir = process.cwd();
-  const urlLoader = new FSUrlLoader(basedir);
-  const analyzer =
-      new Analyzer({urlLoader, urlResolver: new PackageUrlResolver()});
+  const analyzer = new Analyzer({
+    urlLoader: new FSUrlLoader(basedir),
+    urlResolver: new PackageUrlResolver()
+  });
   const warnings = await getWarnings(analyzer, process.argv[2]);
-  const warningPrinter = new WarningPrinter(process.stderr, {urlLoader});
+  const warningPrinter = new WarningPrinter(process.stderr, {analyzer});
   warningPrinter.printWarnings(warnings);
   const worstSeverity = Math.min.apply(Math, warnings.map(m => m.severity));
   if (worstSeverity === Severity.ERROR) {

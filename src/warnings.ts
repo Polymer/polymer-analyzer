@@ -14,9 +14,9 @@
 
 import * as chalk from 'chalk';
 
-import {SourceRange} from './ast/source-range';
-import {Severity, Warning} from './editor-service';
-import {UrlLoader} from './url-loader/url-loader';
+import {Analyzer} from './analyzer';
+import {Severity, Warning} from './editor-service/editor-service';
+import {SourceRange} from './model/source-range';
 
 export enum Verbosity {
   OneLine,
@@ -24,10 +24,11 @@ export enum Verbosity {
 }
 
 export interface PrinterOptions {
-  urlLoader: UrlLoader;
+  analyzer: Analyzer;
   verbosity?: Verbosity;
   color?: boolean;
 }
+
 export interface FilterOptions {
   warningCodesToIgnore?: Set<string>;
   minimumSeverity: Severity;
@@ -61,6 +62,7 @@ const defaultPrinterOptions = {
 
 export class WarningPrinter {
   _chalk: typeof chalk;
+
   constructor(
       private _outStream: NodeJS.WritableStream,
       private _options?: PrinterOptions) {
@@ -127,14 +129,11 @@ export class WarningPrinter {
                         } - encountered while printing warning.`);
     }
   }
+
   private async _getTextOfLine(line: number, localPath: string) {
-    const contents = await this._options.urlLoader.load(localPath);
+    const contents = await this._options.analyzer.load(localPath);
     return contents.split('\n')[line];
   }
-}
-
-function repeatCharacter(char: string, num: number) {
-  return Array(num + 1).join(char);
 }
 
 function getUnderlineText(lineText: string, sourceRange: SourceRange) {
@@ -142,11 +141,11 @@ function getUnderlineText(lineText: string, sourceRange: SourceRange) {
   const endColumn = sourceRange.end.line === sourceRange.start.line ?
       sourceRange.end.column :
       lineText.length;
-  let underline = repeatCharacter(' ', startColumn);
+  let underline = ' '.repeat(startColumn);
   underline += '~';
   if (startColumn === endColumn) {
     return underline;
   }
-  underline += repeatCharacter('~', endColumn - (startColumn + 1));
+  underline += '~'.repeat(endColumn - (startColumn + 1));
   return underline;
 }
