@@ -134,11 +134,7 @@ export class WarningPrinter {
 }
 
 function repeatCharacter(char: string, num: number) {
-  const chars: string[] = [];
-  for (let i = 0; i < num; i++) {
-    chars.push(char);
-  }
-  return chars.join('');
+  return Array(num + 1).join(char);
 }
 
 function getUnderlineText(lineText: string, sourceRange: SourceRange) {
