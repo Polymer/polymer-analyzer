@@ -66,7 +66,7 @@ export class HtmlImportScanner implements HtmlScanner {
     if (this._lazyEdges && this._lazyEdges.has(document.url)) {
       for (let edge of this._lazyEdges.get(document.url)) {
         imports.push(new ScannedImport(
-          'lazy-html-import', edge, null));
+          'lazy-html-import', edge, null, null));
       }
     }
     return imports;
