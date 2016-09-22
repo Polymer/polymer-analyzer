@@ -30,7 +30,13 @@ export interface PrinterOptions {
 }
 
 export interface FilterOptions {
+  /**
+   * Warning codes like 'parse-error' or 'behavior-not-found' to filter out.
+   */
   warningCodesToIgnore?: Set<string>;
+  /**
+   * All warnings below this level of severity will be filtered out.
+   */
   minimumSeverity: Severity;
 }
 
@@ -73,6 +79,9 @@ export class WarningPrinter {
         new (chalk.constructor as any)({enabled: this._options.color});
   }
 
+  /**
+   * Convenience method around `printWarning`.
+   */
   async printWarnings(warnings: Iterable<Warning>) {
     for (const warning of warnings) {
       await this.printWarning(warning);
