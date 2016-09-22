@@ -27,10 +27,12 @@ import {invertPromise} from '../test-utils';
 function editorTests(editorFactory: (basedir: string) => EditorService) {
   const basedir = path.join(__dirname, '../static');
   const indexFile = path.join('editor-service', 'index.html');
+
   const tagPosition = {line: 7, column: 9};
   const tagPositionEnd = {line: 7, column: 21};
   const localAttributePosition = {line: 7, column: 31};
   const deepAttributePosition = {line: 7, column: 49};
+
   const elementTypeahead: ElementCompletion = {
     kind: 'element-tags',
     elements: [
@@ -74,6 +76,7 @@ function editorTests(editorFactory: (basedir: string) => EditorService) {
         copy.expandTo = `<${e.tagname}${space}></${e.tagname}>`;
         return copy;
       });
+
   const attributeTypeahead: AttributesCompletion = {
     kind: 'attributes',
     attributes: [
@@ -191,6 +194,7 @@ function editorTests(editorFactory: (basedir: string) => EditorService) {
   });
 
   suite('getDefinitionForFeatureAtPosition', function() {
+
     test(
         `it supports getting the definition of ` +
             `an element from its tag`,
@@ -236,6 +240,7 @@ function editorTests(editorFactory: (basedir: string) => EditorService) {
   });
 
   suite('getTypeaheadCompletionsAtPosition', function() {
+
     test('Get element completions for an empty text region.', async() => {
       await editorService.fileChanged(indexFile, `\n${indexContents}`);
       deepEqual(
@@ -349,6 +354,7 @@ function editorTests(editorFactory: (basedir: string) => EditorService) {
   });
 
   suite('getWarningsForFile', function() {
+
     test('For a good document we get no warnings', async() => {
       await editorService.fileChanged(indexFile, indexContents);
       deepEqual(await editorService.getWarningsForFile(indexFile), []);
@@ -446,6 +452,7 @@ function editorTests(editorFactory: (basedir: string) => EditorService) {
   });
 
   suite('getWarnings', function() {
+
     test('For a good document we get no warnings', async() => {
       await editorService.fileChanged(indexFile, indexContents);
       assert.deepEqual(await editorService.getWarningsForFile(indexFile), []);
@@ -504,10 +511,12 @@ function editorTests(editorFactory: (basedir: string) => EditorService) {
  * gone through a JSON stringify/parse pass.
  */
 let deepEqual: (actual: any, expected: any, message?: string) => void;
+
 suite('LocalEditorService', function() {
   suiteSetup(() => {
     deepEqual = assert.deepEqual;
   });
+
   editorTests((basedir) => new LocalEditorService({
                 urlLoader: new FSUrlLoader(basedir),
                 urlResolver: new PackageUrlResolver()
@@ -518,11 +527,14 @@ suite('LocalEditorService', function() {
 // in fast mode we cache them by basedir.
 const sloppyTest = !!process.env.QUICK_TESTS;
 suite('RemoteEditorService', function() {
+
   suiteSetup(() => {
     deepEqual = expectJsonDeepEqual;
   });
+
   const remoteEditorsByBasedir = new Map<string, RemoteEditorService>();
   const editors: RemoteEditorService[] = [];
+
   editorTests((basedir) => {
     if (sloppyTest) {
       const cachedServer = remoteEditorsByBasedir.get(basedir);
