@@ -71,6 +71,7 @@ export class Analyzer {
     ['json', new JsonParser()],
   ]);
 
+  /** A map from import url to urls that document lazily depends on. */
   private _lazyEdges: Map<string, Array<string>>;
 
   private _scanners: ScannerTable;
@@ -227,6 +228,8 @@ export class Analyzer {
             return this._scanInlineDocument(
                 scannedDependency, document, warnings);
           } else if (scannedDependency instanceof ScannedImport) {
+            // TODO(garlicnation): Move this logic into model/document. During the recursive feature walk, features from lazy imports
+            // should be marked.
             if (scannedDependency.type !== 'lazy-html-import') {
               return this._scanImport(scannedDependency, warnings);
             }

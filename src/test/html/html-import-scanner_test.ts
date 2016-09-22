@@ -62,7 +62,7 @@ suite('HtmlImportScanner', () => {
 
   });
 
-  suite('scan() with import map', () => {
+  suite('scan() with lazy import map', () => {
     let scanner: HtmlImportScanner;
 
     setup(() => {
@@ -71,7 +71,7 @@ suite('HtmlImportScanner', () => {
       scanner = new HtmlImportScanner(lazyEdges);
     });
 
-    test('injects synthetic html imports', async() => {
+    test('injects synthetic lazy html imports', async() => {
       const contents = `<html><head>
           <link rel="import" href="polymer.html">
           <link rel="import" type="css" href="polymer.css">
