@@ -16,19 +16,15 @@ import * as estree from 'estree';
 
 import {LiteralObj, LiteralValue} from '../model/model';
 
-
-// useful tool to visualize AST: http://esprima.org/demo/parse.html
-
 /**
- * converts literal: {"type": "Literal", "value": 5,  "raw": "5" }
- * to string
+ * Converts an ast literal to its underlying valie.
  */
 function literalToValue(literal: estree.Literal): LiteralValue {
   return literal.value;
 }
 
 /**
- * converts unary to string
+ * Early evaluates a unary expression.
  */
 function unaryToValue(unary: estree.UnaryExpression): LiteralValue {
   const operand = expressionToValue(unary.argument);
@@ -54,7 +50,7 @@ function unaryToValue(unary: estree.UnaryExpression): LiteralValue {
 }
 
 /**
- * Function is a block statement.
+ * Try to evaluate function bodies.
  */
 function functionDeclarationToValue(fn: estree.FunctionDeclaration):
     LiteralValue {
@@ -99,7 +95,7 @@ function returnStatementToValue(ret: estree.ReturnStatement): LiteralValue {
 }
 
 /**
- * Enclose containing values in []
+ * Evaluate array expression
  */
 function arrayExpressionToValue(arry: estree.ArrayExpression): LiteralValue {
   let value: LiteralValue[] = [];
@@ -114,7 +110,7 @@ function arrayExpressionToValue(arry: estree.ArrayExpression): LiteralValue {
 }
 
 /**
- * Make it look like an object
+ * Evaluate object expression
  */
 function objectExpressionToValue(obj: estree.ObjectExpression): LiteralValue {
   let evaluatedObjectExpression: LiteralObj = {};
@@ -133,7 +129,7 @@ function objectExpressionToValue(obj: estree.ObjectExpression): LiteralValue {
 }
 
 /**
- * BinaryExpressions are of the form "literal" + "literal"
+ * Binary expressions, like 5 + 5
  */
 function binaryExpressionToValue(member: estree.BinaryExpression): (number|
                                                                     string) {
