@@ -83,7 +83,7 @@ export class Analyzer {
   private _scannedDocuments = new Map<string, Promise<ScannedDocument>>();
   private _telemetryTracker = new TelemetryTracker();
 
-  private static _defaultScanners(lazyEdges: Map<string, string[]>) {
+  private static _getDefaultScanners(lazyEdges: Map<string, string[]>) {
     return new Map<string, Scanner<any, any, any>[]>([
       [
         'html',
@@ -108,7 +108,7 @@ export class Analyzer {
     this._resolver = options.urlResolver;
     this._parsers = options.parsers || this._parsers;
     this._lazyEdges = options.lazyEdges;
-    this._scanners = options.scanners || Analyzer._defaultScanners(this._lazyEdges);
+    this._scanners = options.scanners || Analyzer._getDefaultScanners(this._lazyEdges);
   }
 
   /**

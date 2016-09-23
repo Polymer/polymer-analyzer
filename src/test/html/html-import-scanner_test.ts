@@ -82,15 +82,8 @@ suite('HtmlImportScanner', () => {
       const visit = async(visitor: HtmlVisitor) => document.visit([visitor]);
 
       const features = await scanner.scan(document, visit);
-      assert.equal(features.length, 4);
-      assert.equal(features[0].type, 'html-import');
-      assert.equal(features[0].url, 'polymer.html');
-      assert.equal(features[1].type, 'lazy-html-import');
-      assert.equal(features[1].url, 'lazy1.html');
-      assert.equal(features[2].type, 'lazy-html-import');
-      assert.equal(features[2].url, 'lazy2.html');
-      assert.equal(features[3].type, 'lazy-html-import');
-      assert.equal(features[3].url, 'lazy3.html');
+      assert.deepEqual(features.map(f => f.type), ['html-import', 'lazy-html-import', 'lazy-html-import', 'lazy-html-import']);
+      assert.deepEqual(features.map(f => f.url), ['polymer.html', 'lazy1.html', 'lazy2.html', 'lazy3.html']);
     });
 
   });
