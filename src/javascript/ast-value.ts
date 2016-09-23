@@ -30,12 +30,27 @@ function literalToValue(literal: estree.Literal): LiteralValue {
 /**
  * converts unary to string
  */
-function unaryToValue(unary: estree.UnaryExpression): string {
-  const argValue = expressionToValue(unary.argument);
-  if (argValue === undefined) {
-    return;
+function unaryToValue(unary: estree.UnaryExpression): LiteralValue {
+  const operand = expressionToValue(unary.argument);
+  switch (unary.operator) {
+    case '!':
+      return !operand;
+    case '-':
+      return -operand;
+    case '+':
+      return +operand;
+    case '~':
+      return ~operand;
+    case 'typeof':
+      return typeof operand;
+    case 'void':
+      return void operand;
+    case 'delete':
+      return undefined;
+    default:
+      const never: never = unary.operator;
+      throw new Error(`Unknown unary operator found: ${never}`);
   }
-  return unary.operator + argValue;
 }
 
 /**
