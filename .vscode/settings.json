@@ -2,13 +2,11 @@
 {
   "clang-format.style": "file",
   "clang-format.formatOnSave": true,
-  "files.exclude": {
-    "lib/**": true
-  },
   "json.schemas": [{
     "fileMatch": [
       "elements.json"
     ],
     "url": "./lib/analysis.schema.json"
-  }]
+  }],
+  "typescript.tsdk": "node_modules/typescript/lib"
 }
