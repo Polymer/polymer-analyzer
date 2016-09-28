@@ -20,7 +20,7 @@ import * as esutil from '../javascript/esutil';
 import {JavaScriptDocument} from '../javascript/javascript-document';
 import {JavaScriptScanner} from '../javascript/javascript-scanner';
 import * as jsdoc from '../javascript/jsdoc';
-import {ScannedFeature} from '../model/model';
+import {SourceRange, ScannedFeature} from '../model/model';
 
 import {ScannedBehavior} from './behavior-descriptor';
 import {declarationPropertyHandlers, PropertyHandlers} from './declaration-property-handlers';
@@ -190,9 +190,9 @@ class BehaviorVisitor implements Visitor {
    * to same behavior. See iron-multi-selectable for example.
    */
   mergeBehavior(newBehavior: ScannedBehavior): ScannedBehavior {
-    const isBehaviorImpl = (b: string) => {
+    const isBehaviorImpl = (b: {name: string, sourceRange: SourceRange}) => {
       // filter out BehaviorImpl
-      return b.indexOf(newBehavior.className) === -1;
+      return b.name.indexOf(newBehavior.className) === -1;
     };
     for (const behavior of this.behaviors) {
       if (newBehavior.className !== behavior.className) {
@@ -231,12 +231,19 @@ class BehaviorVisitor implements Visitor {
     // Polymer.IronSelectableBehavior]
     // We add these to behaviors array
     const expression = behaviorExpression(node);
-    const chained: string[] = [];
+    const chained: Array<{name: string, sourceRange: SourceRange}> = [];
     if (expression && expression.type === 'ArrayExpression') {
       for (const element of expression.elements) {
         const behaviorName = astValue.getIdentifierName(element);
         if (behaviorName) {
-          chained.push(behaviorName);
+          chained.push({
+            name: behaviorName,
+            sourceRange: {
+              file: this.document.url,
+              start: element.loc.start,
+              end: element.loc.end
+            }
+          });
         }
       }
       if (chained.length > 0) {

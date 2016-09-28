@@ -252,6 +252,8 @@ export class Analyzer {
     // created.
     for (const scannedFeature of scannedFeatures) {
       if (scannedFeature instanceof ScannedElement) {
+        // console.log(document.url, document.contents);
+        // console.log(scannedFeature, scannedFeature.sourceRange);
         scannedFeature.applyLocationOffset(locationOffset);
       }
     }
@@ -293,6 +295,7 @@ export class Analyzer {
       inlineDoc: ScannedInlineDocument,
       containingDocument: ParsedDocument<any, any>,
       warnings: Warning[]): Promise<ScannedDocument|null> {
+        console.log(inlineDoc);
     const locationOffset: LocationOffset = {
       line: inlineDoc.locationOffset.line,
       col: inlineDoc.locationOffset.col,
