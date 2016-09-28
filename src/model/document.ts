@@ -63,6 +63,8 @@ export class Document implements Feature {
   kinds: Set<string>;
   identifiers: Set<string>;
   sourceRange: SourceRange;
+  /** See parsedDocument. */
+  ast: null = null;
 
   private _rootDocument: Document;
   private _localFeatures = new Set<Feature>();

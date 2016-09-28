@@ -13,7 +13,7 @@
  */
 
 import {Document, ScannedDocument} from './document';
-import {Feature, ScannedFeature} from './feature';
+import {Feature} from './feature';
 import {SourceRange} from './model';
 import {Resolvable} from './resolvable';
 
@@ -24,7 +24,7 @@ import {Resolvable} from './resolvable';
  *
  * @template N The AST node type
  */
-export class ScannedImport implements ScannedFeature, Resolvable {
+export class ScannedImport implements Resolvable {
   type: 'html-import'|'html-script'|'html-style'|'js-import'|string;
 
   /**
@@ -42,19 +42,22 @@ export class ScannedImport implements ScannedFeature, Resolvable {
    */
   urlSourceRange: SourceRange;
 
+  ast: any|null;
+
   constructor(
       type: string, url: string, sourceRange: SourceRange,
-      urlSourceRange: SourceRange) {
+      urlSourceRange: SourceRange, ast: any|null) {
     this.type = type;
     this.url = url;
     this.sourceRange = sourceRange;
     this.urlSourceRange = urlSourceRange;
+    this.ast = ast;
   }
 
   resolve(_contextDocument: Document): Import {
     // The caller will set import.document;
     return new Import(
-        this.url, this.type, this.sourceRange, this.urlSourceRange);
+        this.url, this.type, this.sourceRange, this.urlSourceRange, this.ast);
   }
 }
 
@@ -66,15 +69,17 @@ export class Import implements Feature {
   kinds: Set<string>;
   sourceRange: SourceRange;
   urlSourceRange: SourceRange;
+  ast: any|null;
 
   constructor(
       url: string, type: string, sourceRange: SourceRange,
-      urlSourceRange: SourceRange) {
+      urlSourceRange: SourceRange, ast: any) {
     this.url = url;
     this.type = type;
     this.kinds = new Set(['import', this.type]);
     this.sourceRange = sourceRange;
     this.urlSourceRange = urlSourceRange;
+    this.ast = ast;
   }
 
   toString() {
