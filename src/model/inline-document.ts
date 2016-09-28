@@ -43,14 +43,17 @@ export class ScannedInlineDocument implements ScannedFeature, Resolvable {
 
   sourceRange: SourceRange;
 
+  ast: dom5.Node;
+
   constructor(
       type: string, contents: string, locationOffset: LocationOffset,
-      attachedComment: string, sourceRange: SourceRange) {
+      attachedComment: string, sourceRange: SourceRange, ast: dom5.Node) {
     this.type = type;
     this.contents = contents;
     this.locationOffset = locationOffset;
     this.attachedComment = attachedComment;
     this.sourceRange = sourceRange;
+    this.ast = ast;
   }
 
   resolve(document: Document): Document {

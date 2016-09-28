@@ -58,6 +58,9 @@ export class Document implements Feature {
   private _localFeatures = new Set<Feature>();
   private _scannedDocument: ScannedDocument;
 
+  /** See parsedDocument. */
+  ast: null = null;
+
   /**
    * To handle recursive dependency graphs we must track whether we've started
    * resolving this Document so that we can reliably early exit even if one

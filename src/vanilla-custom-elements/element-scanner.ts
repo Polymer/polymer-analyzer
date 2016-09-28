@@ -25,6 +25,7 @@ import {ScannedElement, ScannedFeature} from '../model/model';
 export interface ScannedAttribute extends ScannedFeature {
   name: string;
   type?: string;
+  ast: estree.Node|null;
 }
 
 export class ElementScanner implements JavaScriptScanner {
@@ -179,7 +180,8 @@ class ElementVisitor implements Visitor {
         const attribute: ScannedAttribute = {
           name: value,
           description: description,
-          sourceRange: this._document.sourceRangeForNode(expr)
+          sourceRange: this._document.sourceRangeForNode(expr),
+          ast: expr
         };
         if (type) {
           attribute.type = type;

@@ -161,7 +161,8 @@ export function toScannedPolymerProperty(
     name: objectKeyToString(node.key),
     type: type,
     description: description,
-    sourceRange: sourceRange
+    sourceRange: sourceRange,
+    ast: node
   };
 
   if (type === 'Function') {
