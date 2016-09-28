@@ -59,7 +59,7 @@ export class Document implements Feature {
   private _scannedDocument: ScannedDocument;
 
   /** See parsedDocument. */
-  ast: null = null;
+  astNode: null = null;
 
   /**
    * To handle recursive dependency graphs we must track whether we've started
@@ -317,8 +317,7 @@ export class Document implements Feature {
   stringify(): string {
     const inlineDocuments =
         (Array.from(this._localFeatures)
-             .filter(f => f instanceof Document) as Document[])
-            .filter(d => d.url === this.url)
+             .filter(f => f instanceof Document && f.isInline) as Document[])
             .map(d => d.parsedDocument);
     return this.parsedDocument.stringify({inlineDocuments: inlineDocuments});
   }

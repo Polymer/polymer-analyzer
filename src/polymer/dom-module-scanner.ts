@@ -28,7 +28,7 @@ export class ScannedDomModule implements Resolvable {
   node: ASTNode;
   comment?: string;
   sourceRange: SourceRange;
-  ast: dom5.Node;
+  astNode: dom5.Node;
 
   constructor(
       id: string, node: ASTNode, sourceRange: SourceRange, ast: dom5.Node) {
@@ -36,12 +36,12 @@ export class ScannedDomModule implements Resolvable {
     this.node = node;
     this.comment = getAttachedCommentText(node);
     this.sourceRange = sourceRange;
-    this.ast = ast;
+    this.astNode = ast;
   }
 
   resolve() {
     return new DomModule(
-        this.node, this.id, this.comment, this.sourceRange, this.ast);
+        this.node, this.id, this.comment, this.sourceRange, this.astNode);
   }
 }
 
@@ -52,7 +52,7 @@ export class DomModule implements Feature {
   id: string|undefined;
   comment: string|undefined;
   sourceRange: SourceRange;
-  ast: dom5.Node;
+  astNode: dom5.Node;
   constructor(
       node: ASTNode, id: string, comment: string, sourceRange: SourceRange,
       ast: dom5.Node) {
@@ -63,7 +63,7 @@ export class DomModule implements Feature {
       this.identifiers.add(id);
     }
     this.sourceRange = sourceRange;
-    this.ast = ast;
+    this.astNode = ast;
   }
 }
 

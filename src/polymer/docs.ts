@@ -111,7 +111,7 @@ export function annotateEvent(annotation: jsdoc.Annotation): ScannedEvent {
     description: eventTag.description || annotation.description,
     jsdoc: annotation,
     sourceRange: null,
-    ast: null
+    astNode: null
   };
 
   const tags = (annotation && annotation.tags || []);

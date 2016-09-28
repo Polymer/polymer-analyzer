@@ -114,24 +114,22 @@ export class ParsedHtmlDocument extends ParsedDocument<ASTNode, HtmlVisitor> {
     const mutableDocuments = clone(immutableDocuments);
     const self = mutableDocuments.shift();
 
-    // for (const doc of mutableDocuments) {
-    //   doc.ast
-    // }
+    for (const doc of mutableDocuments) {
+      dom5.setTextContent(
+          doc.astNode, '\n' + doc.stringify({indent: 2}) + '  '.repeat(1));
+    }
 
-    const ast = (mutableDocuments.length > 0) ? clone(self.ast) : self.ast;
-
-
-    return prettyPrint(ast);
+    return prettyPrint(self.ast, self.contents);
   }
 }
 
-function prettyPrint(ast: dom5.Node) {
+function prettyPrint(ast: dom5.Node, contents: string) {
   let result = parse5.serialize(ast);
 
   // Strip out inferred boilerplate nodes that are injected.
   const injectedTagNames = ['html', 'head', 'body'];
   for (const tagName of injectedTagNames) {
-    if (!this.contents.includes(`<${tagName}`)) {
+    if (!contents.includes(`<${tagName}`)) {
       result = result.replace(RegExp(`<${tagName}>([^]*)?</${tagName}>`), '$1');
     }
   }

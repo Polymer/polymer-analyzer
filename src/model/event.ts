@@ -20,7 +20,7 @@ export interface ScannedEvent extends ScannedFeature {
   type?: string;
   description?: string;
   params?: {type: string, desc: string, name: string}[];
-  ast: estree.Node|null;
+  astNode: estree.Node|null;
 }
 
 export interface Event {
@@ -29,5 +29,5 @@ export interface Event {
   // TODO: represent detail object properly
   description?: string;
   inheritedFrom?: string;
-  ast: estree.Node|null;
+  astNode: estree.Node|null;
 }

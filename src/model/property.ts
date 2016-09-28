@@ -27,7 +27,7 @@ export interface ScannedProperty extends ScannedFeature {
   'default'?: string;
   readOnly?: boolean;
   sourceRange: SourceRange;
-  ast: estree.Node|null;
+  astNode: estree.Node|null;
 }
 
 export interface Property {

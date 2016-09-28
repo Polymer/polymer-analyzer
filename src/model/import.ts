@@ -42,7 +42,7 @@ export class ScannedImport implements Resolvable {
    */
   urlSourceRange: SourceRange;
 
-  ast: any|null;
+  astNode: any|null;
 
   constructor(
       type: string, url: string, sourceRange: SourceRange,
@@ -51,7 +51,7 @@ export class ScannedImport implements Resolvable {
     this.url = url;
     this.sourceRange = sourceRange;
     this.urlSourceRange = urlSourceRange;
-    this.ast = ast;
+    this.astNode = ast;
   }
 
   resolve(document: Document): Import {
@@ -59,7 +59,7 @@ export class ScannedImport implements Resolvable {
     return importedDocument &&
         new Import(
                this.url, this.type, importedDocument, this.sourceRange,
-               this.urlSourceRange, this.ast);
+               this.urlSourceRange, this.astNode);
   }
 }
 
@@ -71,7 +71,7 @@ export class Import implements Feature {
   kinds = new Set(['import']);
   sourceRange: SourceRange;
   urlSourceRange: SourceRange;
-  ast: any|null;
+  astNode: any|null;
 
   constructor(
       url: string, type: string, document: Document, sourceRange: SourceRange,
@@ -82,7 +82,7 @@ export class Import implements Feature {
     this.kinds.add(this.type);
     this.sourceRange = sourceRange;
     this.urlSourceRange = urlSourceRange;
-    this.ast = ast;
+    this.astNode = ast;
   }
 
   toString() {

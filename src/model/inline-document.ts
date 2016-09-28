@@ -24,6 +24,11 @@ import {ScannedFeature} from './feature';
 import {Resolvable} from './resolvable';
 import {LocationOffset, SourceRange} from './source-range';
 
+export interface InlineDocInfo<AstNode> {
+  astNode?: AstNode;
+  locationOffset?: LocationOffset;
+}
+
 /**
  * Represents an inline document, usually a <script> or <style> tag in an HTML
  * document.
@@ -43,7 +48,7 @@ export class ScannedInlineDocument implements ScannedFeature, Resolvable {
 
   sourceRange: SourceRange;
 
-  ast: dom5.Node;
+  astNode: dom5.Node;
 
   constructor(
       type: string, contents: string, locationOffset: LocationOffset,
@@ -53,7 +58,7 @@ export class ScannedInlineDocument implements ScannedFeature, Resolvable {
     this.locationOffset = locationOffset;
     this.attachedComment = attachedComment;
     this.sourceRange = sourceRange;
-    this.ast = ast;
+    this.astNode = ast;
   }
 
   resolve(document: Document): Document {

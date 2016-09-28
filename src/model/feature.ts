@@ -22,8 +22,11 @@ export interface Feature {
   /** Tracks the source that this feature came from. */
   sourceRange: SourceRange;
 
-  /** The AST Node, if any, that corresponds to this feature. */
-  ast: any;
+  /**
+   * The AST Node, if any, that corresponds to this feature in its containing
+   * document.
+   */
+  astNode: any;
 }
 
 export interface ScannedFeature {
@@ -35,6 +38,9 @@ export interface ScannedFeature {
   /** Tracks the source that this feature came from. */
   sourceRange: SourceRange;
 
-  /** The AST Node, if any, that corresponds to this feature. */
-  ast: any;
+  /**
+   * The AST Node, if any, that corresponds to this feature in its containing
+   * document.
+   */
+  astNode: any;
 }

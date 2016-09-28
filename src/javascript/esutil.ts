@@ -162,7 +162,7 @@ export function toScannedPolymerProperty(
     type: type,
     description: description,
     sourceRange: sourceRange,
-    ast: node
+    astNode: node
   };
 
   if (type === 'Function') {

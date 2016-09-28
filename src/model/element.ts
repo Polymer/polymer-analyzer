@@ -38,7 +38,7 @@ export class ScannedElement implements Resolvable {
   demos: {desc?: string; path: string}[] = [];
   events: ScannedEvent[] = [];
   sourceRange: SourceRange;
-  ast: estree.Node|null;
+  astNode: estree.Node|null;
 
   jsdoc?: jsdoc.Annotation;
 
@@ -68,7 +68,7 @@ export class Element implements Feature {
   events: Event[] = [];
   sourceRange: SourceRange;
   jsdoc?: jsdoc.Annotation;
-  ast: estree.Node|null;
+  astNode: estree.Node|null;
   kinds: Set<string> = new Set(['element']);
   get identifiers(): Set<string> {
     const result: Set<string> = new Set();

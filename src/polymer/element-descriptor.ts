@@ -98,7 +98,7 @@ export class ScannedPolymerElement extends ScannedElement {
         name: `${attributeName}-changed`,
         description: `Fired when the \`${prop.name}\` property changes.`,
         sourceRange: prop.sourceRange,
-        ast: prop.ast
+        astNode: prop.astNode
       });
     }
   }
