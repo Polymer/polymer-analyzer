@@ -12,12 +12,13 @@
  * http://polymer.github.io/PATENTS.txt
  */
 
+import * as clone from 'clone';
 import * as dom5 from 'dom5';
 import * as parse5 from 'parse5';
 import {ASTNode} from 'parse5';
 
 import {SourceRange} from '../model/model';
-import {Options, ParsedDocument} from '../parser/document';
+import {Options, ParsedDocument, StringifyOptions} from '../parser/document';
 
 /**
  * The ASTs of the HTML elements needed to represent Polymer elements.
@@ -102,21 +103,40 @@ export class ParsedHtmlDocument extends ParsedDocument<ASTNode, HtmlVisitor> {
     };
   }
 
-  stringify() {
-    // TODO(issues/315): serialize inline documents correctly.
-    let result = parse5.serialize(this.ast);
+  stringify(options?: StringifyOptions) {
+    options = options || {};
+    // We want to make of copy of `this` and all of the inline documents such
+    // that cross-references between the asts are maintained. Fortunately,
+    // clone() does this! So we'll clone them all together.
+    const immutableDocuments = options.inlineDocuments || [];
+    immutableDocuments.unshift(this);
+    // We can modify these, as they don't escape this method.
+    const mutableDocuments = clone(immutableDocuments);
+    const self = mutableDocuments.shift();
 
-    // Strip out inferred boilerplate nodes that are injected.
-    const injectedTagNames = ['html', 'head', 'body'];
-    for (const tagName of injectedTagNames) {
-      if (!this.contents.includes(`<${tagName}`)) {
-        result =
-            result.replace(RegExp(`<${tagName}>([^]*)?</${tagName}>`), '$1');
-      }
-    }
+    // for (const doc of mutableDocuments) {
+    //   doc.ast
+    // }
 
-    return result;
+    const ast = (mutableDocuments.length > 0) ? clone(self.ast) : self.ast;
+
+
+    return prettyPrint(ast);
   }
+}
+
+function prettyPrint(ast: dom5.Node) {
+  let result = parse5.serialize(ast);
+
+  // Strip out inferred boilerplate nodes that are injected.
+  const injectedTagNames = ['html', 'head', 'body'];
+  for (const tagName of injectedTagNames) {
+    if (!this.contents.includes(`<${tagName}`)) {
+      result = result.replace(RegExp(`<${tagName}>([^]*)?</${tagName}>`), '$1');
+    }
+  }
+
+  return result;
 }
 
 function isElementLocationInfo(location: parse5.LocationInfo|

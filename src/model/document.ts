@@ -208,11 +208,6 @@ export class Document implements Feature {
     return results.values().next().value || undefined;
   }
 
-  getWarnings(): Warning[] {
-    // TODO(rictic): crawl (local?) features and grab their warnings too.
-    return this._warnings;
-  }
-
   private _getByKind(kind: string, documentsWalked: Set<Document>):
       Set<Feature> {
     const result = new Set<Feature>();
@@ -312,6 +307,20 @@ export class Document implements Feature {
     }
 
     return result;
+  }
+
+  getWarnings(): Warning[] {
+    // TODO(rictic): crawl (local?) features and grab their warnings too.
+    return this._warnings;
+  }
+
+  stringify(): string {
+    const inlineDocuments =
+        (Array.from(this._localFeatures)
+             .filter(f => f instanceof Document) as Document[])
+            .filter(d => d.url === this.url)
+            .map(d => d.parsedDocument);
+    return this.parsedDocument.stringify({inlineDocuments: inlineDocuments});
   }
 
   private _featuresByKind: Map<string, Set<Feature>> = null;

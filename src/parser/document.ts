@@ -57,7 +57,7 @@ export abstract class ParsedDocument<A, V> {
   /**
    * Convert `this.ast` back into a string document.
    */
-  abstract stringify(): string;
+  abstract stringify(options: StringifyOptions): string;
 }
 
 export interface Options<A> {
@@ -65,4 +65,15 @@ export interface Options<A> {
   contents: string;
   ast: A;
   locationOffset: LocationOffset|null;
+}
+
+export interface StringifyOptions {
+  /** The desired level of indentation of to stringify at. */
+  indent?: number;
+
+  /**
+   * Parsed (and possibly modified) documents that exist inside this document
+   * whose stringified contents should be used instead of what is in `ast`.
+   */
+  inlineDocuments?: ParsedDocument<any, any>[];
 }
