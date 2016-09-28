@@ -115,8 +115,12 @@ export class ParsedHtmlDocument extends ParsedDocument<ASTNode, HtmlVisitor> {
     const self = mutableDocuments.shift();
 
     for (const doc of mutableDocuments) {
+      // TODO(rictic): infer this from doc.astNode's indentation.
+      const expectedIndentation = 2;
+
       dom5.setTextContent(
-          doc.astNode, '\n' + doc.stringify({indent: 2}) + '  '.repeat(1));
+          doc.astNode,
+          '\n' + doc.stringify({indent: expectedIndentation}) + '  '.repeat(1));
     }
 
     return prettyPrint(self.ast, self.contents);
