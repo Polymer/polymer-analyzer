@@ -17,6 +17,7 @@ import {assert} from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
 
+
 import {Visitor} from '../../javascript/estree-visitor';
 import {JavaScriptDocument} from '../../javascript/javascript-document';
 import {JavaScriptParser} from '../../javascript/javascript-parser';
@@ -85,12 +86,12 @@ suite('BehaviorScanner', () => {
   test('Supports chained behaviors', function() {
     assert(behaviors.has('CustomBehaviorList'));
     const childBehaviors = behaviors.get('CustomBehaviorList').behaviors;
-    assert.deepEqual(childBehaviors, [
+    const deepChainedBehaviors =
+        behaviors.get('Really.Really.Deep.Behavior').behaviors;
+    assert.deepEqual(childBehaviors.map((b) => b.name), [
       'SimpleBehavior', 'CustomNamedBehavior', 'Really.Really.Deep.Behavior'
     ]);
-    assert.deepEqual(
-        behaviors.get('Really.Really.Deep.Behavior').behaviors,
-        ['Do.Re.Mi.Fa']);
+    assert.deepEqual(deepChainedBehaviors.map((b) => b.name), ['Do.Re.Mi.Fa']);
   });
 
 });

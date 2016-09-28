@@ -51,7 +51,10 @@ export function declarationPropertyHandlers(
         if (behaviorName === undefined) {
           behaviorName = astValue.CANT_CONVERT;
         }
-        declaration.behaviors.push(behaviorName);
+        declaration.behaviors.push({
+          name: behaviorName,
+          sourceRange: document.sourceRangeForNode(element),
+        });
       }
     },
     observers(node: estree.Node) {

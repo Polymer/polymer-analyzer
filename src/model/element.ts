@@ -20,6 +20,22 @@ import {Document, Event, Feature, Property, Resolvable, ScannedEvent, ScannedPro
 
 export {Visitor} from '../javascript/estree-visitor';
 
+/**
+ * A scanned behavior assignment of a Polymer element. This is only a
+ * reference to the behavior and not the actual behavior definition itself.
+ *
+ * ex:
+ *   Polymer({
+ *     is: 'custom-element',
+ *     behaviors: [Polymer.SomeBehavior]
+ *                 ^^^^^^^^^^^^^^^^^^^^
+ *   });
+ */
+export interface ScannedBehaviorAssignment {
+  name: string;
+  sourceRange: SourceRange;
+}
+
 export interface ScannedAttribute {
   name: string;
   sourceRange: SourceRange;
