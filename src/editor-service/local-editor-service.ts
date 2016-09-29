@@ -70,7 +70,7 @@ export class LocalEditorService extends EditorService {
       return {
         kind: 'element-tags',
         elements: elements.map(e => {
-          let attributesSpace = e.attributes.length > 0 ? ' ' : '';
+          const attributesSpace = e.attributes.length > 0 ? ' ' : '';
           return {
             tagname: e.tagName!,
             description: e.description,
@@ -84,11 +84,11 @@ export class LocalEditorService extends EditorService {
       const elements = document.getById('element', location.element.nodeName);
       let attributes: AttributeCompletion[] = [];
       for (const element of elements) {
-        // A map from the inheritedFrom to a sort prefix.
-        let sortPrefixes = new Map<string|undefined|null, string>();
+        // A map from the inheritedFrom to a sort prefix. Note that
+        // `undefined` is a legal value for inheritedFrom.
+        const sortPrefixes = new Map<string|undefined, string>();
         // Not inherited, that means local! Sort it early.
         sortPrefixes.set(undefined, 'aaa-');
-        sortPrefixes.set(null, 'aaa-');
         if (element.superClass) {
           sortPrefixes.set(element.superClass, 'bbb-');
         }
