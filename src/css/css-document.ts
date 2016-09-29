@@ -90,15 +90,16 @@ export class ParsedCssDocument extends ParsedDocument<shady.Node, Visitor> {
 
   stringify(options?: StringifyOptions) {
     options = options || {};
-    const beautifulResults =
-        cssbeautify(
-            shadyStringifier.stringify(this.ast),
-            {indent: '  ', autosemicolon: true, openbrace: 'end-of-line'}) +
-        '\n';
+    const beautifulResults = cssbeautify(
+        shadyStringifier.stringify(this.ast),
+        {indent: '  ', autosemicolon: true, openbrace: 'end-of-line'});
+
+    const indent = '  '.repeat(options.indent || 0);
 
     return beautifulResults.split('\n')
-        .map(line => line && '  '.repeat(options.indent || 0) + line)
-        .join('\n');
+               .map(line => line === '' ? '' : indent + line)
+               .join('\n') +
+        '\n';
   }
 }
 

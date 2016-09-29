@@ -105,40 +105,53 @@ export class ParsedHtmlDocument extends ParsedDocument<ASTNode, HtmlVisitor> {
 
   stringify(options?: StringifyOptions) {
     options = options || {};
-    // We want to make of copy of `this` and all of the inline documents such
-    // that cross-references between the asts are maintained. Fortunately,
-    // clone() does this! So we'll clone them all together.
+    /**
+     * We want to mutate this.ast with the results of stringifying our inline
+     * documents. This will mutate this.ast even if no one else has mutated it
+     * yet, because our inline documents' stringifiers may not perfectly
+     * reproduce their input. However, we don't want to mutate any analyzer
+     * object after they've been produced and cached, ParsedHtmlDocuments
+     * included. So we want to clone first.
+     *
+     * Because our inline documents contain references into this.ast, we need to
+     * make of copy of `this` and the inline documents such the
+     * inlineDoc.astNode references into this.ast are maintained. Fortunately,
+     * clone() does this! So we'll clone them all together in a single call by
+     * putting them all into an array.
+     */
     const immutableDocuments = options.inlineDocuments || [];
     immutableDocuments.unshift(this);
+
     // We can modify these, as they don't escape this method.
     const mutableDocuments = clone(immutableDocuments);
-    const self = mutableDocuments.shift();
+    const selfClone = mutableDocuments.shift();
 
     for (const doc of mutableDocuments) {
       // TODO(rictic): infer this from doc.astNode's indentation.
       const expectedIndentation = 2;
 
       dom5.setTextContent(
-          doc.astNode,
-          '\n' + doc.stringify({indent: expectedIndentation}) + '  '.repeat(1));
+          doc.astNode, '\n' + doc.stringify({indent: expectedIndentation}) +
+              '  '.repeat(expectedIndentation - 1));
     }
 
-    return prettyPrint(self.ast, self.contents);
+    removeFakeNodes(selfClone.ast);
+    return parse5.serialize(selfClone.ast);
   }
 }
 
-function prettyPrint(ast: dom5.Node, contents: string) {
-  let result = parse5.serialize(ast);
-
-  // Strip out inferred boilerplate nodes that are injected.
-  const injectedTagNames = ['html', 'head', 'body'];
-  for (const tagName of injectedTagNames) {
-    if (!contents.includes(`<${tagName}`)) {
-      result = result.replace(RegExp(`<${tagName}>([^]*)?</${tagName}>`), '$1');
+const injectedTagNames = new Set(['html', 'head', 'body']);
+function removeFakeNodes(ast: dom5.Node) {
+  const children = (ast.childNodes || []).slice();
+  if (ast.parentNode && !ast.__location && injectedTagNames.has(ast.nodeName)) {
+    for (const child of children) {
+      dom5.insertBefore(ast.parentNode, ast, child);
     }
+    dom5.remove(ast);
   }
-
-  return result;
+  for (const child of children) {
+    removeFakeNodes(child);
+  }
 }
 
 function isElementLocationInfo(location: parse5.LocationInfo|
