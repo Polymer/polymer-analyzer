@@ -363,8 +363,7 @@ export class Analyzer {
       const extension = path.extname(resolvedUrl).substring(1);
 
       const doneTiming = this._telemetryTracker.start('parse', 'resolvedUrl');
-      const parsedDoc =
-          this._parseContents(extension, content, resolvedUrl, undefined);
+      const parsedDoc = this._parseContents(extension, content, resolvedUrl);
       doneTiming();
       return parsedDoc;
     })();

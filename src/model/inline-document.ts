@@ -48,7 +48,7 @@ export class ScannedInlineDocument implements ScannedFeature, Resolvable {
   scannedDocument?: ScannedDocument;
 
   sourceRange: SourceRange;
-  warnings = [] as Warning[];
+  warnings: Warning[] = [];
 
   astNode: dom5.Node;
 

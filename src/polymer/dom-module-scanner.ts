@@ -30,7 +30,7 @@ export class ScannedDomModule implements Resolvable {
   comment?: string;
   sourceRange: SourceRange;
   astNode: dom5.Node;
-  warnings = [] as Warning[];
+  warnings: Warning[] = [];
 
   constructor(
       id: string|null, node: ASTNode, sourceRange: SourceRange,

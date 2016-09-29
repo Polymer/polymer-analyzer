@@ -33,14 +33,14 @@ export class ScannedElement implements Resolvable {
   className?: string;
   superClass?: string;
   extends?: string;
-  properties = [] as ScannedProperty[];
-  attributes = [] as ScannedAttribute[];
+  properties: ScannedProperty[] = [];
+  attributes: ScannedAttribute[] = [];
   description = '';
   demos: {desc?: string; path: string}[] = [];
-  events = [] as ScannedEvent[];
+  events: ScannedEvent[] = [];
   sourceRange: SourceRange|undefined;
   astNode: estree.Node|null;
-  warnings = [] as Warning[];
+  warnings: Warning[] = [];
 
   jsdoc?: jsdoc.Annotation;
 
@@ -72,7 +72,7 @@ export class Element implements Feature {
   jsdoc?: jsdoc.Annotation;
   astNode: estree.Node|null;
   kinds: Set<string> = new Set(['element']);
-  warnings = [] as Warning[];
+  warnings: Warning[] = [];
   get identifiers(): Set<string> {
     const result: Set<string> = new Set();
     if (this.tagName) {

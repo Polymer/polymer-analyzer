@@ -54,7 +54,7 @@ export class Document implements Feature {
   kinds: Set<string> = new Set(['document']);
   identifiers: Set<string> = new Set();
   analyzer: Analyzer;
-  warnings = [] as Warning[];
+  warnings: Warning[] = [];
 
   private _localFeatures = new Set<Feature>();
   private _scannedDocument: ScannedDocument;

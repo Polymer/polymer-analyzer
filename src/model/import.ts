@@ -46,7 +46,7 @@ export class ScannedImport implements Resolvable {
 
   astNode: any|null;
 
-  warnings = [] as Warning[];
+  warnings: Warning[] = [];
 
   constructor(
       type: string, url: string, sourceRange: SourceRange,
