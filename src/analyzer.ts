@@ -52,8 +52,8 @@ export interface Options {
 
 export class NoKnownParserError extends Error {};
 
-export interface ScannerTable extends Map<string, Scanner<any, any, any>[]> {}
-export interface LazyEdgeMap extends Map<string, string[]> {}
+export class ScannerTable extends Map<string, Scanner<any, any, any>[]> {}
+export class LazyEdgeMap extends Map<string, string[]> {}
 
 /**
  * A static analyzer for web projects.
@@ -72,7 +72,7 @@ export class Analyzer {
   ]);
 
   /** A map from import url to urls that document lazily depends on. */
-  private _lazyEdges: Map<string, Array<string>>;
+  private _lazyEdges: LazyEdgeMap;
 
   private _scanners: ScannerTable;
 
@@ -83,7 +83,7 @@ export class Analyzer {
   private _scannedDocuments = new Map<string, Promise<ScannedDocument>>();
   private _telemetryTracker = new TelemetryTracker();
 
-  private static _getDefaultScanners(lazyEdges: Map<string, string[]>) {
+  private static _getDefaultScanners(lazyEdges: LazyEdgeMap) {
     return new Map<string, Scanner<any, any, any>[]>([
       [
         'html',
