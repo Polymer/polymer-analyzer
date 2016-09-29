@@ -23,7 +23,7 @@ import {Visitor, VisitResult} from './estree-visitor';
 
 export {Visitor} from './estree-visitor';
 
-let __exampleNode: Node;
+const __exampleNode: Node = <any>null;
 interface SkipRecord {
   type: typeof __exampleNode.type;
   depth: number;
