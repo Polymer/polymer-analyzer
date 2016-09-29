@@ -21,7 +21,7 @@ import * as path from 'path';
 import {Visitor} from '../../javascript/estree-visitor';
 import {JavaScriptDocument} from '../../javascript/javascript-document';
 import {JavaScriptParser} from '../../javascript/javascript-parser';
-import {ScannedBehavior} from '../../polymer/behavior';
+import {ScannedBehavior, ScannedBehaviorAssignment} from '../../polymer/behavior';
 import {BehaviorScanner} from '../../polymer/behavior-scanner';
 
 suite('BehaviorScanner', () => {
@@ -85,13 +85,17 @@ suite('BehaviorScanner', () => {
 
   test('Supports chained behaviors', function() {
     assert(behaviors.has('CustomBehaviorList'));
-    const childBehaviors = behaviors.get('CustomBehaviorList').behaviors;
+    const childBehaviors =
+        behaviors.get('CustomBehaviorList').behaviorAssignments;
     const deepChainedBehaviors =
-        behaviors.get('Really.Really.Deep.Behavior').behaviors;
-    assert.deepEqual(childBehaviors.map((b) => b.name), [
-      'SimpleBehavior', 'CustomNamedBehavior', 'Really.Really.Deep.Behavior'
-    ]);
-    assert.deepEqual(deepChainedBehaviors.map((b) => b.name), ['Do.Re.Mi.Fa']);
+        behaviors.get('Really.Really.Deep.Behavior').behaviorAssignments;
+    assert.deepEqual(
+        childBehaviors.map((b: ScannedBehaviorAssignment) => b.name), [
+          'SimpleBehavior', 'CustomNamedBehavior', 'Really.Really.Deep.Behavior'
+        ]);
+    assert.deepEqual(
+        deepChainedBehaviors.map((b: ScannedBehaviorAssignment) => b.name),
+        ['Do.Re.Mi.Fa']);
   });
 
 });

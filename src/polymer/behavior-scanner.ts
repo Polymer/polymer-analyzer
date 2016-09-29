@@ -215,9 +215,10 @@ class BehaviorVisitor implements Visitor {
         behavior.addProperty(property);
       }
       behavior.observers = behavior.observers.concat(newBehavior.observers);
-      behavior.behaviors = (behavior.behaviors)
-                               .concat(newBehavior.behaviors)
-                               .filter(isBehaviorImpl);
+      behavior.behaviorAssignments =
+          (behavior.behaviorAssignments)
+              .concat(newBehavior.behaviorAssignments)
+              .filter(isBehaviorImpl);
       return behavior;
     }
     return newBehavior;
@@ -243,7 +244,7 @@ class BehaviorVisitor implements Visitor {
         }
       }
       if (chained.length > 0) {
-        this.currentBehavior.behaviors = chained;
+        this.currentBehavior.behaviorAssignments = chained;
       }
     }
   }

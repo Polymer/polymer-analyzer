@@ -51,7 +51,7 @@ export function declarationPropertyHandlers(
         if (behaviorName === undefined) {
           behaviorName = astValue.CANT_CONVERT;
         }
-        declaration.behaviors.push({
+        declaration.behaviorAssignments.push({
           name: behaviorName,
           sourceRange: document.sourceRangeForNode(element),
         });

@@ -435,7 +435,8 @@ suite('Analyzer', () => {
           elements.map(e => e.tagName), ['test-seed', 'test-element']);
       const testSeed = elements[0];
 
-      assert.deepEqual(testSeed.behaviors, ['Behavior1', 'Behavior2']);
+      assert.deepEqual(
+          testSeed.behaviorAssignments, ['Behavior1', 'Behavior2']);
       assert.equal(testSeed.tagName, 'test-seed');
 
       assert.equal(testSeed.observers.length, 2);
