@@ -52,8 +52,8 @@ export interface Options {
 
 export class NoKnownParserError extends Error {};
 
-export class ScannerTable extends Map<string, Scanner<any, any, any>[]> {}
-export class LazyEdgeMap extends Map<string, string[]> {}
+export type ScannerTable = Map<string, Scanner<any, any, any>[]>;
+export type LazyEdgeMap = Map<string, string[]>;
 
 /**
  * A static analyzer for web projects.
