@@ -16,10 +16,10 @@ import * as dom5 from 'dom5';
 import * as estree from 'estree';
 
 import * as jsdoc from '../javascript/jsdoc';
-import {Document, Element, LiteralValue, Property, ScannedAttribute, ScannedBehaviorAssignment, ScannedElement, ScannedEvent, ScannedProperty, SourceRange} from '../model/model';
+import {Document, Element, LiteralValue, Property, ScannedAttribute, ScannedElement, ScannedEvent, ScannedProperty, SourceRange} from '../model/model';
 import {Severity, WarningCarryingException} from '../warning/warning';
 
-import {Behavior} from './behavior';
+import {Behavior, ScannedBehaviorAssignment} from './behavior';
 
 export interface BasePolymerProperty {
   published?: boolean;
@@ -219,7 +219,7 @@ function _getFlattenedAndResolvedBehaviors(
     const foundBehavior = document.getOnlyAtId('behavior', behavior.name);
     if (!foundBehavior) {
       throw new WarningCarryingException({
-        message: `In ${document && document.url}: Unable to resolve behavior ` +
+        message: `Unable to resolve behavior ` +
             `\`${behavior.name}\`. Did you import it? Is it annotated with ` +
             `@polymerBehavior?`,
         severity: Severity.ERROR,

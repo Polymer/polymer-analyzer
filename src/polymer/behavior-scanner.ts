@@ -20,9 +20,8 @@ import * as esutil from '../javascript/esutil';
 import {JavaScriptDocument} from '../javascript/javascript-document';
 import {JavaScriptScanner} from '../javascript/javascript-scanner';
 import * as jsdoc from '../javascript/jsdoc';
-import {ScannedBehaviorAssignment} from '../model/model';
 
-import {ScannedBehavior} from './behavior';
+import {ScannedBehavior, ScannedBehaviorAssignment} from './behavior';
 import {declarationPropertyHandlers, PropertyHandlers} from './declaration-property-handlers';
 import * as docs from './docs';
 import {toScannedPolymerProperty} from './js-utils';

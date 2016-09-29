@@ -94,8 +94,8 @@ suite('Analyzer', () => {
         assert.instanceOf(err, WarningCarryingException);
         const warning: Warning = err.warning;
         assert.equal(
-            err.message, 'In static/html-missing-behaviors.html: ' +
-                'Unable to resolve behavior `Polymer.ExpectedMissingBehavior`. ' +
+            err.message,
+            'Unable to resolve behavior `Polymer.ExpectedMissingBehavior`. ' +
                 'Did you import it? Is it annotated with @polymerBehavior?');
         assert.deepEqual(warning.sourceRange, {
           file: 'static/html-missing-behaviors.html',
