@@ -250,6 +250,11 @@ export class Document implements Feature {
     return result;
   }
 
+  /**
+   * Return all local features contained within the document as well as features
+   * detected by following through all imports. If the deep argument is set to
+   * false, only return local features.
+   */
   getFeatures(deep?: boolean): Set<Feature> {
     if (deep == null) {
       deep = true;
@@ -276,6 +281,24 @@ export class Document implements Feature {
         }
       }
     }
+  }
+
+  /**
+   * Return all warnings on local features contained within the document as well
+   * as warnings on features detected by following through all imports. If the
+   * deep argument is set to false, only return warnings found on local
+   * features.
+   */
+  getWarnings(deep?: boolean): Warning[] {
+    const warnings: Warning[] = [];
+    if (deep == null) {
+      deep = true;
+    }
+    warnings.push(...this.warnings);
+    for (const feature of this.getFeatures(deep)) {
+      warnings.push(...feature.warnings);
+    }
+    return warnings;
   }
 
   toString(): string {
@@ -307,11 +330,6 @@ export class Document implements Feature {
     }
 
     return result;
-  }
-
-  getWarnings(): Warning[] {
-    // TODO(rictic): crawl (local?) features and grab their warnings too.
-    return this._warnings;
   }
 
   stringify(): string {

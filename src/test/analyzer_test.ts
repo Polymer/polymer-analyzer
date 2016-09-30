@@ -30,7 +30,7 @@ import {ParsedCssDocument} from '../css/css-document';
 import {Document, ScannedImport, ScannedInlineDocument} from '../model/model';
 import {FSUrlLoader} from '../url-loader/fs-url-loader';
 import {UrlResolver} from '../url-loader/url-resolver';
-import {Warning, WarningCarryingException} from '../warning/warning';
+// import {Warning, WarningCarryingException} from '../warning/warning';
 
 import {invertPromise} from './test-utils';
 
@@ -85,30 +85,30 @@ suite('Analyzer', () => {
           ['MyNamespace.SubBehavior', 'MyNamespace.SimpleBehavior']);
     });
 
-    // TODO(fks) 09-28-2016: Fix off-by-one error in warning sourceRange line
-    // numbers.
     test('throws when cant find behavior', async() => {
-      try {
-        await analyzer.analyze('static/html-missing-behaviors.html');
-      } catch (err) {
-        assert.instanceOf(err, WarningCarryingException);
-        const warning: Warning = err.warning;
-        assert.equal(
-            err.message,
-            'Unable to resolve behavior `Polymer.ExpectedMissingBehavior`. ' +
-                'Did you import it? Is it annotated with @polymerBehavior?');
-        assert.deepEqual(warning.sourceRange, {
-          file: 'static/html-missing-behaviors.html',
-          start: {
-            line: 23,  // Actual Expected: 24
-            column: 8,
-          },
-          end: {
-            line: 23,  // Actual Expected: 24
-            column: 39,
+      let document =
+          await analyzer.analyze('static/html-missing-behaviors.html');
+      let warnings = document.getWarnings();
+      assert.deepEqual(warnings, [
+        {
+          message:
+              'Unable to resolve behavior `Polymer.ExpectedMissingBehavior`. ' +
+              'Did you import it? Is it annotated with @polymerBehavior?',
+          severity: 0,
+          code: 'parse-error',
+          sourceRange: {
+            file: 'static/html-missing-behaviors.html',
+            start: {
+              line: 23,
+              column: 8,
+            },
+            end: {
+              line: 23,
+              column: 39,
+            }
           }
-        });
-      }
+        }
+      ]);
     });
 
     test(

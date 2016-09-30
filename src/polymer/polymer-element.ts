@@ -17,7 +17,7 @@ import * as estree from 'estree';
 
 import * as jsdoc from '../javascript/jsdoc';
 import {Document, Element, LiteralValue, Property, ScannedAttribute, ScannedElement, ScannedEvent, ScannedProperty, SourceRange} from '../model/model';
-import {Severity, WarningCarryingException} from '../warning/warning';
+import {Severity} from '../warning/warning';
 
 import {Behavior, ScannedBehaviorAssignment} from './behavior';
 
@@ -221,7 +221,7 @@ function _getFlattenedAndResolvedBehaviors(
     //     array, which should be the most recently defined one.
     const foundBehavior = document.getOnlyAtId('behavior', behavior.name);
     if (!foundBehavior) {
-      throw new WarningCarryingException({
+      document.warnings.push({
         message: `Unable to resolve behavior ` +
             `\`${behavior.name}\`. Did you import it? Is it annotated with ` +
             `@polymerBehavior?`,
@@ -229,6 +229,7 @@ function _getFlattenedAndResolvedBehaviors(
         code: 'parse-error',
         sourceRange: behavior.sourceRange
       });
+      continue;
     }
     if (resolvedBehaviors.has(foundBehavior)) {
       continue;
