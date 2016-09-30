@@ -106,14 +106,21 @@ process.stdin.pipe(split()).on('data', async function(line: string) {
     };
   }
 
-  process.stdout.write(
-      JSON.stringify(<ResponseWrapper>{id, value: result}) + '\n');
+  /** Have a respond function for type checking of ResponseWrapper */
+  function respond(response: ResponseWrapper) {
+    process.stdout.write(JSON.stringify(response) + '\n');
+  }
+  respond({id, value: result});
 });
 
 // node child_process.fork() IPC interface
 process.on('message', async function(request: RequestWrapper) {
   const result = await getSettledValue(request.value);
-  process.send!(<ResponseWrapper>{id: request.id, value: result});
+  /** Have a respond function for type checking of ResponseWrapper */
+  function respond(response: ResponseWrapper) {
+    process.send!(response);
+  }
+  respond({id: request.id, value: result});
 });
 
 
