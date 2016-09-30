@@ -12,6 +12,12 @@
  * http://polymer.github.io/PATENTS.txt
  */
 
+/**
+ * Describes a range of text within a source file.
+ *
+ * NOTE: See `Position` documentation below for an important information on
+ * how to report `SourceRange` objects to the user.
+ */
 export interface SourceRange {
   /* The resolved path to the file. */
   file: string;
@@ -19,6 +25,14 @@ export interface SourceRange {
   end: Position;
 }
 
+/**
+ * Describes a position within a source file.
+ *
+ * NOTE: `line` and `column` numbers will always start from zero. If you ever
+ * report a `Position` to the user, keep in mind that most text editor start
+ * lines & columns at one. You may want to correct for this in your reporting
+ * logic.
+ */
 export interface Position {
   /** The line number, starting from zero. */
   line: number;
