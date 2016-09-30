@@ -146,6 +146,17 @@ export class Document implements Feature {
     this._doneResolving = true;
   }
 
+  /**
+   * Adds and indexes a feature to this documentled before resolve().
+   */
+  _addFeature(feature: Feature) {
+    if (this._doneResolving) {
+      throw new Error('_addFeature can not be called after _resolve()');
+    }
+    this._indexFeature(feature);
+    this._localFeatures.add(feature);
+  }
+
   getByKind(kind: 'element'): Set<Element>;
   getByKind(kind: 'polymer-element'): Set<PolymerElement>;
   getByKind(kind: 'behavior'): Set<Behavior>;
@@ -267,17 +278,6 @@ export class Document implements Feature {
     }
   }
 
-  /**
-   * Adds and indexes a feature to this documentled before resolve().
-   */
-  _addFeature(feature: Feature) {
-    if (this._doneResolving) {
-      throw new Error('_addFeature can not be called after _resolve()');
-    }
-    this._indexFeature(feature);
-    this._localFeatures.add(feature);
-  }
-
   toString(): string {
     return this._toString(new Set()).join('\n');
   }
@@ -297,8 +297,7 @@ export class Document implements Feature {
       } else {
         let subResult = localFeature.toString();
         if (subResult === '[object Object]') {
-          subResult =
-              `<${localFeature.constructor.name} kinds="${Array
+          subResult = `<${localFeature.constructor.name} kinds="${Array
                   .from(localFeature.kinds)
                   .join(', ')}" ids="${Array.from(localFeature.identifiers)
                   .join(',')}">}`;
