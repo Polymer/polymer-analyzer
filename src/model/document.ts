@@ -54,7 +54,7 @@ export class Document implements Feature {
   kinds: Set<string> = new Set(['document']);
   identifiers: Set<string> = new Set();
   analyzer: Analyzer;
-  warnings: Warning[] = [];
+  warnings: Warning[];
 
   private _localFeatures = new Set<Feature>();
   private _scannedDocument: ScannedDocument;
@@ -88,7 +88,7 @@ export class Document implements Feature {
       this.identifiers.add(this.url);
     }
     this.kinds.add(`${this.parsedDocument.type}-document`);
-    // this._resolve();
+    this.warnings = base.warnings.slice();
   }
 
   get url(): string {
@@ -105,10 +105,6 @@ export class Document implements Feature {
 
   get sourceRange(): SourceRange|undefined {
     return this._scannedDocument.sourceRange;
-  }
-
-  get _warnings(): Warning[] {
-    return this._scannedDocument.warnings;
   }
 
   get resolved(): boolean {
