@@ -216,19 +216,18 @@ function _getFlattenedAndResolvedBehaviors(
     behaviorAssignments: ScannedBehaviorAssignment[], document: Document,
     resolvedBehaviors: Set<Behavior>) {
   for (const behavior of behaviorAssignments) {
-    // TODO(rictic): once we have a system for passing warnings through, this
-    //     could be a mild warning and we could just take the last one in the
-    //     array, which should be the most recently defined one.
     const foundBehavior = document.getOnlyAtId('behavior', behavior.name);
     if (!foundBehavior) {
-      document.warnings.push({
-        message: `Unable to resolve behavior ` +
-            `\`${behavior.name}\`. Did you import it? Is it annotated with ` +
-            `@polymerBehavior?`,
-        severity: Severity.ERROR,
-        code: 'parse-error',
-        sourceRange: behavior.sourceRange
-      });
+      if (behavior.sourceRange.file === document.url) {
+        document.warnings.push({
+          message: `Unable to resolve behavior ` +
+              `\`${behavior.name}\`. Did you import it? Is it annotated with ` +
+              `@polymerBehavior?`,
+          severity: Severity.ERROR,
+          code: 'parse-error',
+          sourceRange: behavior.sourceRange
+        });
+      }
       continue;
     }
     if (resolvedBehaviors.has(foundBehavior)) {

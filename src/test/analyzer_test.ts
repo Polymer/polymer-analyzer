@@ -85,31 +85,59 @@ suite('Analyzer', () => {
           ['MyNamespace.SubBehavior', 'MyNamespace.SimpleBehavior']);
     });
 
-    test('throws when cant find behavior', async() => {
-      let document =
-          await analyzer.analyze('static/html-missing-behaviors.html');
-      let warnings = document.getWarnings();
-      assert.deepEqual(warnings, [
-        {
-          message:
-              'Unable to resolve behavior `Polymer.ExpectedMissingBehavior`. ' +
-              'Did you import it? Is it annotated with @polymerBehavior?',
-          severity: 0,
-          code: 'parse-error',
-          sourceRange: {
-            file: 'static/html-missing-behaviors.html',
-            start: {
-              line: 23,
-              column: 8,
-            },
-            end: {
-              line: 23,
-              column: 39,
+    test(
+        'creates a document warning when a behavior cannot be found in that document',
+        async() => {
+          let document =
+              await analyzer.analyze('static/html-missing-behaviors.html');
+          let warnings = document.getWarnings();
+          assert.deepEqual(warnings, [
+            {
+              message:
+                  'Unable to resolve behavior `Polymer.ExpectedMissingBehavior`. ' +
+                  'Did you import it? Is it annotated with @polymerBehavior?',
+              severity: 0,
+              code: 'parse-error',
+              sourceRange: {
+                file: 'static/html-missing-behaviors.html',
+                start: {
+                  line: 23,
+                  column: 8,
+                },
+                end: {
+                  line: 23,
+                  column: 39,
+                }
+              }
             }
-          }
-        }
-      ]);
-    });
+          ]);
+        });
+
+    // TODO(fks) 10-02-2016: Test currently broken, unskip once missing
+    // behaviors are able to be reported as warnings on the correct document.
+    test.skip(
+        'creates "missing behavior" warnings on imported documents without elements',
+        async() => {
+          let document = await analyzer.analyze(
+              'static/chained-missing-behavior/index.html');
+          let chainedDocument = document.getOnlyAtId(
+              'document', 'static/chained-missing-behavior/chained.html')!;
+          let expectedWarning = {
+            code: 'parse-error',
+            message:
+                'Unable to resolve behavior `NotFoundBehavior`. Did you import it? Is it annotated with @polymerBehavior?',
+            severity: 0,
+            sourceRange: {
+              end: {column: 55, line: 2},
+              start: {column: 39, line: 2},
+              file: 'static/chained-missing-behavior/chained.html'
+            },
+          };
+          assert.deepEqual(document.getWarnings(false), []);
+          assert.deepEqual(document.getWarnings(true), [expectedWarning]);
+          assert.deepEqual(
+              chainedDocument.getWarnings(false), [expectedWarning]);
+        });
 
     test(
         'an inline document can find features from its container document',
