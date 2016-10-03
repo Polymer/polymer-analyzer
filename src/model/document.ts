@@ -247,8 +247,8 @@ export class Document implements Feature {
   }
 
   /**
-   * Get features for this document. If `deep` is true, also get features for
-   * all documents reachable from imports in this document.
+   * Get features for all documents reachable via imports in this document.
+   * If `deep` is false, only return features in this document.
    */
   getFeatures(deep?: boolean): Set<Feature> {
     if (deep == null) {
@@ -279,8 +279,8 @@ export class Document implements Feature {
   }
 
   /**
-   * Get warnings for this document. If `deep` is true, also get warnings for
-   * all documents reachable from imports in this document.
+   * Get warnings for all documents and features reachable via imports in this
+   * document. If `deep` is false, only return warnings in this document.
    */
   getWarnings(deep?: boolean): Warning[] {
     const warnings: Warning[] = [];
