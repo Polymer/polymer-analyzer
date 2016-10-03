@@ -247,9 +247,8 @@ export class Document implements Feature {
   }
 
   /**
-   * Return all local features contained within the document as well as features
-   * detected by following through all imports. If the deep argument is set to
-   * false, only return local features.
+   * Get features for this document. If `deep` is true, also get features for
+   * all documents reachable from imports in this document.
    */
   getFeatures(deep?: boolean): Set<Feature> {
     if (deep == null) {
@@ -280,10 +279,8 @@ export class Document implements Feature {
   }
 
   /**
-   * Return all warnings on local features contained within the document as well
-   * as warnings on features detected by following through all imports. If the
-   * deep argument is set to false, only return warnings found on local
-   * features.
+   * Get warnings for this document. If `deep` is true, also get warnings for
+   * all documents reachable from imports in this document.
    */
   getWarnings(deep?: boolean): Warning[] {
     const warnings: Warning[] = [];
