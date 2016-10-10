@@ -88,7 +88,7 @@ export class Document implements Feature {
       this.identifiers.add(this.url);
     }
     this.kinds.add(`${this.parsedDocument.type}-document`);
-    this.warnings = base.warnings.slice();
+    this.warnings = Array.from(base.warnings);
   }
 
   get url(): string {
@@ -279,13 +279,14 @@ export class Document implements Feature {
   }
 
   /**
-   * Get warnings for all documents and features reachable via imports in this
-   * document. If `deep` is false, only return warnings in this document.
+   * Get warnings for this document and all local features of this document. If
+   * `deep` is true, return warnings for all documents and features reachable
+   * via imports in this document.
    */
   getWarnings(deep?: boolean): Warning[] {
     const warnings: Warning[] = [];
     if (deep == null) {
-      deep = true;
+      deep = false;
     }
     warnings.push.apply(warnings, this.warnings);
     for (const feature of this.getFeatures(deep)) {

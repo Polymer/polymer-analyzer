@@ -30,7 +30,6 @@ import {ParsedCssDocument} from '../css/css-document';
 import {Document, ScannedImport, ScannedInlineDocument} from '../model/model';
 import {FSUrlLoader} from '../url-loader/fs-url-loader';
 import {UrlResolver} from '../url-loader/url-resolver';
-// import {Warning, WarningCarryingException} from '../warning/warning';
 
 import {invertPromise} from './test-utils';
 
