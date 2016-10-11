@@ -6,7 +6,7 @@ import * as dom5 from 'dom5';
 
 const isCustomElement = dom5.predicates.hasMatchingTagName(/(.+-)+.+/);
 
-export interface ScannedAttribute {
+export interface Attribute {
   name: string;
   sourceRange: SourceRange|undefined;
   value?: string;
@@ -14,7 +14,7 @@ export interface ScannedAttribute {
 
 export class ElementReference implements Feature {
   tagName?: string;
-  attributes: ScannedAttribute[] = [];
+  attributes: Attribute[] = [];
   sourceRange: SourceRange;
   astNode: dom5.Node;
   warnings: Warning[];
@@ -31,7 +31,7 @@ export class ElementReference implements Feature {
 
 export class ScannedElementReference implements Resolvable {
   tagName?: string;
-  attributes: ScannedAttribute[] = [];
+  attributes: Attribute[] = [];
   sourceRange: SourceRange;
   astNode: dom5.Node;
   warnings: Warning[];
@@ -59,7 +59,6 @@ export class HtmlElementReferenceScanner implements HtmlScanner {
       let elements: ScannedElementReference[] = [];
 
       await visit((node) => {
-        console.log(node.nodeName, isCustomElement(node));
         if (isCustomElement(node) && node.nodeName !== 'dom-module') {
           elements.push(new ScannedElementReference(
             node.nodeName,
