@@ -20,7 +20,7 @@ suite('HtmlElementReferenceScanner', () => {
       null as any, {analyzer: new Analyzer({urlLoader: loader})});
 
     async function getUnderlinedText(sourceRange: SourceRange|undefined) {
-      if(!sourceRange) {
+      if (!sourceRange) {
         return 'No source range produced';
       }
       return '\n' + await warningPrinter.getUnderlinedText(sourceRange);
