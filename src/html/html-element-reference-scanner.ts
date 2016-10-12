@@ -19,7 +19,7 @@ export class HtmlElementReferenceScanner implements HtmlScanner {
             document.sourceRangeForNode(node)!,
             node);
 
-          if(node.attrs) {
+          if (node.attrs) {
             for (const attr of node.attrs) {
               element.attributes.push({
                 name: attr.name,
