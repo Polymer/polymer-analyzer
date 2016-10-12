@@ -5,11 +5,13 @@ import * as dom5 from 'dom5';
 export interface Attribute {
   name: string;
   sourceRange: SourceRange|undefined;
+  nameSourceRange: SourceRange|undefined;
+  valueSourceRange: SourceRange|undefined;
   value?: string;
 }
 
 export class ElementReference implements Feature {
-  tagName?: string;
+  tagName: string;
   attributes: Attribute[] = [];
   sourceRange: SourceRange;
   astNode: dom5.Node;
@@ -17,16 +19,12 @@ export class ElementReference implements Feature {
   kinds: Set<string> = new Set(['element-reference']);
 
   get identifiers(): Set<string> {
-    const result: Set<string> = new Set();
-    if (this.tagName) {
-      result.add(this.tagName);
-    }
-    return result;
+    return new Set([this.tagName]);
   }
 }
 
 export class ScannedElementReference implements Resolvable {
-  tagName?: string;
+  tagName: string;
   attributes: Attribute[] = [];
   sourceRange: SourceRange;
   astNode: dom5.Node;

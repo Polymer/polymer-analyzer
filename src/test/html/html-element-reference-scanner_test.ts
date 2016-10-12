@@ -16,7 +16,7 @@ suite('HtmlElementReferenceScanner', () => {
     test('finds custom element references', async() => {
       let contents = `<html><body>
           <div>Foo</div>
-          <x-foo></x-foo>
+          <x-foo a=5 b="test" c></x-foo>
           <div>
             <x-bar></x-bar>
           </div>
@@ -26,15 +26,57 @@ suite('HtmlElementReferenceScanner', () => {
       let visit = async(visitor: HtmlVisitor) => document.visit([visitor]);
 
       const features = await scanner.scan(document, visit);
+
       assert.equal(features.length, 2);
+
       assert.instanceOf(features[0], ScannedElementReference);
       assert.instanceOf(features[1], ScannedElementReference);
 
-      const feature0 = <ScannedElementReference>features[0];
-      assert.equal(feature0.tagName, 'x-foo');
+      assert.deepEqual(features.map(f => f.tagName), ['x-foo', 'x-bar']);
 
-      const feature1 = <ScannedElementReference>features[1];
-      assert.equal(feature1.tagName, 'x-bar');
+      assert.deepEqual(features[0].attributes.map(a => [a.name, a.value]), [
+        ['a', '5'],
+        ['b', 'test'],
+        ['c', '']
+      ]);
+
+      assert.deepEqual(features[0].attributes[0], {
+        name: 'a',
+        nameSourceRange: {
+          end: {
+            column: 18,
+            line: 2
+          },
+          file: 'test-document.html',
+          start: {
+            column: 17,
+            line: 2
+          }
+        },
+        sourceRange: {
+          end: {
+            column: 20,
+            line: 2
+          },
+          file: 'test-document.html',
+          start: {
+            column: 17,
+            line: 2
+          }
+        },
+        value: '5',
+        valueSourceRange: {
+          end: {
+            column: 20,
+            line: 2
+          },
+          file: 'test-document.html',
+          start: {
+            column: 19,
+            line: 2
+          }
+        }
+      });
     });
 
   });

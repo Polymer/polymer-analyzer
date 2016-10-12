@@ -13,11 +13,23 @@ export class HtmlElementReferenceScanner implements HtmlScanner {
       let elements: ScannedElementReference[] = [];
 
       await visit((node) => {
-        if (isCustomElement(node) && node.nodeName !== 'dom-module') {
-          elements.push(new ScannedElementReference(
-            node.nodeName,
+        if (node.tagName && isCustomElement(node) && node.nodeName !== 'dom-module') {
+          const element = new ScannedElementReference(
+            node.tagName,
             document.sourceRangeForNode(node)!,
-            node));
+            node);
+
+          for (const attr of node.attrs) {
+            element.attributes.push({
+              name: attr.name,
+              value: attr.value,
+              sourceRange: document.sourceRangeForAttribute(node, attr.name),
+              nameSourceRange: document.sourceRangeForAttributeName(node, attr.name),
+              valueSourceRange: document.sourceRangeForAttributeValue(node, attr.name)
+            });
+          }
+
+          elements.push(element);
         }
       });
 
