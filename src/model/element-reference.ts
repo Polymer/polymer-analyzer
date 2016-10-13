@@ -15,7 +15,7 @@ export class ElementReference implements Feature {
   attributes: Attribute[] = [];
   sourceRange: SourceRange;
   astNode: dom5.Node;
-  warnings: Warning[];
+  warnings: Warning[] = [];
   kinds: Set<string> = new Set(['element-reference']);
 
   get identifiers(): Set<string> {
@@ -28,7 +28,7 @@ export class ScannedElementReference implements Resolvable {
   attributes: Attribute[] = [];
   sourceRange: SourceRange;
   astNode: dom5.Node;
-  warnings: Warning[];
+  warnings: Warning[] = [];
 
   constructor(
     tagName: string, sourceRange: SourceRange,
