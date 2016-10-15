@@ -20,6 +20,12 @@ import {HtmlScanner} from './html-scanner';
 
 const isCustomElement = dom5.predicates.hasMatchingTagName(/(.+-)+.+/);
 
+/**
+ * Scans for HTML element references/uses in a given document.
+ * All elements will be detected, including anything in <head>.
+ * This scanner will not be loaded by default, but the custom
+ * element extension of it will be.
+ */
 export class HtmlElementReferenceScanner implements HtmlScanner {
   matches(node: ASTNode): boolean {
     return !!node;
@@ -58,6 +64,11 @@ export class HtmlElementReferenceScanner implements HtmlScanner {
   }
 }
 
+/**
+ * Scans for custom element references/uses.
+ * All custom elements will be detected except <dom-module>.
+ * This is a default scanner.
+ */
 export class HtmlCustomElementReferenceScanner extends
     HtmlElementReferenceScanner {
   matches(node: ASTNode): boolean {

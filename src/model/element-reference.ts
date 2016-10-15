@@ -12,9 +12,10 @@
  * http://polymer.github.io/PATENTS.txt
  */
 
-import {Resolvable, SourceRange, Feature} from '../model/model';
-import {Warning} from '../warning/warning';
 import * as dom5 from 'dom5';
+
+import {Feature, Resolvable, SourceRange} from '../model/model';
+import {Warning} from '../warning/warning';
 
 export interface Attribute {
   name: string;
@@ -44,12 +45,10 @@ export class ScannedElementReference implements Resolvable {
   astNode: dom5.Node;
   warnings: Warning[] = [];
 
-  constructor(
-    tagName: string, sourceRange: SourceRange,
-    ast: dom5.Node) {
-      this.tagName = tagName;
-      this.sourceRange = sourceRange;
-      this.astNode = ast;
+  constructor(tagName: string, sourceRange: SourceRange, ast: dom5.Node) {
+    this.tagName = tagName;
+    this.sourceRange = sourceRange;
+    this.astNode = ast;
   }
 
   resolve(): ElementReference {
@@ -58,4 +57,3 @@ export class ScannedElementReference implements Resolvable {
     return ref;
   }
 }
-
