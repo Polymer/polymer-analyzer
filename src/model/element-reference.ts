@@ -18,8 +18,8 @@ import * as dom5 from 'dom5';
 
 export interface Attribute {
   name: string;
-  sourceRange: SourceRange|undefined;
-  nameSourceRange: SourceRange|undefined;
+  sourceRange: SourceRange;
+  nameSourceRange: SourceRange;
   valueSourceRange: SourceRange|undefined;
   value?: string;
 }
