@@ -1,23 +1,51 @@
 import {assert} from 'chai';
-import {HtmlVisitor} from '../../html/html-document';
-import {HtmlParser} from '../../html/html-parser';
-import {HtmlElementReferenceScanner} from '../../html/html-element-reference-scanner';
-import {ScannedElementReference} from '../../model/element-reference';
-import {WarningPrinter} from '../../warning/warning-printer';
+
 import {Analyzer} from '../../analyzer';
+import {HtmlVisitor} from '../../html/html-document';
+import {HtmlCustomElementReferenceScanner, HtmlElementReferenceScanner} from '../../html/html-element-reference-scanner';
+import {HtmlParser} from '../../html/html-parser';
 import {SourceRange} from '../../model/model';
+import {WarningPrinter} from '../../warning/warning-printer';
 
 suite('HtmlElementReferenceScanner', () => {
 
   suite('scan()', () => {
     let scanner: HtmlElementReferenceScanner;
+
+    setup(() => {
+      scanner = new HtmlElementReferenceScanner();
+    });
+
+    test('finds element references', async() => {
+      const contents = `<html><head></head>
+      <body>
+        <div>Foo</div>
+        <x-foo></x-foo>
+        <div>
+          <x-bar></x-bar>
+        </div>
+      </body></html>`;
+
+      const document = new HtmlParser().parse(contents, 'test-document.html');
+      let visit = async(visitor: HtmlVisitor) => document.visit([visitor]);
+
+      const features = await scanner.scan(document, visit);
+
+      assert.deepEqual(
+          features.map(f => f.tagName),
+          ['html', 'head', 'body', 'div', 'x-foo', 'div', 'x-bar']);
+    });
+  });
+});
+
+suite('HtmlCustomElementReferenceScanner', () => {
+
+  suite('scan()', () => {
+    let scanner: HtmlCustomElementReferenceScanner;
     let contents = '';
-    const loader = {
-      canLoad: () => true,
-      load: () => Promise.resolve(contents)
-    };
+    const loader = {canLoad: () => true, load: () => Promise.resolve(contents)};
     const warningPrinter = new WarningPrinter(
-      null as any, {analyzer: new Analyzer({urlLoader: loader})});
+        null as any, {analyzer: new Analyzer({urlLoader: loader})});
 
     async function getUnderlinedText(sourceRange: SourceRange|undefined) {
       if (!sourceRange) {
@@ -27,7 +55,7 @@ suite('HtmlElementReferenceScanner', () => {
     }
 
     setup(() => {
-      scanner = new HtmlElementReferenceScanner();
+      scanner = new HtmlCustomElementReferenceScanner();
     });
 
     test('finds custom element references', async() => {
@@ -45,20 +73,14 @@ suite('HtmlElementReferenceScanner', () => {
 
       const features = await scanner.scan(document, visit);
 
-      assert.equal(features.length, 2);
-
-      assert.instanceOf(features[0], ScannedElementReference);
-      assert.instanceOf(features[1], ScannedElementReference);
-
       assert.deepEqual(features.map(f => f.tagName), ['x-foo', 'x-bar']);
 
-      assert.deepEqual(features[0].attributes.map(a => [a.name, a.value]), [
-        ['a', '5'],
-        ['b', 'test'],
-        ['c', '']
-      ]);
+      assert.deepEqual(
+          features[0].attributes.map(a => [a.name, a.value]),
+          [['a', '5'], ['b', 'test'], ['c', '']]);
 
-      const sourceRanges = await Promise.all(features.map(async f => await getUnderlinedText(f.sourceRange)));
+      const sourceRanges = await Promise.all(
+          features.map(async f => await getUnderlinedText(f.sourceRange)));
 
       assert.deepEqual(sourceRanges, [
         `
@@ -70,8 +92,8 @@ suite('HtmlElementReferenceScanner', () => {
       ]);
 
       const attrRanges = await Promise.all(features.map(
-        async f => await Promise.all(f.attributes.map(
-          async a => await getUnderlinedText(a.sourceRange)))));
+          async f => await Promise.all(f.attributes.map(
+              async a => await getUnderlinedText(a.sourceRange)))));
 
       assert.deepEqual(attrRanges, [
         [
@@ -89,8 +111,8 @@ suite('HtmlElementReferenceScanner', () => {
       ]);
 
       const attrNameRanges = await Promise.all(features.map(
-        async f => await Promise.all(f.attributes.map(
-          async a => await getUnderlinedText(a.nameSourceRange)))));
+          async f => await Promise.all(f.attributes.map(
+              async a => await getUnderlinedText(a.nameSourceRange)))));
 
       assert.deepEqual(attrNameRanges, [
         [
@@ -108,8 +130,8 @@ suite('HtmlElementReferenceScanner', () => {
       ]);
 
       const attrValueRanges = await Promise.all(features.map(
-        async f => await Promise.all(f.attributes.map(
-          async a => await getUnderlinedText(a.valueSourceRange)))));
+          async f => await Promise.all(f.attributes.map(
+              async a => await getUnderlinedText(a.valueSourceRange)))));
 
       assert.deepEqual(attrValueRanges, [
         [
@@ -119,9 +141,7 @@ suite('HtmlElementReferenceScanner', () => {
           `
           <x-foo a=5 b="test" c></x-foo>
                        ~~~~~~`,
-          `
-          <x-foo a=5 b="test" c></x-foo>
-                              ~`
+          `No source range produced`
         ],
         []
       ]);
