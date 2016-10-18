@@ -272,6 +272,9 @@ export class Document implements Feature {
           (feature as Document)._getFeatures(result, visited, deep);
         }
         if (feature.kinds.has('import')) {
+          if ((feature as Import).type === 'lazy-html-import') {
+            continue;
+          }
           (feature as Import).document._getFeatures(result, visited, deep);
         }
       }
