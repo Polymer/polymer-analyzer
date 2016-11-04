@@ -85,11 +85,38 @@ class BehaviorVisitor implements Visitor {
     });
   }
 
+  enterSequenceExpression(
+      node: estree.SequenceExpression, parent: estree.Node) {
+    node.expressions.forEach((expression, i) => {
+      if (i === 0 && !expression.leadingComments) {
+        expression.leadingComments =
+            node.leadingComments || parent.leadingComments;
+      }
+      if (i === node.expressions.length - 1 && !expression.trailingComments) {
+        expression.trailingComments =
+            node.trailingComments || parent.leadingComments;
+      }
+      console.log('* ', expression.type);
+      switch (expression.type) {
+        case 'VariableDeclaration':
+          return this.enterVariableDeclaration(expression, parent);
+        case 'AssignmentExpression':
+          return this.enterAssignmentExpression(expression, node);
+        case 'ObjectExpression':
+          return this.enterObjectExpression(expression, node);
+        default:
+          return;
+      }
+    });
+  }
+
   /**
    * Look for object assignments with @polymerBehavior in the docs.
    */
   enterAssignmentExpression(
       node: estree.AssignmentExpression, parent: estree.Node) {
+    console.log('WOBWOBWOB', esutil.objectKeyToString(node.left));
+    // console.log(JSON.stringify(node));
     this._initBehavior(parent, () => esutil.objectKeyToString(node.left)!);
   }
 
@@ -144,8 +171,15 @@ class BehaviorVisitor implements Visitor {
   }
 
   private _initBehavior(node: estree.Node, getName: () => string) {
+    // console.log('1', esutil.getAttachedComment(node));
+    // console.log('2', esutil.getEventComments(node));
+    // console.log('3', esutil.getLeadingComments(node));
+    // console.log('4', JSON.stringify(node));
     const comment = esutil.getAttachedComment(node);
     const symbol = getName();
+    console.log('COMMNET: ' + comment);
+    console.log('SYMBL: ' + symbol);
+    console.log('');
     // Quickly filter down to potential candidates.
     if (!comment || comment.indexOf('@polymerBehavior') === -1) {
       if (symbol !== templatizer) {
@@ -180,6 +214,7 @@ class BehaviorVisitor implements Visitor {
 
     this._parseChainedBehaviors(node);
 
+    console.log('WE GOT ONE:', behavior);
     this.currentBehavior = this.mergeBehavior(behavior);
     this.propertyHandlers =
         declarationPropertyHandlers(this.currentBehavior, this.document);
@@ -187,6 +222,7 @@ class BehaviorVisitor implements Visitor {
     // Some behaviors are just lists of other behaviors. If this is one then
     // add it to behaviors right away.
     if (isSimpleBehaviorArray(behaviorExpression(node))) {
+      console.log('WE GOT AN ARRAY:', behavior);
       this._finishBehavior();
     }
   }
@@ -205,6 +241,7 @@ class BehaviorVisitor implements Visitor {
       if (newBehavior.className !== behavior.className) {
         continue;
       }
+      console.log('WE GOT A MERGE', newBehavior.className);
       // merge desc, longest desc wins
       if (newBehavior.description) {
         if (behavior.description) {

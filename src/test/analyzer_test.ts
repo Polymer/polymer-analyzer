@@ -323,6 +323,28 @@ suite('Analyzer', () => {
       await analyzer.analyze('static/caching/file2.html');
     });
 
+    test.only(
+        'can analyze behaviors in minified JavaScript scripts', async() => {
+          const document =
+              await analyzer.analyze('static/minified-javascript/index.html');
+          console.log(document.getWarnings(true));
+          assert.equal(document.getWarnings(true).length, 0);
+          console.log(document.getFeatures());
+          console.log(document.getByKind('behavior'));
+
+          // const inlineDocuments =
+          //   Array.from(document.getFeatures(false))
+          //     .filter(
+          //     (d) => d instanceof Document && d.isInline) as Document[];
+          // assert.equal(inlineDocuments.length, 1);
+          // const inlineJsDocument = inlineDocuments[0];
+
+          // // The inline document can find the container's imported features
+          // const subBehavior =
+          //   inlineJsDocument.getOnlyAtId('behavior', 'TestBehavior');
+          // assert.equal(subBehavior!.className, 'TestBehavior');
+        });
+
   });
 
   // TODO: reconsider whether we should test these private methods.

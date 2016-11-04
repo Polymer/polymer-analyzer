@@ -140,7 +140,7 @@ export function getEventComments(node: estree.Node): ScannedEvent[] {
       .sort((ev1, ev2) => ev1.name.localeCompare(ev2.name));
 }
 
-function getLeadingComments(node: estree.Node): string[]|undefined {
+export function getLeadingComments(node: estree.Node): string[]|undefined {
   if (!node) {
     return;
   }

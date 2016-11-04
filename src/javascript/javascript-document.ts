@@ -93,6 +93,12 @@ export class JavaScriptDocument extends ParsedDocument<Node, Visitor> {
     const handleVisitorResult =
         (visitorOption: VisitorOption, callbackName: string, visitor: Visitor,
          nodeType: typeof __exampleNode.type) => {
+          // if (Array.isArray(visitorOption)) {
+          //   visitorOption.forEach((vo) => {
+          //     handleVisitorResult(vo, callbackName, visitor, nodeType);
+          //   });
+          //   return;
+          // }
           switch (visitorOption) {
             case VisitorOption.Remove:
               throw new Error(
