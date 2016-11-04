@@ -67,8 +67,31 @@ class BehaviorVisitor implements Visitor {
   propertyHandlers: PropertyHandlers|null = null;
 
   document: JavaScriptDocument;
+
   constructor(document: JavaScriptDocument) {
     this.document = document;
+  }
+
+  /**
+   * Fix how comments are attached to SequenceExpressions. In espree, any
+   * leading comments to the expression are parsed as leading comments to the
+   * entire sequence and not the first expression in that sequence.
+   *
+   * For our behaviors we expect our `@polymerBehavior` comments to be the
+   * leading comments of the actual first expression, so we copy them over here
+   * before so that other enter functions can properly read them.
+   */
+  enterSequenceExpression(
+      node: estree.SequenceExpression, parent: estree.Node) {
+    node.expressions.forEach((expression, i) => {
+      if (i === 0 && !expression.leadingComments) {
+        node.leadingComments = node.leadingComments || parent.leadingComments;
+      } else if (
+          i === node.expressions.length - 1 && !expression.trailingComments) {
+        node.trailingComments =
+            node.trailingComments || parent.trailingComments;
+      }
+    });
   }
 
   /**
