@@ -20,6 +20,7 @@ import * as path from 'path';
 import {Visitor} from '../../javascript/estree-visitor';
 import {JavaScriptImportScanner} from '../../javascript/javascript-import-scanner';
 import {JavaScriptParser} from '../../javascript/javascript-parser';
+import {ScannedImport} from '../../model/model';
 
 suite('JavaScriptImportScanner', () => {
 
@@ -34,7 +35,8 @@ suite('JavaScriptImportScanner', () => {
     let visit = (visitor: Visitor) =>
         Promise.resolve(document.visit([visitor]));
 
-    let features = await scanner.scan(document, visit);
+    let features =
+        (await scanner.scan(document, visit)).features as ScannedImport[];
     assert.equal(features.length, 1);
     assert.equal(features[0].type, 'js-import');
     assert.equal(features[0].url, '/static/javascript/submodule.js');
@@ -51,7 +53,7 @@ suite('JavaScriptImportScanner', () => {
     let visit = (visitor: Visitor) =>
         Promise.resolve(document.visit([visitor]));
 
-    let features = await scanner.scan(document, visit);
+    let features = (await scanner.scan(document, visit)).features;
     assert.equal(features.length, 0);
   });
 

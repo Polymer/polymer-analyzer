@@ -14,12 +14,13 @@
 
 import {ScannedFeature} from '../model/model';
 import {ParsedDocument} from '../parser/document';
+import {Warning} from '../warning/warning';
 
 import {Scanner} from './scanner';
 
 export async function scan(
-    document: ParsedDocument<any, any>,
-    scanners: Scanner<any, any, any>[]): Promise<ScannedFeature[]> {
+    document: ParsedDocument<any, any>, scanners: Scanner<any, any, any>[]):
+    Promise<{features: ScannedFeature[], warnings: Warning[]}> {
   // Scanners register a visitor to run via the `visit` callback passed to
   // `scan()`. We run these visitors in a batch, then pass control back
   // to the `scan()` methods by resolving a single Promise return for
@@ -82,13 +83,16 @@ export async function scan(
   const scannerPromises = scanners.map((f) => f.scan(document, visit));
 
   // This waits for all `scan()` calls to finish
-  const nestedFeatures = await Promise.all(scannerPromises);
+  const scanResults = await Promise.all(scannerPromises);
 
   if (visitError) {
     throw visitError;
   }
 
-  return sortFeatures(nestedFeatures);
+  return {
+    features: sortFeatures(scanResults.map(r => r.features)),
+    warnings: [].concat.apply([], scanResults.map(r => r.warnings)),
+  };
 }
 
 function compareFeaturesBySourceLocation(

@@ -21,6 +21,7 @@ import {JavaScriptDocument} from '../javascript/javascript-document';
 import {JavaScriptScanner} from '../javascript/javascript-scanner';
 import * as jsdoc from '../javascript/jsdoc';
 import {ScannedElement, ScannedFeature} from '../model/model';
+import {ScanResult} from '../scanning/scanner';
 
 export interface ScannedAttribute extends ScannedFeature {
   name: string;
@@ -31,10 +32,10 @@ export interface ScannedAttribute extends ScannedFeature {
 export class ElementScanner implements JavaScriptScanner {
   async scan(
       document: JavaScriptDocument,
-      visit: (visitor: Visitor) => Promise<void>): Promise<ScannedElement[]> {
+      visit: (visitor: Visitor) => Promise<void>): Promise<ScanResult> {
     let visitor = new ElementVisitor(document);
     await visit(visitor);
-    return visitor.getRegisteredElements();
+    return {features: visitor.getRegisteredElements(), warnings: []};
   }
 }
 

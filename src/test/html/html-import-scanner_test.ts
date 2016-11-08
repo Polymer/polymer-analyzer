@@ -17,6 +17,7 @@ import {assert} from 'chai';
 import {HtmlVisitor} from '../../html/html-document';
 import {HtmlImportScanner} from '../../html/html-import-scanner';
 import {HtmlParser} from '../../html/html-parser';
+import {ScannedImport} from '../../model/model';
 
 suite('HtmlImportScanner', () => {
 
@@ -37,7 +38,8 @@ suite('HtmlImportScanner', () => {
       const document = new HtmlParser().parse(contents, 'test.html');
       const visit = async(visitor: HtmlVisitor) => document.visit([visitor]);
 
-      const features = await scanner.scan(document, visit);
+      const features =
+          (await scanner.scan(document, visit)).features as ScannedImport[];
       assert.equal(features.length, 1);
       assert.equal(features[0].type, 'html-import');
       assert.equal(features[0].url, 'polymer.html');
@@ -54,7 +56,8 @@ suite('HtmlImportScanner', () => {
       const document = new HtmlParser().parse(contents, 'test.html');
       const visit = async(visitor: HtmlVisitor) => document.visit([visitor]);
 
-      const features = await scanner.scan(document, visit);
+      const features =
+          (await scanner.scan(document, visit)).features as ScannedImport[];
       assert.equal(features.length, 2);
       assert.equal(features[1].type, 'lazy-html-import');
       assert.equal(features[1].url, 'lazy-polymer.html');
@@ -81,7 +84,8 @@ suite('HtmlImportScanner', () => {
       const document = new HtmlParser().parse(contents, 'test.html');
       const visit = async(visitor: HtmlVisitor) => document.visit([visitor]);
 
-      const features = await scanner.scan(document, visit);
+      const features =
+          (await scanner.scan(document, visit)).features as ScannedImport[];
       assert.deepEqual(features.map(f => f.type), [
         'html-import',
         'lazy-html-import',

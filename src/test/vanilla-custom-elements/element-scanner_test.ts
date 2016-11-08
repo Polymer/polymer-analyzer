@@ -41,9 +41,9 @@ suite('VanillaElementScanner', () => {
     const visit = (visitor: Visitor) =>
         Promise.resolve(document.visit([visitor]));
 
-    const features = await scanner.scan(document, visit);
-    elementsList =
-        <ScannedElement[]>features.filter((e) => e instanceof ScannedElement);
+    const features =
+        (await scanner.scan(document, visit)).features as ScannedElement[];
+    elementsList = features.filter((e) => e instanceof ScannedElement);
     for (const element of elementsList) {
       elements.set(element.tagName, element);
     }

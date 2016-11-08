@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
 
+### Added
+* Initial support for parsing [A-Frame](https://aframe.io/) components, starting with warning about incorrect component registrations.
+
 ### Fixed
 * [Polymer] A number of fixes around warnings when resolving behaviors
   * Warn, don't throw when a behavior is declared twice.

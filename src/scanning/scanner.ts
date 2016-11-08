@@ -15,10 +15,15 @@
 import {Analyzer} from '../analyzer';
 import {ScannedFeature} from '../model/model';
 import {ParsedDocument} from '../parser/document';
+import {Warning} from '../warning/warning';
+
+export interface ScanResult {
+  features: ScannedFeature[];
+  warnings: Warning[];
+}
 
 export interface Scanner<D extends ParsedDocument<A, V>, A, V> {
-  scan(document: D, visit: (visitor: V) => Promise<void>):
-      Promise<ScannedFeature[]>;
+  scan(document: D, visit: (visitor: V) => Promise<void>): Promise<ScanResult>;
 }
 
 export interface ScannerConstructor {

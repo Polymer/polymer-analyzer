@@ -18,6 +18,7 @@ import {resolve as resolveUrl} from 'url';
 import {HtmlVisitor, ParsedHtmlDocument} from '../html/html-document';
 import {HtmlScanner} from '../html/html-scanner';
 import {ScannedImport} from '../model/model';
+import {ScanResult} from '../scanning/scanner';
 
 const p = dom5.predicates;
 
@@ -31,8 +32,7 @@ const isCssImportNode = p.AND(
 export class CssImportScanner implements HtmlScanner {
   async scan(
       document: ParsedHtmlDocument,
-      visit: (visitor: HtmlVisitor) => Promise<void>):
-      Promise<ScannedImport[]> {
+      visit: (visitor: HtmlVisitor) => Promise<void>): Promise<ScanResult> {
     const imports: ScannedImport[] = [];
 
     await visit((node) => {
@@ -47,6 +47,6 @@ export class CssImportScanner implements HtmlScanner {
             node));
       }
     });
-    return imports;
+    return {features: imports, warnings: []};
   }
 }

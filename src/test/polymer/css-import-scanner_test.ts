@@ -17,6 +17,7 @@ import {assert} from 'chai';
 
 import {HtmlVisitor} from '../../html/html-document';
 import {HtmlParser} from '../../html/html-parser';
+import {ScannedImport} from '../../model/model';
 import {CssImportScanner} from '../../polymer/css-import-scanner';
 
 suite('CssImportScanner', () => {
@@ -47,7 +48,8 @@ suite('CssImportScanner', () => {
       const document = new HtmlParser().parse(contents, 'test.html');
       const visit = async(visitor: HtmlVisitor) => document.visit([visitor]);
 
-      const features = await scanner.scan(document, visit);
+      const features =
+          (await scanner.scan(document, visit)).features as ScannedImport[];
       assert.equal(features.length, 1);
       assert.equal(features[0].type, 'css-import');
       assert.equal(features[0].url, 'polymer.css');

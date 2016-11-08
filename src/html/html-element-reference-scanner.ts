@@ -14,7 +14,10 @@
 
 import * as dom5 from 'dom5';
 import {ASTNode} from 'parse5';
+
 import {ScannedElementReference} from '../model/element-reference';
+import {ScanResult} from '../scanning/scanner';
+
 import {HtmlVisitor, ParsedHtmlDocument} from './html-document';
 import {HtmlScanner} from './html-scanner';
 
@@ -33,8 +36,7 @@ export class HtmlElementReferenceScanner implements HtmlScanner {
 
   async scan(
       document: ParsedHtmlDocument,
-      visit: (visitor: HtmlVisitor) => Promise<void>):
-      Promise<ScannedElementReference[]> {
+      visit: (visitor: HtmlVisitor) => Promise<void>): Promise<ScanResult> {
     let elements: ScannedElementReference[] = [];
 
     await visit((node) => {
@@ -60,7 +62,7 @@ export class HtmlElementReferenceScanner implements HtmlScanner {
       }
     });
 
-    return elements;
+    return {features: elements, warnings: []};
   }
 }
 

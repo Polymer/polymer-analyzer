@@ -20,6 +20,7 @@ import {Visitor} from '../javascript/estree-visitor';
 import * as esutil from '../javascript/esutil';
 import {JavaScriptDocument} from '../javascript/javascript-document';
 import {JavaScriptScanner} from '../javascript/javascript-scanner';
+import {ScanResult} from '../scanning/scanner';
 import {Severity, WarningCarryingException} from '../warning/warning';
 
 import {declarationPropertyHandlers, PropertyHandlers} from './declaration-property-handlers';
@@ -29,11 +30,14 @@ import {ScannedPolymerElement, ScannedPolymerProperty} from './polymer-element';
 
 export class PolymerElementScanner implements JavaScriptScanner {
   async scan(
-      document: JavaScriptDocument, visit: (visitor: Visitor) => Promise<void>):
-      Promise<ScannedPolymerElement[]> {
+      document: JavaScriptDocument,
+      visit: (visitor: Visitor) => Promise<void>): Promise<ScanResult> {
     const visitor = new ElementVisitor(document);
     await visit(visitor);
-    return visitor.features;
+    return {
+      features: visitor.features,
+      warnings: [],
+    };
   }
 }
 

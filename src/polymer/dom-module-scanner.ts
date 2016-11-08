@@ -18,6 +18,7 @@ import {ASTNode} from 'parse5';
 import {HtmlVisitor, ParsedHtmlDocument} from '../html/html-document';
 import {HtmlScanner} from '../html/html-scanner';
 import {Feature, getAttachedCommentText, Resolvable, SourceRange} from '../model/model';
+import {ScanResult} from '../scanning/scanner';
 import {Warning} from '../warning/warning';
 
 const p = dom5.predicates;
@@ -81,8 +82,7 @@ export class DomModule implements Feature {
 export class DomModuleScanner implements HtmlScanner {
   async scan(
       document: ParsedHtmlDocument,
-      visit: (visitor: HtmlVisitor) => Promise<void>):
-      Promise<ScannedDomModule[]> {
+      visit: (visitor: HtmlVisitor) => Promise<void>): Promise<ScanResult> {
     let domModules: ScannedDomModule[] = [];
 
     await visit((node) => {
@@ -94,6 +94,6 @@ export class DomModuleScanner implements HtmlScanner {
             node));
       }
     });
-    return domModules;
+    return {features: domModules, warnings: []};
   }
 }

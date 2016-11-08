@@ -27,7 +27,7 @@ suite('scan()', () => {
     let scanner = new ScannerStub(<any>[feature]);
     let document = makeTestDocument({});
 
-    const features = await scan(document, [scanner]);
+    const features = (await scan(document, [scanner])).features;
     assert.deepEqual(features, [feature]);
     assert.deepEqual(scanner.calls, [{document}]);
     assert.deepEqual(features, [feature]);
@@ -51,7 +51,7 @@ suite('scan()', () => {
           }, 0);
         });
 
-        return [`a feature` as any];
+        return {features: [`a feature` as any], warnings: []};
       },
     };
     let visitedVisitors: any[] = [];
@@ -61,7 +61,7 @@ suite('scan()', () => {
       }
     });
 
-    const features = await scan(document, [scanner]);
+    const features = (await scan(document, [scanner])).features;
     assert.deepEqual([`a feature`], features);
     assert.deepEqual(visitedVisitors, [visitor1, visitor2, visitor3]);
   });
@@ -140,6 +140,6 @@ class ScannerStub implements Scanner<any, any, any> {
 
   async scan(document: ParsedDocument<any, any>, _visit: any) {
     this.calls.push({document});
-    return this.features;
+    return {features: this.features, warnings: []};
   }
 }

@@ -20,6 +20,7 @@ import * as esutil from '../javascript/esutil';
 import {JavaScriptDocument} from '../javascript/javascript-document';
 import {JavaScriptScanner} from '../javascript/javascript-scanner';
 import * as jsdoc from '../javascript/jsdoc';
+import {ScanResult} from '../scanning/scanner';
 import {Severity} from '../warning/warning';
 
 import {ScannedBehavior, ScannedBehaviorAssignment} from './behavior';
@@ -52,10 +53,10 @@ const templatizer = 'Polymer.Templatizer';
 export class BehaviorScanner implements JavaScriptScanner {
   async scan(
       document: JavaScriptDocument,
-      visit: (visitor: Visitor) => Promise<void>): Promise<ScannedBehavior[]> {
+      visit: (visitor: Visitor) => Promise<void>): Promise<ScanResult> {
     let visitor = new BehaviorVisitor(document);
     await visit(visitor);
-    return Array.from(visitor.behaviors);
+    return {features: Array.from(visitor.behaviors), warnings: []};
   }
 }
 

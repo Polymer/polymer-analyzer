@@ -18,7 +18,7 @@ import {Analyzer} from '../../analyzer';
 import {HtmlVisitor} from '../../html/html-document';
 import {HtmlCustomElementReferenceScanner, HtmlElementReferenceScanner} from '../../html/html-element-reference-scanner';
 import {HtmlParser} from '../../html/html-parser';
-import {SourceRange} from '../../model/model';
+import {ScannedElementReference, SourceRange} from '../../model/model';
 import {WarningPrinter} from '../../warning/warning-printer';
 
 suite('HtmlElementReferenceScanner', () => {
@@ -43,7 +43,8 @@ suite('HtmlElementReferenceScanner', () => {
       const document = new HtmlParser().parse(contents, 'test-document.html');
       let visit = async(visitor: HtmlVisitor) => document.visit([visitor]);
 
-      const features = await scanner.scan(document, visit);
+      const features = (await scanner.scan(document, visit))
+                           .features as ScannedElementReference[];
 
       assert.deepEqual(
           features.map(f => f.tagName),
@@ -85,7 +86,8 @@ suite('HtmlCustomElementReferenceScanner', () => {
       const document = new HtmlParser().parse(contents, 'test-document.html');
       let visit = async(visitor: HtmlVisitor) => document.visit([visitor]);
 
-      const features = await scanner.scan(document, visit);
+      const features = (await scanner.scan(document, visit))
+                           .features as ScannedElementReference[];
 
       assert.deepEqual(features.map(f => f.tagName), ['x-foo', 'x-bar']);
 
