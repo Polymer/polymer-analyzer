@@ -1,0 +1,16 @@
+<html>
+
+<head><script>/** @polymerBehavior */
+Polymer.SimpleBehavior={simple:!0};
+/**
+   * @polymerBehavior Polymer.TestBehavior
+   */
+Polymer.TestBehaviorImpl={properties:{foo:{type: Number,value: 10,notify: true}},ready:function(){this.playAnimation("entry")}},/**
+   * Part 2
+   * @polymerBehavior
+   */
+Polymer.TestBehavior=[Polymer.TestBehaviorImpl,SimpleBehavior];</script></head>
+
+<body></body>
+
+</html>

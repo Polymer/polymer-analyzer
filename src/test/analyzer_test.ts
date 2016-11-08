@@ -323,6 +323,16 @@ suite('Analyzer', () => {
       await analyzer.analyze('static/caching/file2.html');
     });
 
+    test('can analyze behaviors documented in SequenceExpressions', async() => {
+      const document =
+          await analyzer.analyze('static/minified-javascript/index.html');
+      assert.equal(document.getWarnings(true).length, 0);
+      assert.equal(document.getByKind('behavior').size, 2);
+      assert.isObject(document.getOnlyAtId('behavior', 'Polymer.TestBehavior'));
+      assert.isObject(
+          document.getOnlyAtId('behavior', 'Polymer.SimpleBehavior'));
+    });
+
   });
 
   // TODO: reconsider whether we should test these private methods.
