@@ -186,8 +186,11 @@ export class AnalyzerCacheContext {
    */
   fileChanged(url: string) {
     const resolvedUrl = this._resolveUrl(url);
-    const dependants =
-        getImportersOf(resolvedUrl, this._cache.analyzedDocuments.values());
+    const dependants = getImportersOf(
+        resolvedUrl,
+        this._cache.analyzedDocuments.values(),
+        this._cache.scannedDocuments.values(),
+        (url) => this._resolveUrl(url));
     console.log(`Analyzed documents: ${JSON.stringify(
         Array.from(this._cache.analyzedDocuments.values()).map(d => d.url))}`);
     console.log(
@@ -269,6 +272,8 @@ export class AnalyzerCacheContext {
     }
     const scannedDocument = this._cache.scannedDocuments.get(resolvedUrl);
     if (!scannedDocument) {
+      console.log(`unable to find scanned or analyzed document ${resolvedUrl
+        } in the generation ${this._generation} cache`);
       throw new Error(`unable to find scanned or analyzed document ${resolvedUrl
                       } in the generation ${this._generation} cache`);
     }
@@ -314,7 +319,14 @@ export class AnalyzerCacheContext {
       Promise<ScannedDocument> {
     const cachedResult = this._cache.scannedDocumentPromises.get(resolvedUrl);
     if (cachedResult) {
+      console.log(
+          `found scanned doc for ${resolvedUrl}` +
+          ` in the gen ${this._generation} cache`);
+      await this._scanDependenciesOfToplevelDoc(await cachedResult);
       return cachedResult;
+    } else {
+      console.log(`did not find scanned doc for ${resolvedUrl
+                  } in the gen ${this._generation} cache, scanning`);
     }
     const promise = (async() => {
       // Make sure we wait and return a Promise before doing any work, so that
@@ -325,7 +337,7 @@ export class AnalyzerCacheContext {
     })();
     this._cache.scannedDocumentPromises.set(resolvedUrl, promise);
     const scannedDocument = await promise;
-    await this._scanDependencies(scannedDocument);
+    await this._scanDependenciesOfToplevelDoc(scannedDocument);
     return scannedDocument;
   }
 
@@ -367,14 +379,36 @@ export class AnalyzerCacheContext {
         throw new Error(
             'Scanned document already in cache. This should never happen.');
       }
-      console.log(
-          `added ${scannedDocument.url}` +
-          `  to the generation ${this._generation} cache`);
       this._cache.scannedDocuments.set(scannedDocument.url, scannedDocument);
     }
 
-
     return scannedDocument;
+  }
+
+  private async _scanDependenciesOfToplevelDoc(scannedDocument:
+                                                   ScannedDocument) {
+    const wasCached = this._cache.dependenciesScanned.has(scannedDocument.url);
+    if (wasCached) {
+      console.log(
+          `found that ${scannedDocument
+              .url} has already scanned its dependencies in the gen ${this
+              ._generation} cache`);
+    } else {
+      console.log(
+          `found that ${scannedDocument
+              .url} has not yet had its dependencies scanned in the gen ${this
+              ._generation} cache`);
+    }
+    const scanDepPromise =
+        this._cache.dependenciesScanned.get(scannedDocument.url) ||
+        this._scanDependencies(scannedDocument);
+    this._cache.dependenciesScanned.set(scannedDocument.url, scanDepPromise);
+    await scanDepPromise;
+    if (!wasCached) {
+      console.log(`scanned dependencies of ${scannedDocument.url
+                  } for gen ${this._generation} cache`);
+    }
+    return scanDepPromise;
   }
 
   /**
@@ -447,9 +481,6 @@ export class AnalyzerCacheContext {
       Promise<ScannedDocument|null> {
     let scannedDocument: ScannedDocument;
     try {
-      // HACK(rictic): this isn't quite right either, we need to get
-      //     the scanned dependency's url relative to the basedir don't
-      //     we?
       scannedDocument = await this._scan(this._resolveUrl(scannedImport.url));
     } catch (error) {
       if (error instanceof NoKnownParserError) {
