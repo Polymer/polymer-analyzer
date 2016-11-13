@@ -12,7 +12,7 @@
  * http://polymer.github.io/PATENTS.txt
  */
 
-import {Analyzer} from '../analyzer';
+import {AnalyzerCacheContext} from '../analyzer';
 import {ParsedDocument} from '../parser/document';
 import {Behavior} from '../polymer/behavior';
 import {DomModule} from '../polymer/dom-module-scanner';
@@ -53,7 +53,7 @@ export class ScannedDocument {
 export class Document implements Feature {
   kinds: Set<string> = new Set(['document']);
   identifiers: Set<string> = new Set();
-  analyzer: Analyzer;
+  analyzer: AnalyzerCacheContext;
   warnings: Warning[];
 
   private _localFeatures = new Set<Feature>();
@@ -74,7 +74,7 @@ export class Document implements Feature {
    */
   private _doneResolving = false;
 
-  constructor(base: ScannedDocument, analyzer: Analyzer) {
+  constructor(base: ScannedDocument, analyzer: AnalyzerCacheContext) {
     if (base == null) {
       throw new Error('base is null');
     }

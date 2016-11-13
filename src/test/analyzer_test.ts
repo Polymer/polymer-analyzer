@@ -373,21 +373,23 @@ suite('Analyzer', () => {
   suite('_parse()', () => {
 
     test('loads and parses an HTML document', async() => {
-      const doc = await analyzer['_parse']('static/html-parse-target.html');
+      const doc = await analyzer['_cacheContext']['_parse'](
+          'static/html-parse-target.html');
       assert.instanceOf(doc, ParsedHtmlDocument);
       assert.equal(doc.url, 'static/html-parse-target.html');
     });
 
     test('loads and parses a JavaScript document', async() => {
-      const doc = await analyzer['_parse']('static/js-elements.js');
+      const doc =
+          await analyzer['_cacheContext']['_parse']('static/js-elements.js');
       assert.instanceOf(doc, JavaScriptDocument);
       assert.equal(doc.url, 'static/js-elements.js');
     });
 
     test('returns a Promise that rejects for non-existant files', async() => {
-      await invertPromise(analyzer['_parse']('static/not-found'));
+      await invertPromise(
+          analyzer['_cacheContext']['_parse']('static/not-found'));
     });
-
   });
 
   suite('_getScannedFeatures()', () => {
@@ -398,8 +400,8 @@ suite('Analyzer', () => {
           <link rel="stylesheet" href="foo.css"></link>
         </head></html>`;
       const document = new HtmlParser().parse(contents, 'test.html');
-      const features =
-          <ScannedImport[]>(await analyzer['_getScannedFeatures'](document));
+      const features = <ScannedImport[]>(
+          await analyzer['_cacheContext']['_getScannedFeatures'](document));
       assert.deepEqual(
           features.map(e => e.type),
           ['html-import', 'html-script', 'html-style']);
@@ -419,7 +421,8 @@ suite('Analyzer', () => {
         </body></html>`;
       const document = new HtmlParser().parse(contents, 'test.html');
       const features =
-          <ScannedImport[]>(await analyzer['_getScannedFeatures'](document))
+          <ScannedImport[]>(
+              await analyzer['_cacheContext']['_getScannedFeatures'](document))
               .filter(e => e instanceof ScannedImport);
       assert.equal(features.length, 1);
       assert.equal(features[0].type, 'css-import');
@@ -433,7 +436,7 @@ suite('Analyzer', () => {
         </head></html>`;
       const document = new HtmlParser().parse(contents, 'test.html');
       const features = <ScannedInlineDocument[]>(
-          await analyzer['_getScannedFeatures'](document));
+          await analyzer['_cacheContext']['_getScannedFeatures'](document));
 
       assert.equal(features.length, 2);
       assert.instanceOf(features[0], ScannedInlineDocument);
@@ -525,7 +528,7 @@ suite('Analyzer', () => {
     });
   });
 
-  suite.skip('race conditions and caching', () => {
+  suite.only('race conditions and caching', () => {
     const wait = () =>
         new Promise((resolve) => setTimeout(resolve, Math.random() * 30));
     class RacyUrlLoader implements UrlLoader {
@@ -559,27 +562,46 @@ suite('Analyzer', () => {
       const analyzer =
           new Analyzer({urlLoader: new RacyUrlLoader(contentsMap)});
       const promises: Promise<Document>[] = [];
+      const intermediatePromises: Promise<void>[] = [];
       for (let i = 0; i < 30; i++) {
         await wait();
-        for (const key of contentsMap) {
+        for (const keyValue of contentsMap) {
           if (Math.random() > 0.5) {
-            analyzer.analyze(key[0], key[1]);
+            const p = analyzer.analyze(keyValue[0], keyValue[1]);
+            const cacheContext = analyzer['_cacheContext'];
+            intermediatePromises.push((async() => {
+              await p;
+              const docs =
+                  Array.from(cacheContext['_cache'].analyzedDocuments.values());
+              assert.isTrue(
+                  new Set(docs.map(d => d.url).sort()).has(keyValue[0]));
+            })());
           }
         }
         promises.push(analyzer.analyze('base.html'));
+        await Promise.all(promises);
       }
+      await Promise.all(intermediatePromises);
       const documents = await Promise.all(promises);
       for (const document of documents) {
-        const imports = Array.from(document.getByKind('import'));
-        assert.deepEqual(
-            imports.map(m => m.url).sort(),
-            ['a.html', 'b.html', 'common.html', 'common.html']);
-        const docs = Array.from(document.getByKind('document'));
-        assert.deepEqual(
-            docs.map(d => d.url).sort(),
-            ['a.html', 'b.html', 'base.html', 'common.html']);
-        const refs = Array.from(document.getByKind('element-reference'));
-        assert.deepEqual(refs.map(ref => ref.tagName), ['custom-el']);
+        assert.deepEqual(document.url, 'base.html');
+        const localFeatures = document.getFeatures(false);
+        const kinds = Array.from(localFeatures).map(f => Array.from(f.kinds));
+        assert.deepEqual(kinds, [
+          ['document', 'html-document'],
+          ['import', 'html-import'],
+          ['import', 'html-import']
+        ]);
+        // const imports = Array.from(document.getByKind('import'));
+        // assert.deepEqual(
+        //     imports.map(m => m.url).sort(),
+        //     ['a.html', 'b.html', 'common.html', 'common.html']);
+        // const docs = Array.from(document.getByKind('document'));
+        // assert.deepEqual(
+        //     docs.map(d => d.url).sort(),
+        //     ['a.html', 'b.html', 'base.html', 'common.html']);
+        // const refs = Array.from(document.getByKind('element-reference'));
+        // assert.deepEqual(refs.map(ref => ref.tagName), ['custom-el']);
       }
     });
   });
