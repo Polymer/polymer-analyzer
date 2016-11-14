@@ -132,15 +132,6 @@ suite('getImportersOf', () => {
     const docs = Array.from(
         analyzer['_cacheContext']['_cache']['analyzedDocuments'].values());
     const scannedDocs = docs.map(d => d['_scannedDocument']);
-    console.log(docs.map(d => d.url));
-    console.log(scannedDocs.map(d => d.url));
-    console.log(Array.from(
-        analyzer['_cacheContext']['_cache']['parsedDocumentPromises'].keys()));
-    console.log(Array.from(
-        analyzer['_cacheContext']['_cache']['scannedDocumentPromises'].keys()));
-    console.log(Array.from(
-        analyzer['_cacheContext']['_cache']['analyzedDocumentPromises']
-            .keys()));
 
     const urlResolver = (url: string) => url;
     expectedDependants.sort();
@@ -162,18 +153,17 @@ suite('getImportersOf', () => {
 
   test('it works with a simple tree of dependencies', async() => {
     await analyzer.analyze('dependencies/root.html');
-    //   await assertImportersOf(
-    //     'dependencies/root.html', ['dependencies/root.html']);
-    // console.log('first assert done ');
+    await assertImportersOf(
+        'dependencies/root.html', ['dependencies/root.html']);
+
     await assertImportersOf(
         'dependencies/leaf.html',
         ['dependencies/leaf.html', 'dependencies/root.html']);
-    // await assertImportersOf('dependencies/subfolder/subfolder-sibling.html',
-    // [
-    //   'dependencies/subfolder/subfolder-sibling.html',
-    //   'dependencies/subfolder/in-folder.html',
-    //   'dependencies/inline-and-imports.html',
-    //   'dependencies/root.html'
-    // ]);
+    await assertImportersOf('dependencies/subfolder/subfolder-sibling.html', [
+      'dependencies/subfolder/subfolder-sibling.html',
+      'dependencies/subfolder/in-folder.html',
+      'dependencies/inline-and-imports.html',
+      'dependencies/root.html'
+    ]);
   });
 });

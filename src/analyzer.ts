@@ -191,10 +191,6 @@ export class AnalyzerCacheContext {
         this._cache.analyzedDocuments.values(),
         this._cache.scannedDocuments.values(),
         (url) => this._resolveUrl(url));
-    console.log(`Analyzed documents: ${JSON.stringify(
-        Array.from(this._cache.analyzedDocuments.values()).map(d => d.url))}`);
-    console.log(
-        `Dependants of ${url}: ${JSON.stringify(Array.from(dependants))}`);
     const newCache = this._cache.onPathChanged(resolvedUrl, dependants);
     return this._fork(newCache);
   }
@@ -232,7 +228,6 @@ export class AnalyzerCacheContext {
             `This should not happen. Got a cycle of length zero(!) scanning ${url
             }`);
       }
-      console.log(`got scanned document for ${resolvedUrl}`);
       // Need to be sure that ScannedImport#scannedDocument has been set.
       // Yes this is totally a hack.
       await Promise.resolve();
@@ -280,13 +275,6 @@ export class AnalyzerCacheContext {
       return document;
     }
     const scannedDocument = this._cache.scannedDocuments.get(resolvedUrl);
-    if (!scannedDocument) {
-      console.log(`unable to find scanned or analyzed document ${resolvedUrl
-        } in the generation ${this._generation} cache`);
-        // throw new Error(`unable to find scanned or analyzed document
-        // ${resolvedUrl
-        //                 } in the generation ${this._generation} cache`);
-    }
     return scannedDocument && this._makeDocument(scannedDocument);
   }
 
@@ -335,15 +323,9 @@ export class AnalyzerCacheContext {
     actualVisited.add(resolvedUrl);
     const cachedResult = this._cache.scannedDocumentPromises.get(resolvedUrl);
     if (cachedResult) {
-      console.log(
-          `found scanned doc for ${resolvedUrl}` +
-          ` in the gen ${this._generation} cache`);
       await this._scanDependenciesOfToplevelDoc(
           await cachedResult, actualVisited);
       return cachedResult;
-    } else {
-      console.log(`did not find scanned doc for ${resolvedUrl
-                  } in the gen ${this._generation} cache, scanning`);
     }
     const promise = (async() => {
       // Make sure we wait and return a Promise before doing any work, so that
@@ -355,8 +337,6 @@ export class AnalyzerCacheContext {
     this._cache.scannedDocumentPromises.set(resolvedUrl, promise);
     const scannedDocument = await promise;
     await this._scanDependenciesOfToplevelDoc(scannedDocument, actualVisited);
-    console.log(
-        `finished scanning dependencies of toplevel doc ${resolvedUrl}`);
     return scannedDocument;
   }
 
@@ -406,31 +386,11 @@ export class AnalyzerCacheContext {
 
   private async _scanDependenciesOfToplevelDoc(
       scannedDocument: ScannedDocument, visited: Set<string>) {
-    const wasCached = this._cache.dependenciesScanned.has(scannedDocument.url);
-    if (wasCached) {
-      console.log(
-          `found that ${scannedDocument
-              .url} has already scanned its dependencies in the gen ${this
-              ._generation} cache`);
-    } else {
-      console.log(
-          `found that ${scannedDocument
-              .url} has not yet had its dependencies scanned in the gen ${this
-              ._generation} cache`);
-    }
     const scanDepPromise =
         this._cache.dependenciesScanned.get(scannedDocument.url) ||
         this._scanDependencies(scannedDocument, visited);
     this._cache.dependenciesScanned.set(scannedDocument.url, scanDepPromise);
-    console.log(
-        `Gonna await on scanDepPromise in _scanDependenciesOfToplevelDoc`);
     await scanDepPromise;
-    console.log(
-        `await finished on scanDepPromise in _scanDependenciesOfToplevelDoc`);
-    if (!wasCached) {
-      console.log(`scanned dependencies of ${scannedDocument.url
-                  } for gen ${this._generation} cache`);
-    }
     return scanDepPromise;
   }
 

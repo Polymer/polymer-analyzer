@@ -566,6 +566,7 @@ suite('Analyzer', () => {
       for (let i = 0; i < 30; i++) {
         await wait();
         for (const keyValue of contentsMap) {
+          // Randomly edit some files.
           if (Math.random() > 0.5) {
             const p = analyzer.analyze(keyValue[0], keyValue[1]);
             const cacheContext = analyzer['_cacheContext'];
@@ -578,10 +579,13 @@ suite('Analyzer', () => {
             })());
           }
         }
+        // Analyze the base file
         promises.push(analyzer.analyze('base.html'));
         await Promise.all(promises);
       }
+      // Assert that all edits went through fine.
       await Promise.all(intermediatePromises);
+      // Assert that the resulting documents after the edits were all fine
       const documents = await Promise.all(promises);
       for (const document of documents) {
         assert.deepEqual(document.url, 'base.html');
@@ -603,6 +607,6 @@ suite('Analyzer', () => {
         const refs = Array.from(document.getByKind('element-reference'));
         assert.deepEqual(refs.map(ref => ref.tagName), ['custom-el']);
       }
-    })['timeout'](10000);
+    });
   });
 });
