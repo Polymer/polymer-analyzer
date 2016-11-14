@@ -528,7 +528,7 @@ suite('Analyzer', () => {
     });
   });
 
-  suite.only('race conditions and caching', () => {
+  suite('race conditions and caching', () => {
     const wait = () =>
         new Promise((resolve) => setTimeout(resolve, Math.random() * 30));
     class RacyUrlLoader implements UrlLoader {
