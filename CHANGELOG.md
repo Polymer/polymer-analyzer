@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   * Warn when there's a problem mixing behaviors into other behaviors, the same way that we warn when mixing behaviors into elements.
 
 * Fix some bugs with recursive and mutually recursive imports.
+* Fixed a class of race conditions and cache invalidation errors that can occur when there are concurrent analysis runs and edits to files.
 
 ## [2.0.0-alpha.17] - 2016-10-28 - [minor]
 
