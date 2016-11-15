@@ -288,9 +288,11 @@ export class Analyzer {
             // TODO(garlicnation): Move this logic into model/document. During
             // the recursive feature walk, features from lazy imports
             // should be marked.
+            const scannedImport = this._scanImport(scannedDependency, warnings);
             if (scannedDependency.type !== 'lazy-html-import') {
-              return this._scanImport(scannedDependency, warnings);
+              return scannedImport;
             }
+            await scannedImport;
             return null;
           } else {
             throw new Error(`Unexpected dependency type: ${scannedDependency}`);
