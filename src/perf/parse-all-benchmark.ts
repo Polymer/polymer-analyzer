@@ -63,12 +63,25 @@ function padLeft(str: string, num: number): string {
   return str;
 }
 
+function memUsed(usage?: number) {
+  if (usage == null) {
+    usage = process.memoryUsage().rss;
+  }
+  return `${(usage / (1024 * 1024)).toFixed(1)}MiB`;
+}
+
 async function measure() {
+  global.gc();
+  const initialMemUse = process.memoryUsage().rss;
+  console.log(`Initial rss: ${memUsed(initialMemUse)}`);
   const start = now();
   let document: any;
   for (let i = 0; i < 10; i++) {
     document = await analyzer.analyze('ephemeral.html', fakeFileContents);
   }
+
+  global.gc();
+  const afterInitialAnalyses = process.memoryUsage().rss;
 
   const measurements = await analyzer.getTelemetryMeasurements();
   printMeasurements(measurements);
@@ -76,6 +89,25 @@ async function measure() {
   console.log(`\n\n\n${document.getFeatures().size} total features resolved.`);
   console.log(
       `${((now() - start) / 1000).toFixed(2)} seconds total elapsed time`);
+
+  for (let i = 0; i < 100; i++) {
+    await analyzer.analyze('ephemeral.html', fakeFileContents);
+  }
+
+  global.gc();
+  const afterMoreAnalyses = process.memoryUsage().rss;
+  console.log(
+      `Additional memory used in analyzing all Polymer-owned code: ${memUsed(
+          afterInitialAnalyses - initialMemUse)}`);
+  const leakedMemory = afterMoreAnalyses - afterInitialAnalyses;
+  console.log(
+      `Additional memory used after 100 more incremental analyses: ${memUsed(
+          afterMoreAnalyses - afterInitialAnalyses)}`);
+  // TODO(rictic): looks like we've got a memory leak. Need to track this down.
+  //   This should be < 10MiB, not < 100 MiB.
+  if (leakedMemory > 100 * (1024 * 1024)) {
+    process.exit(1);
+  }
 };
 
 function printMeasurements(measurements: Measurement[]) {
