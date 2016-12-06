@@ -118,6 +118,17 @@ suite('PolymerElementScanner', () => {
         ['all', 'Object']
       ]);
 
+      assert.deepEqual(features[0].attributes.map(p => [p.name, p.changeEvent]), [
+        ['a', undefined],
+        ['b', undefined],
+        ['c', undefined],
+        ['d', undefined],
+        ['e', 'e-changed'],
+        ['f', undefined],
+        ['g', undefined],
+        ['all', 'all-changed']
+      ]);
+
       assert.deepEqual(
           features[0].properties.filter(p => p.readOnly).map(p => p.name),
           ['c', 'd', 'g']);
