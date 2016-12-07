@@ -126,6 +126,7 @@ suite('PolymerElementScanner', () => {
         ['e', 'e-changed'],
         ['f', undefined],
         ['g', undefined],
+        ['h', undefined],
         ['all', 'all-changed']
       ]);
 
