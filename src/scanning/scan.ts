@@ -17,8 +17,10 @@ import {ParsedDocument} from '../parser/document';
 
 import {Scanner} from './scanner';
 
-export async function scan<A, V, P extends ParsedDocument<A, V>>(
-    document: P, scanners: Scanner<P, A, V>[]): Promise<ScannedFeature[]> {
+export async function
+scan<AstNode, Visitor, PDoc extends ParsedDocument<AstNode, Visitor>>(
+    document: PDoc, scanners: Scanner<PDoc, AstNode, Visitor>[]):
+    Promise<ScannedFeature[]> {
   // Scanners register a visitor to run via the `visit` callback passed to
   // `scan()`. We run these visitors in a batch, then pass control back
   // to the `scan()` methods by resolving a single Promise return for
@@ -32,7 +34,7 @@ export async function scan<A, V, P extends ParsedDocument<A, V>>(
   let visitorsPromise: Promise<void>;
 
   // Current batch of visitors
-  let visitors: V[];
+  let visitors: Visitor[];
 
   // A Promise that runs the next batch of visitors in a microtask
   let runner: Promise<void>|null = null;
@@ -65,7 +67,7 @@ export async function scan<A, V, P extends ParsedDocument<A, V>>(
   };
 
   // The callback passed to `scan()`
-  function visit(visitor: V) {
+  function visit(visitor: Visitor) {
     visitors.push(visitor);
     if (!runner) {
       runner = Promise.resolve().then(runVisitors).catch((error) => {
