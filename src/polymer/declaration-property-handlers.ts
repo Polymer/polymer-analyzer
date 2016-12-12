@@ -68,6 +68,17 @@ export function declarationPropertyHandlers(
         }
         declaration.observers.push({javascriptNode: element, expression: v});
       }
+    },
+    listeners(node: estree.Node) {
+      if (node.type !== 'ObjectExpression') {
+        return;
+      }
+      for (let prop of node.properties) {
+        if (prop.key.type !== 'Literal' || prop.value.type !== 'Literal') {
+            continue;
+        }
+        declaration.listeners.push({event: <string>prop.key.value, handler: <string>prop.value.value});
+      }
     }
   };
 }
