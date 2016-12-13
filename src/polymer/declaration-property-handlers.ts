@@ -19,6 +19,7 @@ import {JavaScriptDocument} from '../javascript/javascript-document';
 
 import {analyzeProperties} from './analyze-properties';
 import {ScannedPolymerElement} from './polymer-element';
+import {Severity} from '../warning/warning';
 
 export type PropertyHandlers = {
   [key: string]: (node: estree.Node) => void
@@ -71,11 +72,23 @@ export function declarationPropertyHandlers(
     },
     listeners(node: estree.Node) {
       if (node.type !== 'ObjectExpression') {
+        declaration.warnings.push({
+          code: 'invalid-listeners-declaration',
+          message: '`listeners` property should be an object expression',
+          severity: Severity.ERROR,
+          sourceRange: document.sourceRangeForNode(node)!
+        });
         return;
       }
       for (let prop of node.properties) {
         if (prop.key.type !== 'Literal' || typeof prop.key.value !== 'string' ||
             prop.value.type !== 'Literal' || typeof prop.value.value !== 'string') {
+          declaration.warnings.push({
+            code: 'invalid-listeners-declaration',
+            message: 'handler value should be a string',
+            severity: Severity.ERROR,
+            sourceRange: document.sourceRangeForNode(prop.value)!
+          });
           continue;
         }
         declaration.listeners.push({event: prop.key.value, handler: prop.value.value});

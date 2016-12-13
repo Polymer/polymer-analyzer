@@ -78,10 +78,14 @@ suite('PolymerElementScanner', () => {
         ],
         listeners: {
           'event-a': '_handleA',
-          'event-b': '_handleB'
+          'event-b': '_handleB',
+          'event-c': _handleC
         }
       });
-      Polymer({ is: 'x-bar' });`;
+      Polymer({
+        is: 'x-bar',
+        listeners: []
+      });`;
 
       const document = new JavaScriptParser({
                          sourceType: 'script'
@@ -154,6 +158,11 @@ suite('PolymerElementScanner', () => {
         {event: 'event-a', handler: '_handleA'},
         {event: 'event-b', handler: '_handleB'}
       ]);
+
+      // Non-string handler value on `listeners`
+      assert.equal(features[0].warnings.filter(w => w.code === 'invalid-listeners-declaration').length, 1);
+      // Non-object literal for `listeners`
+      assert.equal(features[1].warnings.filter(w => w.code === 'invalid-listeners-declaration').length, 1);
     });
   });
 
