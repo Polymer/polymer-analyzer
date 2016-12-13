@@ -77,7 +77,8 @@ suite('PolymerElementScanner', () => {
           '_anotherObserver()'
         ],
         listeners: {
-          'event-a': '_handleA'
+          'event-a': '_handleA',
+          'event-b': '_handleB'
         }
       });
       Polymer({ is: 'x-bar' });`;
@@ -150,7 +151,8 @@ suite('PolymerElementScanner', () => {
           ['e', 'all']);
 
       assert.deepEqual(features[0].listeners, [
-        {event: 'event-a', handler: '_handleA'}
+        {event: 'event-a', handler: '_handleA'},
+        {event: 'event-b', handler: '_handleB'}
       ]);
     });
   });
