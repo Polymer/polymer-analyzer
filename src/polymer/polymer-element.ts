@@ -147,6 +147,10 @@ export class PolymerElement extends Element {
     javascriptNode: estree.Expression | estree.SpreadElement,
     expression: LiteralValue
   }[];
+  listeners: {
+    event: string,
+    handler: string
+  }[];
   behaviorAssignments: ScannedBehaviorAssignment[];
   domModule?: dom5.Node;
   scriptElement?: dom5.Node;
