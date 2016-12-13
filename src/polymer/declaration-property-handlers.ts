@@ -74,10 +74,11 @@ export function declarationPropertyHandlers(
         return;
       }
       for (let prop of node.properties) {
-        if (prop.key.type !== 'Literal' || prop.value.type !== 'Literal') {
-            continue;
+        if (prop.key.type !== 'Literal' || typeof prop.key.value !== 'string' ||
+            prop.value.type !== 'Literal' || typeof prop.value.value !== 'string') {
+          continue;
         }
-        declaration.listeners.push({event: <string>prop.key.value, handler: <string>prop.value.value});
+        declaration.listeners.push({event: prop.key.value, handler: prop.value.value});
       }
     }
   };
