@@ -78,8 +78,9 @@ suite('PolymerElementScanner', () => {
         ],
         listeners: {
           'event-a': '_handleA',
-          'event-b': '_handleB',
-          'event-c': _handleC
+          eventb: '_handleB',
+          'event-c': _handleC,
+          [['event', 'd'].join('-')]: '_handleD'
         }
       });
       Polymer({
@@ -156,12 +157,12 @@ suite('PolymerElementScanner', () => {
 
       assert.deepEqual(features[0].listeners, [
         {event: 'event-a', handler: '_handleA'},
-        {event: 'event-b', handler: '_handleB'}
+        {event: 'eventb', handler: '_handleB'}
       ]);
 
-      // Non-string handler value on `listeners`
-      assert.equal(features[0].warnings.filter(w => w.code === 'invalid-listeners-declaration').length, 1);
-      // Non-object literal for `listeners`
+      // Skip not statically analizable entries without emitting a warning
+      assert.equal(features[0].warnings.filter(w => w.code === 'invalid-listeners-declaration').length, 0);
+      // Emit warning for non-object `listeners` literal
       assert.equal(features[1].warnings.filter(w => w.code === 'invalid-listeners-declaration').length, 1);
     });
   });

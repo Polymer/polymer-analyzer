@@ -71,6 +71,7 @@ export function declarationPropertyHandlers(
       }
     },
     listeners(node: estree.Node) {
+
       if (node.type !== 'ObjectExpression') {
         declaration.warnings.push({
           code: 'invalid-listeners-declaration',
@@ -80,18 +81,20 @@ export function declarationPropertyHandlers(
         });
         return;
       }
-      for (let prop of node.properties) {
-        if (prop.key.type !== 'Literal' || typeof prop.key.value !== 'string' ||
-            prop.value.type !== 'Literal' || typeof prop.value.value !== 'string') {
-          declaration.warnings.push({
-            code: 'invalid-listeners-declaration',
-            message: 'handler value should be a string',
-            severity: Severity.ERROR,
-            sourceRange: document.sourceRangeForNode(prop.value)!
-          });
-          continue;
+
+      for (let p of node.properties) {
+        const evtName = p.key.type === 'Literal' && p.key.value ||
+            p.key.type === 'Identifier' && p.key.name;
+        const handler = p.value.type !== 'Literal' || p.value.value;
+
+        if (typeof evtName !== 'string' || typeof handler !== 'string') {
+            // TODO (maklesoft): Notifiy the user somehow that a listener entry was not extracted
+            // because the event or handler namecould not be statically analyzed. E.g. add a low-severity
+            // warning once opting out of rules is supported.
+            continue;
         }
-        declaration.listeners.push({event: prop.key.value, handler: prop.value.value});
+
+        declaration.listeners.push({event: evtName, handler: handler});
       }
     }
   };
