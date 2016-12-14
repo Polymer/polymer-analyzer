@@ -12,6 +12,8 @@
  * http://polymer.github.io/PATENTS.txt
  */
 
+import {Cancel, CancelToken} from './cancel-token';
+
 /**
  * A map from keys to promises of values. Used for caching asynchronous work.
  */
@@ -31,11 +33,34 @@ export class AsyncWorkCache<K, V> {
    *
    * If not, compute it with the given function.
    *
-   * This method ensures that we will only try to compute the value for `key`
-   * once, no matter how often or with what timing getOrCompute is called, even
-   * recursively.
+   * This method ensures that, in the absence of cancellations, we will only try
+   * to compute the value for `key` once, no matter how often or with what
+   * timing getOrCompute is called, even recursively.
+   *
+   * If a compute() throws a Cancel that should not result in a Cancel for
+   * non-cancelled operations. So long as the given cancelToken is not
+   * cancelled, the caller will not receive a Cancel.
    */
-  async getOrCompute(key: K, compute: () => Promise<V>) {
+  async getOrCompute(
+      key: K, compute: () => Promise<V>, cancelToken?: CancelToken) {
+    cancelToken = cancelToken || CancelToken.never;
+    cancelToken.throwIfRequested();
+    while (true) {
+      try {
+        const result = await this._getOrCompute(key, compute);
+        cancelToken.throwIfRequested();
+        return result;
+      } catch (err) {
+        cancelToken.throwIfRequested();
+        if (err instanceof Cancel) {
+          continue;
+        }
+        throw err;
+      }
+    }
+  }
+
+  private async _getOrCompute(key: K, compute: () => Promise<V>) {
     const cachedResult = this._keyToResultMap.get(key);
     if (cachedResult) {
       return cachedResult;
@@ -47,6 +72,14 @@ export class AsyncWorkCache<K, V> {
       return compute();
     })();
     this._keyToResultMap.set(key, promise);
+    try {
+      await promise;
+    } catch (err) {
+      if (err instanceof Cancel) {
+        this._keyToResultMap.delete(key);
+      }
+      throw err;
+    }
     return promise;
   }
 
