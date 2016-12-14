@@ -12,7 +12,7 @@
  * http://polymer.github.io/PATENTS.txt
  */
 
-import {Cancel, CancelToken} from './cancel-token';
+import {CancelToken, isCancel} from './cancel-token';
 
 /**
  * A map from keys to promises of values. Used for caching asynchronous work.
@@ -52,7 +52,7 @@ export class AsyncWorkCache<K, V> {
         return result;
       } catch (err) {
         cancelToken.throwIfRequested();
-        if (err instanceof Cancel) {
+        if (isCancel(err)) {
           continue;
         }
         throw err;
@@ -75,7 +75,7 @@ export class AsyncWorkCache<K, V> {
     try {
       await promise;
     } catch (err) {
-      if (err instanceof Cancel) {
+      if (isCancel(err)) {
         this._keyToResultMap.delete(key);
       }
       throw err;
