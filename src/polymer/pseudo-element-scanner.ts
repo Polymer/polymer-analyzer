@@ -46,6 +46,7 @@ export class PseudoElementScanner implements HtmlScanner {
             description: parsedJsdoc.description,
             sourceRange: document.sourceRangeForNode(node)
           });
+          element.pseudo = true;
           annotateElementHeader(element);
           elements.push(element);
         }

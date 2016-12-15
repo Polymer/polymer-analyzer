@@ -43,6 +43,7 @@ suite('PseudoElementScanner', () => {
       const features = await scanner.scan(document, visit);
       assert.equal(features.length, 1);
       assert.equal(features[0].tagName, 'x-foo');
+      assert(features[0].pseudo);
       assert.equal(features[0].description.trim(), desc);
       assert.deepEqual(features[0].demos, [{desc: 'demo', path: 'demo/index.html'}]);
     });
