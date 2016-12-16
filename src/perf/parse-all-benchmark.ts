@@ -63,10 +63,7 @@ function padLeft(str: string, num: number): string {
   return str;
 }
 
-function memUsed(usage?: number) {
-  if (usage == null) {
-    usage = process.memoryUsage().rss;
-  }
+function MiB(usage: number) {
   return `${(usage / (1024 * 1024)).toFixed(1)}MiB`;
 }
 
@@ -78,7 +75,7 @@ async function measure() {
   }
   global.gc();
   const initialMemUse = process.memoryUsage().rss;
-  console.log(`Initial rss: ${memUsed(initialMemUse)}`);
+  console.log(`Initial rss: ${MiB(initialMemUse)}`);
   const start = now();
   let document: any;
   for (let i = 0; i < 10; i++) {
@@ -102,20 +99,23 @@ async function measure() {
   global.gc();
   const afterMoreAnalyses = process.memoryUsage().rss;
   console.log(
-      `Additional memory used in analyzing all Polymer-owned code: ${memUsed(
+      `Additional memory used in analyzing all Polymer-owned code: ${MiB(
           afterInitialAnalyses - initialMemUse)}`);
   const leakedMemory = afterMoreAnalyses - afterInitialAnalyses;
   console.log(
-      `Additional memory used after 100 more incremental analyses: ${memUsed(
+      `Additional memory used after 100 more incremental analyses: ${MiB(
           afterMoreAnalyses - afterInitialAnalyses)}`);
+
   // TODO(rictic): looks like we've got a memory leak. Need to track this down.
   //   This should be < 10MiB, not < 100 MiB.
-  const threshold = 100 * (1024 * 1024);
+  const threshold = 150 * (1024 * 1024);
   if (leakedMemory > threshold) {
     console.error(
-        `Leaked ${memUsed(leakedMemory)}, ` +
-        `which is more than the threshold of ${memUsed(threshold)}. ` +
-        `Exiting with error code 1.`);
+        `\n\n==========================================\n` +
+        `ERROR: Leaked ${MiB(leakedMemory)}, ` +
+        `which is more than the threshold of ${MiB(threshold)}. ` +
+        `Exiting with error code 1.` +
+        `\n==========================================\n\n`);
     process.exit(1);
   }
 };
