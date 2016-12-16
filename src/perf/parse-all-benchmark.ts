@@ -105,7 +105,12 @@ async function measure() {
           afterMoreAnalyses - afterInitialAnalyses)}`);
   // TODO(rictic): looks like we've got a memory leak. Need to track this down.
   //   This should be < 10MiB, not < 100 MiB.
-  if (leakedMemory > 100 * (1024 * 1024)) {
+  const threshold = 100 * (1024 * 1024);
+  if (leakedMemory > threshold) {
+    console.error(
+        `Leaked ${memUsed(leakedMemory)}, ` +
+        `which is more than the threshold of ${memUsed(threshold)}. ` +
+        `Exiting with error code 1.`);
     process.exit(1);
   }
 };
