@@ -71,6 +71,11 @@ function memUsed(usage?: number) {
 }
 
 async function measure() {
+  if (!global.gc) {
+    throw new Error(
+        'This benchmark must be run with node --expose-gc.\n' +
+        '      Just do:\n             npm run benchmark');
+  }
   global.gc();
   const initialMemUse = process.memoryUsage().rss;
   console.log(`Initial rss: ${memUsed(initialMemUse)}`);
