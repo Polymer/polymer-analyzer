@@ -16,6 +16,7 @@ import {assert} from 'chai';
 
 import {HtmlVisitor} from '../../html/html-document';
 import {HtmlParser} from '../../html/html-parser';
+import {JavaScriptParser} from '../../javascript/javascript-parser';
 import {PseudoElementScanner} from '../../polymer/pseudo-element-scanner';
 
 suite('PseudoElementScanner', () => {
@@ -46,6 +47,40 @@ suite('PseudoElementScanner', () => {
       assert(features[0].pseudo);
       assert.equal(features[0].description.trim(), desc);
       assert.deepEqual(features[0].demos, [{desc: 'demo', path: 'demo/index.html'}]);
+    });
+
+    test('finds pseudo elements in javascript comments', async() => {
+      const desc = `This is a pseudo element`;
+      const contents = `
+        /*
+          ${desc}
+          @pseudoElement x-foo
+          @demo demo/index.html
+        */
+
+        /**
+         * ${desc}
+         * @pseudoElement x-bar
+         * @demo demo/index.html
+         */
+      `;
+
+      const document = new JavaScriptParser({
+        sourceType: 'script'
+      }).parse(contents, 'test-document.html');
+
+      const features = await scanner.scan(document, async() => {});
+      assert.equal(features.length, 2);
+
+      assert.equal(features[0].tagName, 'x-foo');
+      assert(features[0].pseudo);
+      assert.equal(features[0].description.trim(), desc);
+      assert.deepEqual(features[0].demos, [{desc: 'demo', path: 'demo/index.html'}]);
+
+      assert.equal(features[1].tagName, 'x-bar');
+      assert(features[1].pseudo);
+      assert.equal(features[1].description.trim(), desc);
+      assert.deepEqual(features[1].demos, [{desc: 'demo', path: 'demo/index.html'}]);
     });
 
   });

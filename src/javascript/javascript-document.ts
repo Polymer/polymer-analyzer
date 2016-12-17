@@ -14,7 +14,8 @@
 
 import * as escodegen from 'escodegen';
 import {traverse, VisitorOption} from 'estraverse';
-import {Node, Program} from 'estree';
+import {Node} from 'estree';
+import {Program} from './javascript-parser';
 
 import {SourceRange} from '../model/model';
 import {Options, ParsedDocument, StringifyOptions} from '../parser/document';

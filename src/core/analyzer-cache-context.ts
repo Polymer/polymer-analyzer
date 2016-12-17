@@ -90,7 +90,8 @@ export class AnalyzerCacheContext {
         [
           new PolymerElementScanner(),
           new BehaviorScanner(),
-          new VanillaElementScanner()
+          new VanillaElementScanner(),
+          new PseudoElementScanner()
         ]
       ],
     ]);

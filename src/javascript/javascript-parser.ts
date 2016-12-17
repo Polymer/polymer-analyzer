@@ -13,7 +13,7 @@
  */
 
 import * as espree from 'espree';
-import {Program} from 'estree';
+import {Program as EstreeProgram, SourceLocation} from 'estree';
 
 import {correctSourceRange, InlineDocInfo} from '../model/model';
 import {Parser} from '../parser/parser';
@@ -25,6 +25,16 @@ declare class SyntaxError {
   message: string;
   lineNumber: number;
   column: number;
+}
+
+export interface Comment {
+  type: string;
+  value: string;
+  loc: SourceLocation;
+}
+
+export interface Program extends EstreeProgram {
+  comments: Comment[];
 }
 
 export class JavaScriptParser implements Parser<JavaScriptDocument> {

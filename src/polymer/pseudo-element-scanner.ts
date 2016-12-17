@@ -18,17 +18,37 @@ import {ASTNode} from 'parse5';
 import * as jsdoc from '../javascript/jsdoc';
 import {annotateElementHeader} from './docs';
 
+import {Node} from 'estree';
 import {HtmlVisitor, ParsedHtmlDocument} from '../html/html-document';
+import {Visitor} from '../javascript/estree-visitor';
+import {JavaScriptDocument} from '../javascript/javascript-document';
+import {JavaScriptScanner} from '../javascript/javascript-scanner';
 import {HtmlScanner} from '../html/html-scanner';
 import {ScannedPolymerElement} from './polymer-element';
 
+function parseComment(comment: string): ScannedPolymerElement|undefined {
+  const parsedJsdoc = jsdoc.parseJsdoc(comment);
+  const pseudoTag = jsdoc.getTag(parsedJsdoc, 'pseudoElement', 'name');
+  if (pseudoTag) {
+    let element = new ScannedPolymerElement({
+      tagName: pseudoTag,
+      jsdoc: {description: parsedJsdoc.description, tags: parsedJsdoc.tags},
+      properties: [],
+      description: parsedJsdoc.description,
+      sourceRange: undefined
+    });
+    element.pseudo = true;
+    annotateElementHeader(element);
+    return element;
+  }
+}
 /**
  * A Polymer pseudo-element is an element that is declared in an unusual way, such
  * that the analyzer couldn't normally analyze it, so instead it is declared in
  * comments.
  */
-export class PseudoElementScanner implements HtmlScanner {
-  async scan(
+export class PseudoElementScanner implements HtmlScanner, JavaScriptScanner {
+  async scanHtml(
       document: ParsedHtmlDocument,
       visit: (visitor: HtmlVisitor) => Promise<void>):
       Promise<ScannedPolymerElement[]> {
@@ -36,22 +56,44 @@ export class PseudoElementScanner implements HtmlScanner {
 
     await visit((node: ASTNode) => {
       if (dom5.isCommentNode(node) && node.data && node.data.includes('@pseudoElement')) {
-        const parsedJsdoc = jsdoc.parseJsdoc(node.data);
-        const pseudoTag = jsdoc.getTag(parsedJsdoc, 'pseudoElement', 'name');
-        if (pseudoTag) {
-          let element = new ScannedPolymerElement({
-            tagName: pseudoTag,
-            jsdoc: {description: parsedJsdoc.description, tags: parsedJsdoc.tags},
-            properties: [],
-            description: parsedJsdoc.description,
-            sourceRange: document.sourceRangeForNode(node)
-          });
-          element.pseudo = true;
-          annotateElementHeader(element);
+        let element = parseComment(node.data);
+        if (element) {
+          element.sourceRange = document.sourceRangeForNode(node);
           elements.push(element);
         }
       }
     });
     return elements;
+  }
+
+  async scanJs(document: JavaScriptDocument): Promise<ScannedPolymerElement[]> {
+    let elements: ScannedPolymerElement[] = [];
+
+    for (let comment of document.ast.comments) {
+        let element = parseComment(comment.value);
+        if (element) {
+          element.sourceRange = document.sourceRangeForNode(<Node>comment);
+          elements.push(element);
+        }
+    }
+
+    return elements;
+  }
+
+  async scan(
+      document: JavaScriptDocument, visit: (visitor: Visitor) => Promise<void>):
+      Promise<ScannedPolymerElement[]>;
+  async scan(
+      document: ParsedHtmlDocument,
+      visit: (visitor: HtmlVisitor) => Promise<void>):
+      Promise<ScannedPolymerElement[]>;
+  async scan(document: any, visit: any): Promise<any> {
+    if (document instanceof JavaScriptDocument) {
+      return this.scanJs(document);
+    } else if (document instanceof ParsedHtmlDocument) {
+      return this.scanHtml(document, visit);
+    } else {
+      return [];
+    }
   }
 }
