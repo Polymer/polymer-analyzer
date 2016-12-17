@@ -12,7 +12,9 @@
  * http://polymer.github.io/PATENTS.txt
  */
 
-import {CancelToken, isCancel} from './cancel-token';
+import {CancelToken, isCancel} from 'cancel-token';
+
+const neverCancels = CancelToken.source().token;
 
 /**
  * A map from keys to promises of values. Used for caching asynchronous work.
@@ -43,7 +45,7 @@ export class AsyncWorkCache<K, V> {
    */
   async getOrCompute(
       key: K, compute: () => Promise<V>, cancelToken?: CancelToken) {
-    cancelToken = cancelToken || CancelToken.never;
+    cancelToken = cancelToken || neverCancels;
     cancelToken.throwIfRequested();
     while (true) {
       try {

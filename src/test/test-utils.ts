@@ -12,12 +12,12 @@
  * http://polymer.github.io/PATENTS.txt
  */
 
+import {isCancel} from 'cancel-token';
 import {assert} from 'chai';
 import * as path from 'path';
 import URI from 'vscode-uri';
 
 import {Analyzer} from '../core/analyzer';
-import {isCancel} from '../core/cancel-token';
 import {FileRelativeUrl, PackageRelativeUrl, ParsedDocument, ResolvedUrl, ScannedFeature, UrlResolver} from '../index';
 import {makeParseLoader, SourceRange, Warning} from '../model/model';
 import {scan} from '../scanning/scan';
