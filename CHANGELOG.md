@@ -20,8 +20,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * [Polymer] Extract pseudo elements from HTML comments
 
 ### Fixed
-* Fixed a class of race conditions and cache invalidation errors that can occur when there are concurrent analysis runs and edits to files.
-
+* Fixed a class of race conditions and cache invalidation errors that can occur when there are parallel analysis runs and edits to files.
+* Fixed a deadlock when there are parallel analysis runs of cyclic graphs.
 
 ## [2.0.0-alpha.19] - 2016-12-12
 

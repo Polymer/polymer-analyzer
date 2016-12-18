@@ -29,17 +29,6 @@ export class AnalysisCache {
   analyzedDocumentPromises: AsyncWorkCache<string, Document>;
 
   /**
-   * This is a map from a resolved url to a promise that will resolve when
-   * that document's dependencies have been scanned.
-   *
-   * We need to keep track of this separate from just the scanned document
-   * promise because when one of a document's transitive dependencies changes,
-   * and then analysis of the document is requested, we shouldn't need to rescan
-   * the document itself, but we do need to rescan its dependencies.
-   */
-  dependenciesScanned: AsyncWorkCache<string, void>;
-
-  /**
    * TODO(rictic): These synchronous caches need to be kept in sync with their
    *     async work cache analogues above.
    */
@@ -62,7 +51,6 @@ export class AnalysisCache {
         new AsyncWorkCache(f.scannedDocumentPromises);
     this.analyzedDocumentPromises =
         new AsyncWorkCache(f.analyzedDocumentPromises);
-    this.dependenciesScanned = new AsyncWorkCache(f.dependenciesScanned);
 
     this.scannedDocuments = new Map(f.scannedDocuments!);
     this.analyzedDocuments = new Map(f.analyzedDocuments!);
@@ -84,7 +72,6 @@ export class AnalysisCache {
       const dependants = this.dependencyGraph.getAllDependantsOf(path);
       newCache.parsedDocumentPromises.delete(path);
       newCache.scannedDocumentPromises.delete(path);
-      newCache.dependenciesScanned.delete(path);
       newCache.scannedDocuments.delete(path);
       newCache.analyzedDocuments.delete(path);
 
@@ -93,7 +80,6 @@ export class AnalysisCache {
       // which transitively import the changed document. We also need to mark
       // all of those docs as needing to rescan their dependencies.
       for (const partiallyInvalidatedPath of dependants) {
-        newCache.dependenciesScanned.delete(partiallyInvalidatedPath);
         newCache.analyzedDocuments.delete(partiallyInvalidatedPath);
       }
 
