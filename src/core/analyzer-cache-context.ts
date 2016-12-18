@@ -23,7 +23,7 @@ import {HtmlScriptScanner} from '../html/html-script-scanner';
 import {HtmlStyleScanner} from '../html/html-style-scanner';
 import {JavaScriptParser} from '../javascript/javascript-parser';
 import {JsonParser} from '../json/json-parser';
-import {Document, InlineDocInfo, LocationOffset, ScannedDocument, ScannedElement, ScannedFeature, ScannedImport, ScannedInlineDocument} from '../model/model';
+import {Document, InlineDocInfo, LocationOffset, Project, ScannedDocument, ScannedElement, ScannedFeature, ScannedImport, ScannedInlineDocument} from '../model/model';
 import {ParsedDocument} from '../parser/document';
 import {Parser} from '../parser/parser';
 import {Measurement, TelemetryTracker} from '../perf/telemetry';
@@ -134,6 +134,16 @@ export class AnalyzerCacheContext {
           doneTiming();
           return document;
         });
+  }
+
+  async analyzeProject(): Promise<Project> {
+    const allFiles = await this._loader.listFilesInProject();
+    const extensions = new Set(this._parsers.keys());
+    const filesWithParsers =
+        allFiles.filter(fn => extensions.has(path.extname(fn).substring(1)));
+    const documents =
+        new Set(await Promise.all(filesWithParsers.map(f => this.analyze(f))));
+    return new Project(documents);
   }
 
   /**

@@ -14,4 +14,9 @@ export interface UrlLoader {
    * This should only be called if `canLoad` returns `true` for `url`.
    */
   load(url: string): Promise<string>;
+
+  /**
+   * Lists the files in the current project.
+   */
+  listFilesInProject(): Promise<string[]>;
 }

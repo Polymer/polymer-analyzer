@@ -25,6 +25,8 @@ import {UrlLoader} from './url-loader';
  */
 export class FSUrlLoader implements UrlLoader {
   root: string|undefined;
+  private _dependencyDirPrefixes: string[] =
+      ['bower_components', 'node_modules'];
 
   constructor(root?: string) {
     this.root = root;
@@ -37,7 +39,7 @@ export class FSUrlLoader implements UrlLoader {
     return this._isValid(urlObject, pathname);
   }
 
-  _isValid(urlObject: Url, pathname: string) {
+  private _isValid(urlObject: Url, pathname: string) {
     return (urlObject.protocol === 'file' || !urlObject.hostname) &&
         !pathname.startsWith('../');
   }
@@ -64,4 +66,41 @@ export class FSUrlLoader implements UrlLoader {
     }
     return this.root ? pathlib.join(this.root, pathname) : pathname;
   }
-};
+
+  async listFilesInProject(): Promise<string[]> {
+    return this._listFilesInDir('');
+  }
+
+  async _listFilesInDir(pathFromRoot: string): Promise<string[]> {
+    const files = await new Promise<string[]>((resolve, reject) => {
+      fs.readdir(
+          pathlib.join(this.root, pathFromRoot),
+          (err, files) => err ? reject(err) : resolve(files));
+    });
+    const results = [];
+    const subDirResultPromises = [];
+    for (const basename of files) {
+      const file = pathlib.join(pathFromRoot, basename);
+      const stat = await new Promise<fs.Stats>(
+          (resolve, reject) => fs.stat(
+              pathlib.join(this.root, file),
+              (err, stat) => err ? reject(err) : resolve(stat)));
+      if (stat.isDirectory()) {
+        const isDependencyDir = this._dependencyDirPrefixes.some(
+            prefix => basename.startsWith(prefix));
+        if (!isDependencyDir) {
+          subDirResultPromises.push(this._listFilesInDir(file));
+        }
+      } else {
+        results.push(file);
+      }
+    }
+    const arraysOfFiles = await Promise.all(subDirResultPromises);
+    for (const dirResults of arraysOfFiles) {
+      for (const file of dirResults) {
+        results.push(file);
+      }
+    }
+    return results;
+  }
+}

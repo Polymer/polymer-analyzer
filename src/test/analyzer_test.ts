@@ -17,6 +17,7 @@
 import {assert} from 'chai';
 import * as clone from 'clone';
 import * as estree from 'estree';
+import * as path from 'path';
 import * as shady from 'shady-css-parser';
 
 import {Analyzer} from '../analyzer';
@@ -539,6 +540,36 @@ suite('Analyzer', () => {
     });
   });
 
+  suite('analyzeProject', () => {
+    test('produces a project with the right documents', async() => {
+      const analyzer = new Analyzer({
+        urlLoader: new FSUrlLoader(path.join(__dirname, 'static', 'project'))
+      });
+      const project = await analyzer.analyzeProject();
+
+      // The root documents of the project are a minimal set of documents whose
+      // imports touch every document in the project.
+      assert.deepEqual(
+          Array.from(project['_rootDocuments']).map(d => d.url).sort(),
+          ['cyclic-a.html', 'root.html', 'subdir/root-in-subdir.html']
+              .sort(), );
+
+      // All elements in the project, as well as all elements in its
+      // bower_components directory that are reachable from imports in the
+      // project.
+      assert.deepEqual(
+          Array.from(project.getByKind('element')).map(e => e.tagName).sort(), [
+            'root-root',
+            'leaf-leaf',
+            'cyclic-a',
+            'cyclic-b',
+            'imported-dependency',
+            'root-in-subdir',
+            'subdir-leaf'
+          ].sort());
+    });
+  });
+
   suite('race conditions and caching', () => {
 
     class RacyUrlLoader implements UrlLoader {
@@ -556,6 +587,9 @@ suite('Analyzer', () => {
           return contents;
         }
         throw new Error(`no known contents for ${path}`);
+      }
+      async listFilesInProject(): Promise<string[]> {
+        throw new Error('Not Implemented');
       }
     }
 
@@ -738,6 +772,10 @@ suite('Analyzer', () => {
         async load(url: string) {
           return this.queue.request(url);
         }
+
+        async listFilesInProject(): Promise<string[]> {
+          throw new Error('Not Implemented');
+        }
       }
 
       class NoopUrlLoader implements UrlLoader {
@@ -747,6 +785,10 @@ suite('Analyzer', () => {
         async load(): Promise<string> {
           throw new Error(
               `Noop Url Loader isn't supposed to be actually called.`);
+        }
+
+        async listFilesInProject(): Promise<string[]> {
+          throw new Error('Not Implemented');
         }
       }
 

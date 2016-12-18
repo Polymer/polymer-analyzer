@@ -57,7 +57,10 @@ suite('HtmlCustomElementReferenceScanner', () => {
   suite('scan()', () => {
     let scanner: HtmlCustomElementReferenceScanner;
     let contents = '';
-    const loader = {canLoad: () => true, load: () => Promise.resolve(contents)};
+    const loader = {
+      canLoad: () => true,
+      load: () => Promise.resolve(contents)
+    } as any;
     const warningPrinter = new WarningPrinter(
         null as any, {analyzer: new Analyzer({urlLoader: loader})});
 

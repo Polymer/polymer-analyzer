@@ -46,4 +46,8 @@ export class FetchUrlLoader implements UrlLoader {
       }
     });
   }
+
+  listFilesInProject(): Promise<string[]> {
+    throw new Error('Not implementable.');
+  }
 }
