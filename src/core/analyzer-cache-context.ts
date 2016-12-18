@@ -224,7 +224,10 @@ export class AnalyzerCacheContext {
               return this._scanDocument(parsedDoc, actualVisited);
             });
 
-    await this._scanImports(scannedDocument, actualVisited);
+    if (!this._cache.dependenciesScannedOf.has(scannedDocument.url)) {
+      await this._scanImports(scannedDocument, actualVisited);
+      this._cache.dependenciesScannedOf.add(scannedDocument.url);
+    }
     return scannedDocument;
   }
 

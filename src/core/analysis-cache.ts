@@ -29,6 +29,15 @@ export class AnalysisCache {
   analyzedDocumentPromises: AsyncWorkCache<string, Document>;
 
   /**
+   * A set of resolved urls whose dependencies have been scanned.
+   *
+   * A url's presence means that you can skip scanning its dependencies. It's
+   * not an AsyncWorkCache because scanning the same dependency cache twice is
+   * idempotent, and subject to deadlocks with circular dependency graphs.
+   */
+  dependenciesScannedOf: Set<string>;
+
+  /**
    * TODO(rictic): These synchronous caches need to be kept in sync with their
    *     async work cache analogues above.
    */
@@ -51,6 +60,7 @@ export class AnalysisCache {
         new AsyncWorkCache(f.scannedDocumentPromises);
     this.analyzedDocumentPromises =
         new AsyncWorkCache(f.analyzedDocumentPromises);
+    this.dependenciesScannedOf = new Set(f.dependenciesScannedOf!);
 
     this.scannedDocuments = new Map(f.scannedDocuments!);
     this.analyzedDocuments = new Map(f.analyzedDocuments!);
@@ -72,6 +82,7 @@ export class AnalysisCache {
       const dependants = this.dependencyGraph.getAllDependantsOf(path);
       newCache.parsedDocumentPromises.delete(path);
       newCache.scannedDocumentPromises.delete(path);
+      newCache.dependenciesScannedOf.delete(path);
       newCache.scannedDocuments.delete(path);
       newCache.analyzedDocuments.delete(path);
 
@@ -80,6 +91,7 @@ export class AnalysisCache {
       // which transitively import the changed document. We also need to mark
       // all of those docs as needing to rescan their dependencies.
       for (const partiallyInvalidatedPath of dependants) {
+        newCache.dependenciesScannedOf.delete(partiallyInvalidatedPath);
         newCache.analyzedDocuments.delete(partiallyInvalidatedPath);
       }
 
