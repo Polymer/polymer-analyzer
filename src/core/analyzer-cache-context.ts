@@ -136,14 +136,43 @@ export class AnalyzerCacheContext {
         });
   }
 
+  private async _analyzeOrWarning(url: string): Promise<Document|Warning> {
+    try {
+      return await this.analyze(url);
+    } catch (e) {
+      if (e instanceof WarningCarryingException) {
+        return e.warning;
+      }
+      return {
+        sourceRange: {
+          file: this._resolveUrl(url),
+          start: {line: 0, column: 0},
+          end: {line: 0, column: 0}
+        },
+        code: 'unable-to-analyze',
+        message: `Unable to analyze file: ${e && e.message || e}`,
+        severity: Severity.ERROR
+      };
+    }
+  }
+
   async analyzeProject(): Promise<Project> {
     const allFiles = await this._loader.listFilesInProject();
     const extensions = new Set(this._parsers.keys());
     const filesWithParsers =
         allFiles.filter(fn => extensions.has(path.extname(fn).substring(1)));
-    const documents =
-        new Set(await Promise.all(filesWithParsers.map(f => this.analyze(f))));
-    return new Project(documents);
+    const documentsOrWarnings =
+        await Promise.all(filesWithParsers.map(f => this._analyzeOrWarning(f)));
+    const documents = [];
+    const warnings = [];
+    for (const docOrWarning of documentsOrWarnings) {
+      if (docOrWarning instanceof Document) {
+        documents.push(docOrWarning);
+      } else {
+        warnings.push(docOrWarning);
+      }
+    }
+    return new Project(documents, warnings);
   }
 
   /**

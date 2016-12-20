@@ -18,9 +18,11 @@ import {Feature} from './feature';
 
 export class Project {
   private _rootDocuments: Set<Document>;
+  private _toplevelWarnings: Warning[];
 
-  constructor(rootDocuments: Iterable<Document>) {
+  constructor(rootDocuments: Iterable<Document>, warnings: Warning[]) {
     this._rootDocuments = new Set(rootDocuments);
+    this._toplevelWarnings = warnings;
 
     // This is a performance optimization. We only need a set of documents such
     // that all other documents we're interested in can be reached from them.
@@ -84,7 +86,7 @@ export class Project {
    * Get all warnings in the project.
    */
   getWarnings(): Warning[] {
-    const result = new Set();
+    const result = new Set(this._toplevelWarnings);
     for (const doc of this._rootDocuments) {
       addAll(result, new Set(doc.getWarnings(true)));
     }
