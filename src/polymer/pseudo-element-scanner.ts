@@ -29,7 +29,7 @@ function parseComment(comment: string): ScannedPolymerElement|undefined {
   const parsedJsdoc = jsdoc.parseJsdoc(comment);
   const pseudoTag = jsdoc.getTag(parsedJsdoc, 'pseudoElement', 'name');
   if (pseudoTag) {
-    let element = new ScannedPolymerElement({
+    const element = new ScannedPolymerElement({
       tagName: pseudoTag,
       jsdoc: {description: parsedJsdoc.description, tags: parsedJsdoc.tags},
       properties: [],
@@ -51,11 +51,11 @@ export class PseudoElementScanner implements HtmlScanner, JavaScriptScanner {
       document: ParsedHtmlDocument,
       visit: (visitor: HtmlVisitor) => Promise<void>):
       Promise<ScannedPolymerElement[]> {
-    let elements: ScannedPolymerElement[] = [];
+    const elements: ScannedPolymerElement[] = [];
 
     await visit((node: ASTNode) => {
       if (dom5.isCommentNode(node) && node.data && node.data.includes('@pseudoElement')) {
-        let element = parseComment(node.data);
+        const element = parseComment(node.data);
         if (element) {
           element.sourceRange = document.sourceRangeForNode(node);
           elements.push(element);
@@ -66,10 +66,10 @@ export class PseudoElementScanner implements HtmlScanner, JavaScriptScanner {
   }
 
   async scanJs(document: JavaScriptDocument): Promise<ScannedPolymerElement[]> {
-    let elements: ScannedPolymerElement[] = [];
+    const elements: ScannedPolymerElement[] = [];
 
-    for (let comment of document.ast.comments) {
-        let element = parseComment(comment.value);
+    for (const comment of document.ast.comments) {
+        const element = parseComment(comment.value);
         if (element) {
           element.sourceRange = document.sourceRangeForNode(comment);
           elements.push(element);
