@@ -18,7 +18,6 @@ import {ASTNode} from 'parse5';
 import * as jsdoc from '../javascript/jsdoc';
 import {annotateElementHeader} from './docs';
 
-import {Node} from 'estree';
 import {HtmlVisitor, ParsedHtmlDocument} from '../html/html-document';
 import {Visitor} from '../javascript/estree-visitor';
 import {JavaScriptDocument} from '../javascript/javascript-document';
@@ -72,7 +71,7 @@ export class PseudoElementScanner implements HtmlScanner, JavaScriptScanner {
     for (let comment of document.ast.comments) {
         let element = parseComment(comment.value);
         if (element) {
-          element.sourceRange = document.sourceRangeForNode(<Node>comment);
+          element.sourceRange = document.sourceRangeForNode(comment);
           elements.push(element);
         }
     }
