@@ -15,6 +15,7 @@
 import {assert} from 'chai';
 
 import {HtmlVisitor} from '../../html/html-document';
+import {Visitor} from '../../javascript/estree-visitor';
 import {HtmlParser} from '../../html/html-parser';
 import {JavaScriptParser} from '../../javascript/javascript-parser';
 import {HtmlPseudoElementScanner, JsPseudoElementScanner} from '../../polymer/pseudo-element-scanner';
@@ -60,14 +61,22 @@ suite('PseudoElementScanner', () => {
          * @pseudoElement x-bar
          * @demo demo/index.html
          */
+
+         (() => {
+          /**
+           * @pseudoElement eval-element
+           */
+           eval("Polymer({is: 'eval-element'});");
+         })();
       `;
 
       const document = new JavaScriptParser({
         sourceType: 'script'
       }).parse(contents, 'test-document.html');
 
-      const features = await scanner.scan(document, async() => {});
-      assert.equal(features.length, 2);
+      const visit = async(visitor: Visitor) => document.visit([visitor]);
+      const features = await scanner.scan(document, visit);
+      assert.equal(features.length, 3);
 
       assert.equal(features[0].tagName, 'x-foo');
       assert(features[0].pseudo);
@@ -78,6 +87,8 @@ suite('PseudoElementScanner', () => {
       assert(features[1].pseudo);
       assert.equal(features[1].description.trim(), desc);
       assert.deepEqual(features[1].demos, [{desc: 'demo', path: 'demo/index.html'}]);
+
+      assert.equal(features[2].tagName, 'eval-element');
     });
 
   });
