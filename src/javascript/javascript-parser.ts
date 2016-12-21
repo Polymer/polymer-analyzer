@@ -38,7 +38,7 @@ declare class SyntaxError {
  * the source range.
  */
 export interface Comment extends EstreeComment, BaseNode {
-  type: 'Block' | 'Line'
+  type: 'Block' | 'Line';
 }
 
 /**

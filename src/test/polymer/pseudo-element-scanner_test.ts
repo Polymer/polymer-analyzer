@@ -17,18 +17,14 @@ import {assert} from 'chai';
 import {HtmlVisitor} from '../../html/html-document';
 import {HtmlParser} from '../../html/html-parser';
 import {JavaScriptParser} from '../../javascript/javascript-parser';
-import {PseudoElementScanner} from '../../polymer/pseudo-element-scanner';
+import {HtmlPseudoElementScanner, JsPseudoElementScanner} from '../../polymer/pseudo-element-scanner';
 
 suite('PseudoElementScanner', () => {
 
   suite('scan()', () => {
-    let scanner: PseudoElementScanner;
-
-    setup(() => {
-      scanner = new PseudoElementScanner();
-    });
 
     test('finds pseudo elements in html comments ', async() => {
+      const scanner = new HtmlPseudoElementScanner();
       const desc = `This is a pseudo element`;
       const contents = `<html><head></head><body>
           <!--
@@ -50,6 +46,7 @@ suite('PseudoElementScanner', () => {
     });
 
     test('finds pseudo elements in javascript comments', async() => {
+      const scanner = new JsPseudoElementScanner();
       const desc = `This is a pseudo element`;
       const contents = `
         /*

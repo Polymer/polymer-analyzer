@@ -18,8 +18,8 @@ import {ASTNode} from 'parse5';
 import * as jsdoc from '../javascript/jsdoc';
 import {annotateElementHeader} from './docs';
 
-import {HtmlVisitor, ParsedHtmlDocument} from '../html/html-document';
 import {Visitor} from '../javascript/estree-visitor';
+import {HtmlVisitor, ParsedHtmlDocument} from '../html/html-document';
 import {JavaScriptDocument} from '../javascript/javascript-document';
 import {JavaScriptScanner} from '../javascript/javascript-scanner';
 import {HtmlScanner} from '../html/html-scanner';
@@ -41,13 +41,15 @@ function parseComment(comment: string): ScannedPolymerElement|undefined {
     return element;
   }
 }
+
 /**
- * A Polymer pseudo-element is an element that is declared in an unusual way, such
- * that the analyzer couldn't normally analyze it, so instead it is declared in
- * comments.
+ * Scanner for extracting pseudo element delarations from HTML comments.
+ * A Polymer pseudo-element is an element that is declared in an unusual way,
+ * such that the analyzer couldn't normally analyze it, so instead it is
+ * declared in comments.
  */
-export class PseudoElementScanner implements HtmlScanner, JavaScriptScanner {
-  async scanHtml(
+export class HtmlPseudoElementScanner implements HtmlScanner {
+  async scan(
       document: ParsedHtmlDocument,
       visit: (visitor: HtmlVisitor) => Promise<void>):
       Promise<ScannedPolymerElement[]> {
@@ -64,8 +66,18 @@ export class PseudoElementScanner implements HtmlScanner, JavaScriptScanner {
     });
     return elements;
   }
+}
 
-  async scanJs(document: JavaScriptDocument): Promise<ScannedPolymerElement[]> {
+/**
+ * Scanner for extracting pseudo element delarations from JavaScript comments.
+ * A Polymer pseudo-element is an element that is declared in an unusual way,
+ * such that the analyzer couldn't normally analyze it, so instead it is
+ * declared in comments.
+ */
+export class JsPseudoElementScanner implements JavaScriptScanner {
+  async scan(
+      document: JavaScriptDocument, _: (visitor: Visitor) => Promise<void>):
+      Promise<ScannedPolymerElement[]> {
     const elements: ScannedPolymerElement[] = [];
 
     for (const comment of document.ast.comments) {
@@ -77,22 +89,5 @@ export class PseudoElementScanner implements HtmlScanner, JavaScriptScanner {
     }
 
     return elements;
-  }
-
-  async scan(
-      document: JavaScriptDocument, visit: (visitor: Visitor) => Promise<void>):
-      Promise<ScannedPolymerElement[]>;
-  async scan(
-      document: ParsedHtmlDocument,
-      visit: (visitor: HtmlVisitor) => Promise<void>):
-      Promise<ScannedPolymerElement[]>;
-  async scan(document: any, visit: any): Promise<any> {
-    if (document instanceof JavaScriptDocument) {
-      return this.scanJs(document);
-    } else if (document instanceof ParsedHtmlDocument) {
-      return this.scanHtml(document, visit);
-    } else {
-      return [];
-    }
   }
 }
