@@ -18,40 +18,76 @@ import {ASTNode} from 'parse5';
 import * as jsdoc from '../javascript/jsdoc';
 import {annotateElementHeader} from './docs';
 
+import {Visitor} from '../javascript/estree-visitor';
 import {HtmlVisitor, ParsedHtmlDocument} from '../html/html-document';
+import {JavaScriptDocument} from '../javascript/javascript-document';
+import {JavaScriptScanner} from '../javascript/javascript-scanner';
 import {HtmlScanner} from '../html/html-scanner';
 import {ScannedPolymerElement} from './polymer-element';
 
+function parseComment(comment: string): ScannedPolymerElement|undefined {
+  const parsedJsdoc = jsdoc.parseJsdoc(comment);
+  const pseudoTag = jsdoc.getTag(parsedJsdoc, 'pseudoElement', 'name');
+  if (pseudoTag) {
+    const element = new ScannedPolymerElement({
+      tagName: pseudoTag,
+      jsdoc: {description: parsedJsdoc.description, tags: parsedJsdoc.tags},
+      properties: [],
+      description: parsedJsdoc.description,
+      sourceRange: undefined
+    });
+    element.pseudo = true;
+    annotateElementHeader(element);
+    return element;
+  }
+}
+
 /**
- * A Polymer pseudo-element is an element that is declared in an unusual way, such
- * that the analyzer couldn't normally analyze it, so instead it is declared in
- * comments.
+ * Scanner for extracting pseudo element delarations from HTML comments.
+ * A Polymer pseudo-element is an element that is declared in an unusual way,
+ * such that the analyzer couldn't normally analyze it, so instead it is
+ * declared in comments.
  */
-export class PseudoElementScanner implements HtmlScanner {
+export class HtmlPseudoElementScanner implements HtmlScanner {
   async scan(
       document: ParsedHtmlDocument,
       visit: (visitor: HtmlVisitor) => Promise<void>):
       Promise<ScannedPolymerElement[]> {
-    let elements: ScannedPolymerElement[] = [];
+    const elements: ScannedPolymerElement[] = [];
 
     await visit((node: ASTNode) => {
       if (dom5.isCommentNode(node) && node.data && node.data.includes('@pseudoElement')) {
-        const parsedJsdoc = jsdoc.parseJsdoc(node.data);
-        const pseudoTag = jsdoc.getTag(parsedJsdoc, 'pseudoElement', 'name');
-        if (pseudoTag) {
-          let element = new ScannedPolymerElement({
-            tagName: pseudoTag,
-            jsdoc: {description: parsedJsdoc.description, tags: parsedJsdoc.tags},
-            properties: [],
-            description: parsedJsdoc.description,
-            sourceRange: document.sourceRangeForNode(node)
-          });
-          element.pseudo = true;
-          annotateElementHeader(element);
+        const element = parseComment(node.data);
+        if (element) {
+          element.sourceRange = document.sourceRangeForNode(node);
           elements.push(element);
         }
       }
     });
+    return elements;
+  }
+}
+
+/**
+ * Scanner for extracting pseudo element delarations from JavaScript comments.
+ * A Polymer pseudo-element is an element that is declared in an unusual way,
+ * such that the analyzer couldn't normally analyze it, so instead it is
+ * declared in comments.
+ */
+export class JsPseudoElementScanner implements JavaScriptScanner {
+  async scan(
+      document: JavaScriptDocument, _: (visitor: Visitor) => Promise<void>):
+      Promise<ScannedPolymerElement[]> {
+    const elements: ScannedPolymerElement[] = [];
+
+    for (const comment of document.ast.comments) {
+        const element = parseComment(comment.value);
+        if (element) {
+          element.sourceRange = document.sourceRangeForNode(comment);
+          elements.push(element);
+        }
+    }
+
     return elements;
   }
 }

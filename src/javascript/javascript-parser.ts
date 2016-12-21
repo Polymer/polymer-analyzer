@@ -13,7 +13,12 @@
  */
 
 import * as espree from 'espree';
-import {Program} from 'estree';
+import {
+  Program as EstreeProgram,
+  Node as EstreeNode,
+  Comment as EstreeComment,
+  BaseNode
+} from 'estree';
 
 import {correctSourceRange, InlineDocInfo} from '../model/model';
 import {Parser} from '../parser/parser';
@@ -26,6 +31,31 @@ declare class SyntaxError {
   lineNumber: number;
   column: number;
 }
+
+/**
+ * The `Comment` object created by `espree.parse` has some properties not
+ * included in `@types/estree` like `loc`, which is needed to calculate
+ * the source range.
+ */
+export interface Comment extends EstreeComment, BaseNode {
+  type: 'Block' | 'Line';
+}
+
+/**
+ * The result of `espree.parse` contains a `comments` member which is not
+ * included in `estree.Programm` so we need to augment the interface to satisfy
+ * the type checker.
+ */
+export interface Program extends EstreeProgram {
+  // Comments are attachted via the `comment` option
+  // on `espree.parse`. See https://github.com/eslint/espree#usage
+  comments: Comment[];
+}
+
+/**
+ * Augment `estree.Node` type to include new interfaces
+ */
+export type Node = EstreeNode | Comment | Program;
 
 export class JavaScriptParser implements Parser<JavaScriptDocument> {
   sourceType: 'module'|'script';

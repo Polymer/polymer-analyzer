@@ -15,19 +15,17 @@
 import {assert} from 'chai';
 
 import {HtmlVisitor} from '../../html/html-document';
+import {Visitor} from '../../javascript/estree-visitor';
 import {HtmlParser} from '../../html/html-parser';
-import {PseudoElementScanner} from '../../polymer/pseudo-element-scanner';
+import {JavaScriptParser} from '../../javascript/javascript-parser';
+import {HtmlPseudoElementScanner, JsPseudoElementScanner} from '../../polymer/pseudo-element-scanner';
 
 suite('PseudoElementScanner', () => {
 
   suite('scan()', () => {
-    let scanner: PseudoElementScanner;
-
-    setup(() => {
-      scanner = new PseudoElementScanner();
-    });
 
     test('finds pseudo elements in html comments ', async() => {
+      const scanner = new HtmlPseudoElementScanner();
       const desc = `This is a pseudo element`;
       const contents = `<html><head></head><body>
           <!--
@@ -46,6 +44,51 @@ suite('PseudoElementScanner', () => {
       assert(features[0].pseudo);
       assert.equal(features[0].description.trim(), desc);
       assert.deepEqual(features[0].demos, [{desc: 'demo', path: 'demo/index.html'}]);
+    });
+
+    test('finds pseudo elements in javascript comments', async() => {
+      const scanner = new JsPseudoElementScanner();
+      const desc = `This is a pseudo element`;
+      const contents = `
+        /*
+          ${desc}
+          @pseudoElement x-foo
+          @demo demo/index.html
+        */
+
+        /**
+         * ${desc}
+         * @pseudoElement x-bar
+         * @demo demo/index.html
+         */
+
+         (() => {
+          /**
+           * @pseudoElement eval-element
+           */
+           eval("Polymer({is: 'eval-element'});");
+         })();
+      `;
+
+      const document = new JavaScriptParser({
+        sourceType: 'script'
+      }).parse(contents, 'test-document.html');
+
+      const visit = async(visitor: Visitor) => document.visit([visitor]);
+      const features = await scanner.scan(document, visit);
+      assert.equal(features.length, 3);
+
+      assert.equal(features[0].tagName, 'x-foo');
+      assert(features[0].pseudo);
+      assert.equal(features[0].description.trim(), desc);
+      assert.deepEqual(features[0].demos, [{desc: 'demo', path: 'demo/index.html'}]);
+
+      assert.equal(features[1].tagName, 'x-bar');
+      assert(features[1].pseudo);
+      assert.equal(features[1].description.trim(), desc);
+      assert.deepEqual(features[1].demos, [{desc: 'demo', path: 'demo/index.html'}]);
+
+      assert.equal(features[2].tagName, 'eval-element');
     });
 
   });
