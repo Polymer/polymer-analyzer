@@ -157,10 +157,18 @@ export class AnalyzerCacheContext {
   }
 
   async analyzePackage(): Promise<Package> {
-    const allFiles = await this._loader.listFilesInProject();
+    const allFiles = await this._loader.readDirectory('', true);
+    // TODO(rictic): parameterize this, perhaps with polymer.json.
+    const dependencyDirPrefixes: string[] =
+        ['bower_components', 'node_modules'];
+    const filesInPackage = allFiles.filter(file => {
+      const dirname = path.dirname(file);
+      return !dependencyDirPrefixes.some(prefix => dirname.startsWith(prefix));
+    });
+
     const extensions = new Set(this._parsers.keys());
-    const filesWithParsers =
-        allFiles.filter(fn => extensions.has(path.extname(fn).substring(1)));
+    const filesWithParsers = filesInPackage.filter(
+        fn => extensions.has(path.extname(fn).substring(1)));
     const documentsOrWarnings =
         await Promise.all(filesWithParsers.map(f => this._analyzeOrWarning(f)));
     const documents = [];

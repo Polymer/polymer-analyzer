@@ -588,7 +588,7 @@ suite('Analyzer', () => {
         }
         throw new Error(`no known contents for ${path}`);
       }
-      async listFilesInProject(): Promise<string[]> {
+      async readDirectory(): Promise<string[]> {
         throw new Error('Not Implemented');
       }
     }
@@ -773,7 +773,7 @@ suite('Analyzer', () => {
           return this.queue.request(url);
         }
 
-        async listFilesInProject(): Promise<string[]> {
+        async readDirectory(): Promise<string[]> {
           throw new Error('Not Implemented');
         }
       }
@@ -787,7 +787,7 @@ suite('Analyzer', () => {
               `Noop Url Loader isn't supposed to be actually called.`);
         }
 
-        async listFilesInProject(): Promise<string[]> {
+        async readDirectory(): Promise<string[]> {
           throw new Error('Not Implemented');
         }
       }

@@ -25,8 +25,6 @@ import {UrlLoader} from './url-loader';
  */
 export class FSUrlLoader implements UrlLoader {
   root: string|undefined;
-  private _dependencyDirPrefixes: string[] =
-      ['bower_components', 'node_modules'];
 
   constructor(root?: string) {
     this.root = root;
@@ -67,11 +65,7 @@ export class FSUrlLoader implements UrlLoader {
     return this.root ? pathlib.join(this.root, pathname) : pathname;
   }
 
-  async listFilesInProject(): Promise<string[]> {
-    return this._listFilesInDir('');
-  }
-
-  async _listFilesInDir(pathFromRoot: string): Promise<string[]> {
+  async readDirectory(pathFromRoot: string, deep?: boolean): Promise<string[]> {
     const files = await new Promise<string[]>((resolve, reject) => {
       fs.readdir(
           pathlib.join(this.root, pathFromRoot),
@@ -86,10 +80,8 @@ export class FSUrlLoader implements UrlLoader {
               pathlib.join(this.root, file),
               (err, stat) => err ? reject(err) : resolve(stat)));
       if (stat.isDirectory()) {
-        const isDependencyDir = this._dependencyDirPrefixes.some(
-            prefix => basename.startsWith(prefix));
-        if (!isDependencyDir) {
-          subDirResultPromises.push(this._listFilesInDir(file));
+        if (deep) {
+          subDirResultPromises.push(this.readDirectory(file, deep));
         }
       } else {
         results.push(file);

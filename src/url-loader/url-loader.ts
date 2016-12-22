@@ -16,7 +16,11 @@ export interface UrlLoader {
   load(url: string): Promise<string>;
 
   /**
-   * Lists the files in the current project.
+   * Lists files in a directory in the current project.
+   *
+   * @param path A relative path to a directory to read.
+   * @param deep If true, lists files recursively. Returned paths are
+   *     relative to `url`.
    */
-  listFilesInProject(): Promise<string[]>;
+  readDirectory(path: string, deep?: boolean): Promise<string[]>;
 }
