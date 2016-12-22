@@ -13,12 +13,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
    this comment.
 -->
 
+### Added
+* Add an analyzeProject() method, for getting a queryable representation of everything in a project.
+
+### Fixed
 * Fix a deadlock when there are concurrent analysis runs of cyclic graphs.
 
 ## [2.0.0-alpha.20] - 2016-12-19
 
 ### Added
-* Add an analyzeProject() method, for getting a queryable representation of everything in a project.
 * [Polymer] Extract 'listeners' from 1.0-style declarations.
 * [Polymer] Extract pseudo elements from HTML comments
 
