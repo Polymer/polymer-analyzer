@@ -22,5 +22,5 @@ export interface UrlLoader {
    * @param deep If true, lists files recursively. Returned paths are
    *     relative to `url`.
    */
-  readDirectory(path: string, deep?: boolean): Promise<string[]>;
+  readDirectory?(path: string, deep?: boolean): Promise<string[]>;
 }

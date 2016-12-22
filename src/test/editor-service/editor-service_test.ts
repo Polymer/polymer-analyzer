@@ -370,7 +370,7 @@ function editorTests(editorFactory: (basedir: string) => EditorService) {
     const loader = {
       canLoad: () => true,
       load: () => Promise.resolve(fileContents),
-    } as any;
+    };
     const warningPrinter = new WarningPrinter(
         null as any, {analyzer: new Analyzer({urlLoader: loader})});
 

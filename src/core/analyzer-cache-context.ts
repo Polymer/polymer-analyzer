@@ -157,6 +157,11 @@ export class AnalyzerCacheContext {
   }
 
   async analyzePackage(): Promise<Package> {
+    if (!this._loader.readDirectory) {
+      throw new Error(
+          `This analyzer doesn't support analyzerPackage, ` +
+          `the urlLoader can't list the files in a directory.`);
+    }
     const allFiles = await this._loader.readDirectory('', true);
     // TODO(rictic): parameterize this, perhaps with polymer.json.
     const dependencyDirPrefixes: string[] =

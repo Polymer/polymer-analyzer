@@ -588,9 +588,6 @@ suite('Analyzer', () => {
         }
         throw new Error(`no known contents for ${path}`);
       }
-      async readDirectory(): Promise<string[]> {
-        throw new Error('Not Implemented');
-      }
     }
 
     const editorSimulator = async(waitFn: () => Promise<void>) => {
@@ -772,10 +769,6 @@ suite('Analyzer', () => {
         async load(url: string) {
           return this.queue.request(url);
         }
-
-        async readDirectory(): Promise<string[]> {
-          throw new Error('Not Implemented');
-        }
       }
 
       class NoopUrlLoader implements UrlLoader {
@@ -785,10 +778,6 @@ suite('Analyzer', () => {
         async load(): Promise<string> {
           throw new Error(
               `Noop Url Loader isn't supposed to be actually called.`);
-        }
-
-        async readDirectory(): Promise<string[]> {
-          throw new Error('Not Implemented');
         }
       }
 

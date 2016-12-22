@@ -46,8 +46,4 @@ export class FetchUrlLoader implements UrlLoader {
       }
     });
   }
-
-  readDirectory(): Promise<string[]> {
-    throw new Error('Not implementable.');
-  }
 }
