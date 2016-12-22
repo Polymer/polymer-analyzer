@@ -41,6 +41,6 @@ export * from './import';
 export * from './inline-document';
 export * from './literal';
 export * from './property';
-export * from './project';
+export * from './package';
 export * from './resolvable';
 export * from './source-range';

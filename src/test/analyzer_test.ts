@@ -545,7 +545,7 @@ suite('Analyzer', () => {
       const analyzer = new Analyzer({
         urlLoader: new FSUrlLoader(path.join(__dirname, 'static', 'project'))
       });
-      const project = await analyzer.analyzeProject();
+      const project = await analyzer.analyzePackage();
 
       // The root documents of the project are a minimal set of documents whose
       // imports touch every document in the project.

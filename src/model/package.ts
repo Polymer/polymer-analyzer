@@ -16,7 +16,7 @@ import {Warning} from '../warning/warning';
 import {Document, FeatureKinds} from './document';
 import {Feature} from './feature';
 
-export class Project {
+export class Package {
   private _rootDocuments: Set<Document>;
   private _toplevelWarnings: Warning[];
 
