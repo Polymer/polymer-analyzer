@@ -16,25 +16,33 @@ import {Warning} from '../warning/warning';
 import {Document, FeatureKinds} from './document';
 import {Feature} from './feature';
 
+/**
+ * Represents a queryable interface over all documents in a package/project.
+ *
+ * Results of queries will include results from all documents in the package, as
+ * well as from external dependencies that are transitively imported by
+ * documents in the package.
+ */
 export class Package {
   private _rootDocuments: Set<Document>;
   private _toplevelWarnings: Warning[];
 
-  constructor(rootDocuments: Iterable<Document>, warnings: Warning[]) {
-    this._rootDocuments = new Set(rootDocuments);
+  constructor(documents: Iterable<Document>, warnings: Warning[]) {
+    const potentialRoots = new Set(documents);
     this._toplevelWarnings = warnings;
 
     // This is a performance optimization. We only need a set of documents such
     // that all other documents we're interested in can be reached from them.
-    for (const doc of this._rootDocuments) {
+    for (const doc of potentialRoots) {
       for (const imprt of doc.getByKind('import')) {
         // When there's cycles we can keep any element of the cycle, so why not
         // this one.
         if (imprt.document !== doc) {
-          this._rootDocuments.delete(imprt.document);
+          potentialRoots.delete(imprt.document);
         }
       }
     }
+    this._rootDocuments = potentialRoots;
   }
 
   getByKind<K extends keyof FeatureKinds>(kind: K): Set<FeatureKinds[K]>;
