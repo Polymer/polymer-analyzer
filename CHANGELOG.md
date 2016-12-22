@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 -->
 
 ### Added
-* Add an analyzeProject() method, for getting a queryable representation of everything in a project.
+* Add an analyzePackage() method, for getting a queryable representation of everything in a package.
 
 ### Fixed
 * Fix a deadlock when there are concurrent analysis runs of cyclic graphs.
