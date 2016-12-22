@@ -15,6 +15,7 @@ import {Warning} from '../warning/warning';
 
 import {Document, FeatureKinds} from './document';
 import {Feature} from './feature';
+import {Queryable} from './queryable';
 
 /**
  * Represents a queryable interface over all documents in a package/project.
@@ -23,16 +24,18 @@ import {Feature} from './feature';
  * well as from external dependencies that are transitively imported by
  * documents in the package.
  */
-export class Package {
-  private _rootDocuments: Set<Document>;
+export class Package implements Queryable {
+  private _documents: Set<Document>;
   private _toplevelWarnings: Warning[];
 
   constructor(documents: Iterable<Document>, warnings: Warning[]) {
     const potentialRoots = new Set(documents);
     this._toplevelWarnings = warnings;
 
-    // This is a performance optimization. We only need a set of documents such
-    // that all other documents we're interested in can be reached from them.
+    // We trim down the set of documents as a performance optimization. We only
+    // need a set of documents such that all other documents we're interested in
+    // can be reached from them. That way we'll do less duplicate work when we
+    // query over all documents.
     for (const doc of potentialRoots) {
       for (const imprt of doc.getByKind('import')) {
         // When there's cycles we can keep any element of the cycle, so why not
@@ -42,14 +45,14 @@ export class Package {
         }
       }
     }
-    this._rootDocuments = potentialRoots;
+    this._documents = potentialRoots;
   }
 
   getByKind<K extends keyof FeatureKinds>(kind: K): Set<FeatureKinds[K]>;
   getByKind(kind: string): Set<Feature>;
   getByKind(kind: string): Set<Feature> {
     const result = new Set();
-    for (const doc of this._rootDocuments) {
+    for (const doc of this._documents) {
       addAll(result, doc.getByKind(kind));
     }
     return result;
@@ -60,7 +63,7 @@ export class Package {
   getById(kind: string, identifier: string): Set<Feature>;
   getById(kind: string, identifier: string): Set<Feature> {
     const result = new Set();
-    for (const doc of this._rootDocuments) {
+    for (const doc of this._documents) {
       addAll(result, doc.getById(kind, identifier));
     }
     return result;
@@ -84,7 +87,7 @@ export class Package {
    */
   getFeatures(): Set<Feature> {
     const result = new Set();
-    for (const doc of this._rootDocuments) {
+    for (const doc of this._documents) {
       addAll(result, doc.getFeatures(true));
     }
     return result;
@@ -95,7 +98,7 @@ export class Package {
    */
   getWarnings(): Warning[] {
     const result = new Set(this._toplevelWarnings);
-    for (const doc of this._rootDocuments) {
+    for (const doc of this._documents) {
       addAll(result, new Set(doc.getWarnings(true)));
     }
     return Array.from(result);

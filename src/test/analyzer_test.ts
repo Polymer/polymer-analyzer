@@ -540,7 +540,7 @@ suite('Analyzer', () => {
     });
   });
 
-  suite('analyzeProject', () => {
+  suite('analyzePackage', () => {
     test('produces a project with the right documents', async() => {
       const analyzer = new Analyzer({
         urlLoader: new FSUrlLoader(path.join(__dirname, 'static', 'project'))
@@ -550,7 +550,7 @@ suite('Analyzer', () => {
       // The root documents of the project are a minimal set of documents whose
       // imports touch every document in the project.
       assert.deepEqual(
-          Array.from(project['_rootDocuments']).map(d => d.url).sort(),
+          Array.from(project['_documents']).map(d => d.url).sort(),
           ['cyclic-a.html', 'root.html', 'subdir/root-in-subdir.html']
               .sort(), );
 
