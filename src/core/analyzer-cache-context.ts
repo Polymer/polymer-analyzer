@@ -126,7 +126,7 @@ export class AnalyzerCacheContext {
               this._telemetryTracker.start('analyze: make document', url);
           const scannedDocument = await this._scan(resolvedUrl, contents);
           if (scannedDocument === 'visited') {
-            throw new Error(
+          throw new Error(
             `This should not happen. Got a cycle of length zero(!) scanning ${url
             }`);
           }
@@ -267,6 +267,7 @@ export class AnalyzerCacheContext {
     if (visited && visited.has(resolvedUrl)) {
       return 'visited';
     }
+
     const actualVisited = visited || new Set();
     actualVisited.add(resolvedUrl);
     const scannedDocument =

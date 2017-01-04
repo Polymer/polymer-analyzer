@@ -129,17 +129,18 @@ suite('PolymerElementScanner', () => {
         ['all', 'Object']
       ]);
 
-      assert.deepEqual(features[0].attributes.map(p => [p.name, p.changeEvent]), [
-        ['a', undefined],
-        ['b', undefined],
-        ['c', undefined],
-        ['d', undefined],
-        ['e', 'e-changed'],
-        ['f', undefined],
-        ['g', undefined],
-        ['h', undefined],
-        ['all', 'all-changed']
-      ]);
+      assert.deepEqual(
+          features[0].attributes.map(p => [p.name, p.changeEvent]), [
+            ['a', undefined],
+            ['b', undefined],
+            ['c', undefined],
+            ['d', undefined],
+            ['e', 'e-changed'],
+            ['f', undefined],
+            ['g', undefined],
+            ['h', undefined],
+            ['all', 'all-changed']
+          ]);
 
       assert.deepEqual(
           features[0].properties.filter(p => p.readOnly).map(p => p.name),
@@ -161,9 +162,17 @@ suite('PolymerElementScanner', () => {
       ]);
 
       // Skip not statically analizable entries without emitting a warning
-      assert.equal(features[0].warnings.filter(w => w.code === 'invalid-listeners-declaration').length, 0);
+      assert.equal(
+          features[0]
+              .warnings.filter(w => w.code === 'invalid-listeners-declaration')
+              .length,
+          0);
       // Emit warning for non-object `listeners` literal
-      assert.equal(features[1].warnings.filter(w => w.code === 'invalid-listeners-declaration').length, 1);
+      assert.equal(
+          features[1]
+              .warnings.filter(w => w.code === 'invalid-listeners-declaration')
+              .length,
+          1);
     });
   });
 
