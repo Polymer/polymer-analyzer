@@ -27,7 +27,7 @@ export class FSUrlLoader implements UrlLoader {
   root: string;
 
   constructor(root?: string) {
-    this.root = root || process.cwd();
+    this.root = root || '';
   }
 
   canLoad(url: string): boolean {
