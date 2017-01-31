@@ -26,6 +26,7 @@ export interface Options {
   urlLoader: UrlLoader;
   urlResolver?: UrlResolver;
   parsers?: Map<string, Parser<any>>;
+  prescanners?: ScannerTable;
   scanners?: ScannerTable;
   /*
    * Map from url of an HTML Document to another HTML document it lazily depends
