@@ -26,7 +26,7 @@ import {ParsedCssDocument} from '../css/css-document';
 import {ParsedHtmlDocument} from '../html/html-document';
 import {HtmlParser} from '../html/html-parser';
 import {ScriptTagImport} from '../html/html-script-tag';
-import {JavaScriptDocument} from '../javascript/javascript-document';
+import {ParsedJavaScriptDocument} from '../javascript/javascript-document';
 import {Document, Import, ScannedImport, ScannedInlineDocument} from '../model/model';
 import {FSUrlLoader} from '../url-loader/fs-url-loader';
 import {UrlLoader} from '../url-loader/url-loader';
@@ -398,7 +398,7 @@ suite('Analyzer', () => {
 
     test('loads and parses a JavaScript document', async() => {
       const doc = await analysisContext['_parse']('static/js-elements.js');
-      assert.instanceOf(doc, JavaScriptDocument);
+      assert.instanceOf(doc, ParsedJavaScriptDocument);
       assert.equal(doc.url, 'static/js-elements.js');
     });
 
@@ -493,7 +493,7 @@ suite('Analyzer', () => {
       const jsDocs = document.getByKind('js-document') as Set<Document>;
       assert.equal(1, jsDocs.size);
       const jsDoc = jsDocs.values().next().value;
-      (jsDoc.parsedDocument as JavaScriptDocument).visit([{
+      (jsDoc.parsedDocument as ParsedJavaScriptDocument).visit([{
         enterCallExpression(node: estree.CallExpression) {
           node.arguments =
               [{type: 'Literal', value: 'bar', raw: 'bar'}] as estree.Literal[];

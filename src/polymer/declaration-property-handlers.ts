@@ -15,7 +15,7 @@
 import * as estree from 'estree';
 
 import * as astValue from '../javascript/ast-value';
-import {JavaScriptDocument} from '../javascript/javascript-document';
+import {ParsedJavaScriptDocument} from '../javascript/javascript-document';
 import {Severity} from '../warning/warning';
 
 import {analyzeProperties} from './analyze-properties';
@@ -31,7 +31,7 @@ export type PropertyHandlers = {
  */
 export function declarationPropertyHandlers(
     declaration: ScannedPolymerElement,
-    document: JavaScriptDocument): PropertyHandlers {
+    document: ParsedJavaScriptDocument): PropertyHandlers {
   return {
     is(node: estree.Node) {
       if (node.type === 'Literal') {

@@ -18,7 +18,7 @@ import * as estree from 'estree';
 import * as astValue from '../javascript/ast-value';
 import {Visitor} from '../javascript/estree-visitor';
 import * as esutil from '../javascript/esutil';
-import {JavaScriptDocument} from '../javascript/javascript-document';
+import {ParsedJavaScriptDocument} from '../javascript/javascript-document';
 import {JavaScriptScanner} from '../javascript/javascript-scanner';
 import {Severity, WarningCarryingException} from '../warning/warning';
 
@@ -29,7 +29,8 @@ import {ScannedPolymerElement, ScannedPolymerProperty} from './polymer-element';
 
 export class PolymerElementScanner implements JavaScriptScanner {
   async scan(
-      document: JavaScriptDocument, visit: (visitor: Visitor) => Promise<void>):
+      document: ParsedJavaScriptDocument,
+      visit: (visitor: Visitor) => Promise<void>):
       Promise<ScannedPolymerElement[]> {
     const visitor = new ElementVisitor(document);
     await visit(visitor);
@@ -47,8 +48,8 @@ class ElementVisitor implements Visitor {
   propertyHandlers: PropertyHandlers|null = null;
   classDetected: boolean = false;
 
-  document: JavaScriptDocument;
-  constructor(document: JavaScriptDocument) {
+  document: ParsedJavaScriptDocument;
+  constructor(document: ParsedJavaScriptDocument) {
     this.document = document;
   }
 

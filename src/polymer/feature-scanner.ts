@@ -16,12 +16,12 @@ import * as estree from 'estree';
 
 import {Visitor} from '../javascript/estree-visitor';
 import * as esutil from '../javascript/esutil';
-import {JavaScriptDocument} from '../javascript/javascript-document';
+import {ParsedJavaScriptDocument} from '../javascript/javascript-document';
 
 import {toScannedPolymerProperty} from './js-utils';
 import {ScannedPolymerCoreFeature} from './polymer-core-feature';
 
-export function featureScanner(document: JavaScriptDocument) {
+export function featureScanner(document: ParsedJavaScriptDocument) {
   /** The features we've found. */
   const features: ScannedPolymerCoreFeature[] = [];
 

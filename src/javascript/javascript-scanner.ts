@@ -17,7 +17,7 @@ import {Program} from 'estree';
 import {Scanner} from '../scanning/scanner';
 
 import {Visitor} from './estree-visitor';
-import {JavaScriptDocument} from './javascript-document';
+import {ParsedJavaScriptDocument} from './javascript-document';
 
 export interface JavaScriptScanner extends
-    Scanner<JavaScriptDocument, Program, Visitor>, Visitor {}
+    Scanner<ParsedJavaScriptDocument, Program, Visitor>, Visitor {}

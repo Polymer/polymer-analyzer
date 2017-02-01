@@ -18,7 +18,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 import {Visitor} from '../../javascript/estree-visitor';
-import {JavaScriptDocument} from '../../javascript/javascript-document';
+import {ParsedJavaScriptDocument} from '../../javascript/javascript-document';
 import {JavaScriptParser} from '../../javascript/javascript-parser';
 import {ScannedElement, ScannedFeature} from '../../model/model';
 import {Polymer2ElementScanner} from '../../polymer/polymer2-element-scanner';
@@ -36,7 +36,7 @@ function compareTagNames(a: {tagName?: string}, b: {tagName?: string}): number {
 
 suite('Polymer2ElementScanner', () => {
 
-  let document: JavaScriptDocument;
+  let document: ParsedJavaScriptDocument;
   let elements: Map<string|undefined, ScannedElement>;
   let elementsList: ScannedElement[];
 

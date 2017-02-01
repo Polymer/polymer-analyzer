@@ -18,7 +18,7 @@ import * as path from 'path';
 import stripIndent = require('strip-indent');
 
 import * as esutil from '../../javascript/esutil';
-import {JavaScriptDocument} from '../../javascript/javascript-document';
+import {ParsedJavaScriptDocument} from '../../javascript/javascript-document';
 import {JavaScriptParser} from '../../javascript/javascript-parser';
 
 suite('JavaScriptParser', () => {
@@ -42,7 +42,7 @@ suite('JavaScriptParser', () => {
         }
       `;
       const document = parser.parse(contents, '/static/es6-support.js');
-      assert.instanceOf(document, JavaScriptDocument);
+      assert.instanceOf(document, ParsedJavaScriptDocument);
       assert.equal(document.url, '/static/es6-support.js');
       assert.equal(document.ast.type, 'Program');
       assert.equal(document.parsedAsSourceType, 'script');
@@ -57,7 +57,7 @@ suite('JavaScriptParser', () => {
         }
       `;
       const document = parser.parse(contents, '/static/es6-support.js');
-      assert.instanceOf(document, JavaScriptDocument);
+      assert.instanceOf(document, ParsedJavaScriptDocument);
       assert.equal(document.url, '/static/es6-support.js');
       assert.equal(document.ast.type, 'Program');
       assert.equal(document.parsedAsSourceType, 'script');
@@ -90,7 +90,7 @@ suite('JavaScriptParser', () => {
         import foo from 'foo';
       `;
       const document = parser.parse(contents, '/static/es6-support.js');
-      assert.instanceOf(document, JavaScriptDocument);
+      assert.instanceOf(document, ParsedJavaScriptDocument);
       assert.equal(document.url, '/static/es6-support.js');
       assert.equal(document.ast.type, 'Program');
       assert.equal(document.parsedAsSourceType, 'module');

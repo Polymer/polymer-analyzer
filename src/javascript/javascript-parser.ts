@@ -19,7 +19,7 @@ import {correctSourceRange, InlineDocInfo} from '../model/model';
 import {Parser} from '../parser/parser';
 import {Severity, WarningCarryingException} from '../warning/warning';
 
-import {JavaScriptDocument} from './javascript-document';
+import {ParsedJavaScriptDocument} from './javascript-document';
 
 declare class SyntaxError {
   message: string;
@@ -27,9 +27,9 @@ declare class SyntaxError {
   column: number;
 }
 
-export class JavaScriptParser implements Parser<JavaScriptDocument> {
+export class JavaScriptParser implements Parser<ParsedJavaScriptDocument> {
   parse(contents: string, url: string, inlineInfo?: InlineDocInfo<any>):
-      JavaScriptDocument {
+      ParsedJavaScriptDocument {
     const isInline = !!inlineInfo;
     inlineInfo = inlineInfo || {};
     let ast: Program;
@@ -66,7 +66,7 @@ export class JavaScriptParser implements Parser<JavaScriptDocument> {
       }
     }
 
-    return new JavaScriptDocument({
+    return new ParsedJavaScriptDocument({
       url,
       contents,
       ast,

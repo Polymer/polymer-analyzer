@@ -19,7 +19,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 import {Visitor} from '../../javascript/estree-visitor';
-import {JavaScriptDocument} from '../../javascript/javascript-document';
+import {ParsedJavaScriptDocument} from '../../javascript/javascript-document';
 import {JavaScriptParser} from '../../javascript/javascript-parser';
 import {ScannedElement} from '../../model/model';
 import {ElementScanner} from '../../vanilla-custom-elements/element-scanner';
@@ -29,7 +29,7 @@ chai.use(require('chai-subset'));
 suite('VanillaElementScanner', () => {
 
   const elements = new Map<string|undefined, ScannedElement>();
-  let document: JavaScriptDocument;
+  let document: ParsedJavaScriptDocument;
   let elementsList: ScannedElement[];
 
   suiteSetup(async() => {
