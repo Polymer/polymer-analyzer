@@ -238,8 +238,8 @@ export class AnalysisContext {
     if (cachedResult) {
       return cachedResult;
     }
-    const scannedDocument = this._cache.scannedDocuments.get(resolvedUrl);
-    if (!scannedDocument) {
+    const prescannedDocument = this._cache.scannedDocuments.get(resolvedUrl);
+    if (!prescannedDocument) {
       return;
     }
 
@@ -247,10 +247,14 @@ export class AnalysisContext {
     const languageAnalyzer = this._languageAnalyzers.get(extension);
     let analysisResult: any;
     if (languageAnalyzer) {
-      analysisResult = languageAnalyzer.analyze(scannedDocument.url);
+      analysisResult = languageAnalyzer.analyze(prescannedDocument.url);
     }
 
-    const document = new Document(scannedDocument, this, analysisResult);
+    const scanners = this._scanners.get(extension);
+    if (scanners) {
+    }
+
+    const document = new Document(prescannedDocument, this, analysisResult);
     this._cache.analyzedDocuments.set(resolvedUrl, document);
     this._cache.analyzedDocumentPromises.getOrCompute(
         resolvedUrl, async() => document);
