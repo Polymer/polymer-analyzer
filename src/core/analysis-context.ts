@@ -165,7 +165,7 @@ export class AnalysisContext {
         resolvedUrl, async() => {
           const doneTiming =
               this._telemetryTracker.start('analyze: make document', url);
-          const scannedDocument = await this.scan(resolvedUrl, contents);
+          const scannedDocument = await this.prescan(resolvedUrl, contents);
           const document = this._getDocument(scannedDocument.url);
           doneTiming();
           return document;
@@ -311,7 +311,7 @@ export class AnalysisContext {
    * _preScan, since about the only useful things it can find are
    * imports, exports and other syntactic structures.
    */
-  private async _scanLocal(resolvedUrl: string, contents?: string):
+  private async _prescanLocal(resolvedUrl: string, contents?: string):
       Promise<ScannedDocument> {
     return this._cache.scannedDocumentPromises.getOrCompute(
         resolvedUrl, async() => {
@@ -343,10 +343,12 @@ export class AnalysisContext {
   /**
    * Scan a toplevel document and all of its transitive dependencies.
    */
-  async scan(resolvedUrl: string, contents?: string): Promise<ScannedDocument> {
+  async prescan(resolvedUrl: string, contents?: string):
+      Promise<ScannedDocument> {
     return this._cache.dependenciesScannedPromises.getOrCompute(
         resolvedUrl, async() => {
-          const scannedDocument = await this._scanLocal(resolvedUrl, contents);
+          const scannedDocument =
+              await this._prescanLocal(resolvedUrl, contents);
           // Find all non-lazy imports
           // TODO(justinfagnani): I think we should scan lazily imported
           // documents since we know about them, we should load them. Their
@@ -363,7 +365,7 @@ export class AnalysisContext {
             // avoid deadlock in the case of cycles. Later we use the
             // DependencyGraph
             // to wait for all transitive dependencies to load.
-            this.scan(importUrl).catch((error) => {
+            this.prescan(importUrl).catch((error) => {
               if (error instanceof NoKnownParserError) {
                 // We probably don't want to fail when importing something
                 // that we don't know about here.
@@ -410,7 +412,7 @@ export class AnalysisContext {
       }
       this._cache.scannedDocuments.set(scannedDocument.url, scannedDocument);
     }
-    await this._scanInlineDocuments(scannedDocument);
+    await this._prescanInlineDocuments(scannedDocument);
     return scannedDocument;
   }
 
@@ -424,7 +426,7 @@ export class AnalysisContext {
     return [];
   }
 
-  private async _scanInlineDocuments(containingDocument: ScannedDocument) {
+  private async _prescanInlineDocuments(containingDocument: ScannedDocument) {
     for (const feature of containingDocument.features) {
       if (!(feature instanceof ScannedInlineDocument)) {
         continue;

@@ -25,7 +25,8 @@ async function getTypeScriptAnalyzer(files: {[url: string]: string}) {
   const urlResolver = new PackageUrlResolver();
   const analysisContext = new AnalysisContext({urlLoader, urlResolver});
   // This puts documents into the scanned document cache
-  await Promise.all(Object.keys(files).map((url) => analysisContext.scan(url)));
+  await Promise.all(
+      Object.keys(files).map((url) => analysisContext.prescan(url)));
   return new TypeScriptAnalyzer(analysisContext);
 }
 
