@@ -14,88 +14,18 @@
 
 import {AnalysisContext} from '../core/analysis-context';
 import {ParsedDocument} from '../parser/document';
-import {Behavior} from '../polymer/behavior';
-import {DomModule} from '../polymer/dom-module-scanner';
-import {PolymerElement} from '../polymer/polymer-element';
 import {Warning} from '../warning/warning';
 
-import {Element} from './element';
-import {ElementReference} from './element-reference';
-import {Feature, ScannedFeature} from './feature';
+import {Feature} from './feature';
+import {FeatureKinds} from './feature-kinds';
 import {Import} from './import';
 import {Queryable} from './queryable';
 import {isResolvable} from './resolvable';
+import {ScannedDocument} from './scanned-document';
 import {SourceRange} from './source-range';
 
-/**
- * The metadata for all features and elements defined in one document
- */
-export class ScannedDocument {
-  document: ParsedDocument<any, any>;
-  features: ScannedFeature[];
-  isInline = false;
-  sourceRange: SourceRange|undefined = undefined;  // TODO(rictic): track this
-  warnings: Warning[];
-
-  constructor(
-      document: ParsedDocument<any, any>, features: ScannedFeature[],
-      warnings?: Warning[]) {
-    this.document = document;
-    this.features = features;
-    this.warnings = warnings || [];
-    this.isInline = document.isInline;
-  }
-
-  get url() {
-    return this.document.url;
-  }
-
-  /**
-   * Gets all features in this scanned document and all inline documents it
-   * contains.
-   */
-  getNestedFeatures(): ScannedFeature[] {
-    const result: ScannedFeature[] = [];
-    this._getNestedFeatures(result);
-    return result;
-  }
-
-  private _getNestedFeatures(features: ScannedFeature[]): void {
-    for (const feature of this.features) {
-      // Ad hoc test needed here to avoid a problematic import loop.
-      if (feature.constructor.name === 'ScannedDocument' &&
-          feature['scannedDocument']) {
-        const innerDoc = feature['scannedDocument'] as ScannedDocument;
-        innerDoc._getNestedFeatures(features);
-      } else {
-        features.push(feature);
-      }
-    }
-  }
-}
-
-// A map between kind string literal types and their feature types.
-export interface FeatureKinds {
-  'document': Document;
-  'element': Element;
-  'polymer-element': PolymerElement;
-  'behavior': Behavior;
-  'dom-module': DomModule;
-  'element-reference': ElementReference;
-  'import': Import;
-
-  // Document specializations.
-  'html-document': Document;
-  'js-document': Document;
-  'json-document': Document;
-  'css-document': Document;
-
-  // Import specializations.
-  'html-import': Import;
-  'html-script': Import;
-  'html-style': Import;
-  'js-import': Import;
-}
+export {FeatureKinds} from './feature-kinds';
+export {ScannedDocument} from './scanned-document';
 
 export class Document implements Feature, Queryable {
   kinds: Set<string> = new Set(['document']);
@@ -151,7 +81,7 @@ export class Document implements Feature, Queryable {
   }
 
   get parsedDocument(): ParsedDocument<any, any> {
-    return this._scannedDocument.document;
+    return this._scannedDocument.parsedDocument;
   }
 
   get sourceRange(): SourceRange|undefined {
