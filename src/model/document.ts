@@ -104,6 +104,7 @@ export class Document implements Feature, Queryable {
    */
   // TODO(justinfagnani): move to ScannedDocument
   resolve() {
+    console.log('Document.resolve', this.url, this.type, this.isInline);
     if (this._doneResolving) {
       throw new Error('resolve can only be called once');
     }
@@ -112,6 +113,8 @@ export class Document implements Feature, Queryable {
     }
     this._begunResolving = true;
     this._addFeature(this);
+    console.log(
+        '  this._scannedDocument.features', this._scannedDocument.features);
     for (const scannedFeature of this._scannedDocument.features) {
       if (isResolvable(scannedFeature)) {
         const feature = scannedFeature.resolve(this);

@@ -20,7 +20,8 @@ import {Scanner} from './scanner';
 export async function scan<N, V, D extends ParsedDocument<N, V>>(
     parsedDocument: D,
     scanners: Scanner<D, N, V>[],
-    scannedDocument?: ScannedDocument): Promise<ScannedFeature[]> {
+    scannedDocument?: ScannedDocument,
+    languageAnalysis?: any): Promise<ScannedFeature[]> {
   // Scanners register a visitor to run via the `visit` callback passed to
   // `scan()`. We run these visitors in a batch, then pass control back
   // to the `scan()` methods by resolving a single Promise return for
@@ -79,7 +80,8 @@ export async function scan<N, V, D extends ParsedDocument<N, V>>(
 
   // Ok, go!
   setup();
-  const scannerPromises = scanners.map((f) => f.scan(parsedDocument, visit));
+  const scannerPromises = scanners.map(
+      (f) => f.scan(parsedDocument, visit, scannedDocument, languageAnalysis));
 
   // This waits for all `scan()` calls to finish
   const nestedFeatures = await Promise.all(scannerPromises);

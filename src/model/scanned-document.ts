@@ -24,7 +24,7 @@ import {SourceRange} from './source-range';
 export class ScannedDocument {
   _parsedDocument?: ParsedDocument<any, any>;
   _scannedDocument?: ScannedDocument;
-  features: ScannedFeature[];
+  _features: ScannedFeature[];
   isInline = false;
   sourceRange: SourceRange|undefined = undefined;  // TODO(rictic): track this
   warnings: Warning[];
@@ -37,9 +37,18 @@ export class ScannedDocument {
     } else {
       this._parsedDocument = document;
     }
-    this.features = features;
+    this._features = features;
     this.warnings = warnings || [];
     this.isInline = document.isInline;
+  }
+
+  get features(): ScannedFeature[] {
+    let features: ScannedFeature[] = [];
+    if (this._scannedDocument) {
+      features = features.concat(this._scannedDocument.features);
+    }
+    features = features.concat(this._features);
+    return features;
   }
 
   get parsedDocument() {
@@ -61,9 +70,9 @@ export class ScannedDocument {
   }
 
   private _getNestedFeatures(features: ScannedFeature[]): void {
-    if (this._scannedDocument) {
-      this._scannedDocument._getNestedFeatures(features);
-    }
+    // if (this._scannedDocument) {
+    //   this._scannedDocument._getNestedFeatures(features);
+    // }
     for (const feature of this.features) {
       // Ad hoc test needed here to avoid a problematic import loop.
       if (feature.constructor.name === 'ScannedDocument' &&

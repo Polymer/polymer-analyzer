@@ -81,7 +81,7 @@ export class AnalysisContext {
   private _loader: UrlLoader;
   private _resolver: UrlResolver|undefined;
 
-  private _cache = new AnalysisCache();
+  _cache = new AnalysisCache();
 
   private _telemetryTracker = new TelemetryTracker();
   private _generation = 0;
@@ -161,12 +161,43 @@ export class AnalysisContext {
    */
   async analyze(url: string, contents?: string): Promise<Document> {
     const resolvedUrl = this.resolveUrl(url);
+    console.log('analyze', url);
     return this._cache.analyzedDocumentPromises.getOrCompute(
         resolvedUrl, async() => {
           const doneTiming =
               this._telemetryTracker.start('analyze: make document', url);
-          const scannedDocument = await this.prescan(resolvedUrl, contents);
-          const document = this._getDocument(scannedDocument.url);
+          let scannedDocument = await this.prescan(resolvedUrl, contents);
+          console.log('prescanned features', scannedDocument.features);
+
+          const cachedResult = this._cache.analyzedDocuments.get(resolvedUrl);
+          if (cachedResult) {
+            return cachedResult;
+          }
+
+          // TODO: request analysis of dependencies here?
+
+          const extension = path.extname(resolvedUrl).substring(1);
+          const languageAnalyzer = this._languageAnalyzers.get(extension);
+          let analysisResult: any;
+          if (languageAnalyzer) {
+            analysisResult = languageAnalyzer.analyze(scannedDocument.url);
+          }
+
+          const scanners = this._scanners.get(extension);
+          if (scanners) {
+            const features = await scan(
+                scannedDocument.parsedDocument,
+                scanners,
+                scannedDocument,
+                analysisResult);
+            scannedDocument = new ScannedDocument(scannedDocument, features);
+          }
+          const document = new Document(scannedDocument, this, analysisResult);
+          this._cache.analyzedDocuments.set(resolvedUrl, document);
+          this._cache.analyzedDocumentPromises.getOrCompute(
+              resolvedUrl, async() => document);
+
+          document.resolve();
           doneTiming();
           return document;
         });
@@ -234,33 +265,11 @@ export class AnalysisContext {
    */
   _getDocument(url: string): Document|undefined {
     const resolvedUrl = this.resolveUrl(url);
-    const cachedResult = this._cache.analyzedDocuments.get(resolvedUrl);
-    if (cachedResult) {
-      return cachedResult;
+    const cachedDocument = this._cache.analyzedDocuments.get(resolvedUrl);
+    if (cachedDocument) {
+      return cachedDocument;
     }
-    const prescannedDocument = this._cache.scannedDocuments.get(resolvedUrl);
-    if (!prescannedDocument) {
-      return;
-    }
-
-    const extension = path.extname(resolvedUrl).substring(1);
-    const languageAnalyzer = this._languageAnalyzers.get(extension);
-    let analysisResult: any;
-    if (languageAnalyzer) {
-      analysisResult = languageAnalyzer.analyze(prescannedDocument.url);
-    }
-
-    const scanners = this._scanners.get(extension);
-    if (scanners) {
-    }
-
-    const document = new Document(prescannedDocument, this, analysisResult);
-    this._cache.analyzedDocuments.set(resolvedUrl, document);
-    this._cache.analyzedDocumentPromises.getOrCompute(
-        resolvedUrl, async() => document);
-
-    document.resolve();
-    return document;
+    console.warn(`No analyzed document found for url ${url}`);
   }
 
   /**
@@ -424,10 +433,11 @@ export class AnalysisContext {
   async _getPrescannedFeatures(document: ParsedDocument<any, any>):
       Promise<ScannedFeature[]> {
     const scanners = this._prescanners.get(document.type);
+    let features: ScannedFeature[] = [];
     if (scanners) {
-      return scan(document, scanners);
+      features = await scan(document, scanners);
     }
-    return [];
+    return features;
   }
 
   private async _prescanInlineDocuments(containingDocument: ScannedDocument) {

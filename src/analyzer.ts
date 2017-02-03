@@ -49,7 +49,7 @@ export type LazyEdgeMap = Map<string, string[]>;
  * which do the actual work of understanding different file types.
  */
 export class Analyzer {
-  private _context: AnalysisContext;
+  _context: AnalysisContext;
   constructor(options: Options) {
     this._context = new AnalysisContext(options);
   }

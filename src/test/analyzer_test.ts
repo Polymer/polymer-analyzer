@@ -58,16 +58,18 @@ suite('Analyzer', () => {
       urlLoader: new FSUrlLoader(__dirname),
       urlResolver: new TestUrlResolver(),
     });
-    analysisContext = analysisContext;
+    analysisContext = analyzer._context;
   });
 
   suite('analyze()', () => {
 
-    test(
+    test.only(
         'analyzes a document with an inline Polymer element feature',
         async() => {
           const document = await analyzer.analyze(
               'static/analysis/simple/simple-element.html');
+          console.log(
+              'analyzedDocuments', analyzer._context._cache.analyzedDocuments);
           const elements = Array.from(document.getByKind('element'));
           assert.deepEqual(elements.map(e => e.tagName), ['simple-element']);
         });
