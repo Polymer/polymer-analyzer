@@ -28,18 +28,15 @@ function literalToValue(literal: estree.Literal): LiteralValue {
  */
 function unaryToValue(unary: estree.UnaryExpression): LiteralValue {
   const operand = expressionToValue(unary.argument);
-  if (operand === null || operand === undefined) {
-    return operand;
-  }
   switch (unary.operator) {
     case '!':
-      return !operand;
+      return !(operand as any);
     case '-':
-      return -operand;
+      return -(operand as any);
     case '+':
-      return +operand;
+      return +(operand as any);
     case '~':
-      return ~operand;
+      return ~(operand as any);
     case 'typeof':
       return typeof operand;
     case 'void':
