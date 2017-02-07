@@ -96,7 +96,7 @@ class AnalyzerCompilerHost implements ts.CompilerHost {
       const scannedDocument = this.context._getScannedDocument(fileName);
       if (scannedDocument != null) {
         const typescriptDocument =
-            scannedDocument.document as ParsedTypeScriptDocument;
+            scannedDocument.parsedDocument as ParsedTypeScriptDocument;
         return typescriptDocument.ast as ts.SourceFile;
       }
       if (onError) {
@@ -156,7 +156,8 @@ class AnalyzerCompilerHost implements ts.CompilerHost {
       return fs.readFileSync(libPath, {encoding: 'utf-8'});
     }
     const document = this.context._getScannedDocument(resolvedUrl);
-    return (document) ? document.document.contents : null as any as string;
+    return (document) ? document.parsedDocument.contents :
+                        null as any as string;
   }
 
   resolveModuleNames(moduleNames: string[], containingFile: string):

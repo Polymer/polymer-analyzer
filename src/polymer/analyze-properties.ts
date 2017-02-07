@@ -16,14 +16,14 @@ import * as estree from 'estree';
 
 import * as astValue from '../javascript/ast-value';
 import * as esutil from '../javascript/esutil';
-import {JavaScriptDocument} from '../javascript/javascript-document';
+import {ParsedJavaScriptDocument} from '../javascript/javascript-document';
 import {ScannedProperty} from '../model/model';
 import {Severity} from '../warning/warning';
 
 import {toScannedPolymerProperty} from './js-utils';
 
 export function analyzeProperties(
-    node: estree.Node, document: JavaScriptDocument) {
+    node: estree.Node, document: ParsedJavaScriptDocument) {
   const analyzedProps: ScannedProperty[] = [];
 
   if (node.type !== 'ObjectExpression') {

@@ -64,6 +64,7 @@ export class ScannedInlineDocument implements ScannedFeature, Resolvable {
   }
 
   resolve(document: Document): Document|undefined {
+    console.log('ScannedInlineDocument.resolve', this.sourceRange);
     if (!this.scannedDocument) {
       // Parse error on the inline document.
       return;

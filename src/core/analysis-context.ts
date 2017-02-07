@@ -21,6 +21,7 @@ import {HtmlImportScanner} from '../html/html-import-scanner';
 import {HtmlParser} from '../html/html-parser';
 import {HtmlScriptScanner} from '../html/html-script-scanner';
 import {HtmlStyleScanner} from '../html/html-style-scanner';
+import {JavaScriptImportScanner} from '../javascript/javascript-import-scanner';
 import {JavaScriptParser} from '../javascript/javascript-parser';
 import {JsonParser} from '../json/json-parser';
 import {Document, InlineDocInfo, LocationOffset, Package, ScannedDocument, ScannedElement, ScannedFeature, ScannedImport, ScannedInlineDocument} from '../model/model';
@@ -35,6 +36,7 @@ import {PseudoElementScanner} from '../polymer/pseudo-element-scanner';
 import {scan} from '../scanning/scan';
 import {Scanner} from '../scanning/scanner';
 import {TypeScriptAnalyzer} from '../typescript/typescript-analyzer';
+import {TypeScriptImportScanner} from '../typescript/typescript-import-scanner';
 import {TypeScriptPreparser} from '../typescript/typescript-preparser';
 import {UrlLoader} from '../url-loader/url-loader';
 import {UrlResolver} from '../url-loader/url-resolver';
@@ -73,26 +75,53 @@ export class AnalysisContext {
   /** A map from import url to urls that document lazily depends on. */
   private _lazyEdges: LazyEdgeMap|undefined;
 
+  private _prescanners: ScannerTable;
   private _scanners: ScannerTable;
 
   private _loader: UrlLoader;
   private _resolver: UrlResolver|undefined;
 
-  private _cache = new AnalysisCache();
+  _cache = new AnalysisCache();
 
   private _telemetryTracker = new TelemetryTracker();
   private _generation = 0;
 
-  private static _getDefaultScanners(lazyEdges: LazyEdgeMap|undefined) {
+  // Prescanners let us find other documents just after parsing, including
+  // imports and inline documemts.
+  private static _getDefaultPreScanners(lazyEdges: LazyEdgeMap|undefined) {
     return new Map<string, Scanner<any, any, any>[]>([
       [
         'html',
         [
-          new HtmlImportScanner(lazyEdges),
-          new HtmlScriptScanner(),
-          new HtmlStyleScanner(),
+          new HtmlImportScanner(lazyEdges),  // <link rel="import">
+          new HtmlScriptScanner(),           // <script>
+          new HtmlStyleScanner(),  // <style> and <link rel="stylesheet">
+          new CssImportScanner(),  //<dom-module><link rel="import" type="css">
+        ]
+      ],
+      [
+        'js',
+        [
+          new JavaScriptImportScanner(),  // import from 'x';
+        ]
+      ],
+      [
+        'ts',
+        [
+          new TypeScriptImportScanner(),  // import from 'x';
+        ]
+      ]
+    ]);
+  }
+
+  // Scanners find features after a whole project has been loaded, and
+  // possibly after language analysis.
+  private static _getDefaultScanners() {
+    return new Map<string, Scanner<any, any, any>[]>([
+      [
+        'html',
+        [
           new DomModuleScanner(),
-          new CssImportScanner(),
           new HtmlCustomElementReferenceScanner(),
           new PseudoElementScanner()
         ]
@@ -113,8 +142,9 @@ export class AnalysisContext {
     this._resolver = options.urlResolver;
     this._parsers = options.parsers || this._parsers;
     this._lazyEdges = options.lazyEdges;
-    this._scanners = options.scanners ||
-        AnalysisContext._getDefaultScanners(this._lazyEdges);
+    this._prescanners = options.prescanners ||
+        AnalysisContext._getDefaultPreScanners(this._lazyEdges);
+    this._scanners = options.scanners || AnalysisContext._getDefaultScanners();
   }
 
   /**
@@ -131,12 +161,43 @@ export class AnalysisContext {
    */
   async analyze(url: string, contents?: string): Promise<Document> {
     const resolvedUrl = this.resolveUrl(url);
+    console.log('analyze', url);
     return this._cache.analyzedDocumentPromises.getOrCompute(
         resolvedUrl, async() => {
           const doneTiming =
               this._telemetryTracker.start('analyze: make document', url);
-          const scannedDocument = await this.scan(resolvedUrl, contents);
-          const document = this._getDocument(scannedDocument.url);
+          let scannedDocument = await this.prescan(resolvedUrl, contents);
+          console.log('prescanned features', scannedDocument.features);
+
+          const cachedResult = this._cache.analyzedDocuments.get(resolvedUrl);
+          if (cachedResult) {
+            return cachedResult;
+          }
+
+          // TODO: request analysis of dependencies here?
+
+          const extension = path.extname(resolvedUrl).substring(1);
+          const languageAnalyzer = this._languageAnalyzers.get(extension);
+          let analysisResult: any;
+          if (languageAnalyzer) {
+            analysisResult = languageAnalyzer.analyze(scannedDocument.url);
+          }
+
+          const scanners = this._scanners.get(extension);
+          if (scanners) {
+            const features = await scan(
+                scannedDocument.parsedDocument,
+                scanners,
+                scannedDocument,
+                analysisResult);
+            scannedDocument = new ScannedDocument(scannedDocument, features);
+          }
+          const document = new Document(scannedDocument, this, analysisResult);
+          this._cache.analyzedDocuments.set(resolvedUrl, document);
+          this._cache.analyzedDocumentPromises.getOrCompute(
+              resolvedUrl, async() => document);
+
+          document.resolve();
           doneTiming();
           return document;
         });
@@ -204,29 +265,11 @@ export class AnalysisContext {
    */
   _getDocument(url: string): Document|undefined {
     const resolvedUrl = this.resolveUrl(url);
-    const cachedResult = this._cache.analyzedDocuments.get(resolvedUrl);
-    if (cachedResult) {
-      return cachedResult;
+    const cachedDocument = this._cache.analyzedDocuments.get(resolvedUrl);
+    if (cachedDocument) {
+      return cachedDocument;
     }
-    const scannedDocument = this._cache.scannedDocuments.get(resolvedUrl);
-    if (!scannedDocument) {
-      return;
-    }
-
-    const extension = path.extname(resolvedUrl).substring(1);
-    const languageAnalyzer = this._languageAnalyzers.get(extension);
-    let analysisResult: any;
-    if (languageAnalyzer) {
-      analysisResult = languageAnalyzer.analyze(scannedDocument.url);
-    }
-
-    const document = new Document(scannedDocument, this, analysisResult);
-    this._cache.analyzedDocuments.set(resolvedUrl, document);
-    this._cache.analyzedDocumentPromises.getOrCompute(
-        resolvedUrl, async() => document);
-
-    document.resolve();
-    return document;
+    console.warn(`No analyzed document found for url ${url}`);
   }
 
   /**
@@ -281,13 +324,13 @@ export class AnalysisContext {
    * _preScan, since about the only useful things it can find are
    * imports, exports and other syntactic structures.
    */
-  private async _scanLocal(resolvedUrl: string, contents?: string):
+  private async _prescanLocal(resolvedUrl: string, contents?: string):
       Promise<ScannedDocument> {
     return this._cache.scannedDocumentPromises.getOrCompute(
         resolvedUrl, async() => {
           try {
             const parsedDoc = await this._parse(resolvedUrl, contents);
-            const scannedDocument = await this._scanDocument(parsedDoc);
+            const scannedDocument = await this._prescanDocument(parsedDoc);
 
             // Find all non-lazy imports
             // TODO(justinfagnani): I think we should scan lazily imported
@@ -313,10 +356,12 @@ export class AnalysisContext {
   /**
    * Scan a toplevel document and all of its transitive dependencies.
    */
-  async scan(resolvedUrl: string, contents?: string): Promise<ScannedDocument> {
+  async prescan(resolvedUrl: string, contents?: string):
+      Promise<ScannedDocument> {
     return this._cache.dependenciesScannedPromises.getOrCompute(
         resolvedUrl, async() => {
-          const scannedDocument = await this._scanLocal(resolvedUrl, contents);
+          const scannedDocument =
+              await this._prescanLocal(resolvedUrl, contents);
           // Find all non-lazy imports
           // TODO(justinfagnani): I think we should scan lazily imported
           // documents since we know about them, we should load them. Their
@@ -333,7 +378,7 @@ export class AnalysisContext {
             // avoid deadlock in the case of cycles. Later we use the
             // DependencyGraph
             // to wait for all transitive dependencies to load.
-            this.scan(importUrl).catch((error) => {
+            this.prescan(importUrl).catch((error) => {
               if (error instanceof NoKnownParserError) {
                 // We probably don't want to fail when importing something
                 // that we don't know about here.
@@ -358,11 +403,11 @@ export class AnalysisContext {
   /**
    * Scans a ParsedDocument.
    */
-  private async _scanDocument(
+  private async _prescanDocument(
       document: ParsedDocument<any, any>,
       maybeAttachedComment?: string): Promise<ScannedDocument> {
     const warnings: Warning[] = [];
-    const scannedFeatures = await this._getScannedFeatures(document);
+    const scannedFeatures = await this._getPrescannedFeatures(document);
     // If there's an HTML comment that applies to this document then we assume
     // that it applies to the first feature.
     const firstScannedFeature = scannedFeatures[0];
@@ -380,20 +425,22 @@ export class AnalysisContext {
       }
       this._cache.scannedDocuments.set(scannedDocument.url, scannedDocument);
     }
-    await this._scanInlineDocuments(scannedDocument);
+    await this._prescanInlineDocuments(scannedDocument);
     return scannedDocument;
   }
 
-  private async _getScannedFeatures(document: ParsedDocument<any, any>):
+  // visible for testing
+  async _getPrescannedFeatures(document: ParsedDocument<any, any>):
       Promise<ScannedFeature[]> {
-    const scanners = this._scanners.get(document.type);
+    const scanners = this._prescanners.get(document.type);
+    let features: ScannedFeature[] = [];
     if (scanners) {
-      return scan(document, scanners);
+      features = await scan(document, scanners);
     }
-    return [];
+    return features;
   }
 
-  private async _scanInlineDocuments(containingDocument: ScannedDocument) {
+  private async _prescanInlineDocuments(containingDocument: ScannedDocument) {
     for (const feature of containingDocument.features) {
       if (!(feature instanceof ScannedInlineDocument)) {
         continue;
@@ -410,7 +457,7 @@ export class AnalysisContext {
             containingDocument.url,
             {locationOffset, astNode: feature.astNode});
         const scannedDoc =
-            await this._scanDocument(parsedDoc, feature.attachedComment);
+            await this._prescanDocument(parsedDoc, feature.attachedComment);
 
         feature.scannedDocument = scannedDoc;
       } catch (err) {

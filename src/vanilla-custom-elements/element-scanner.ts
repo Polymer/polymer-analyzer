@@ -17,7 +17,7 @@ import * as estree from 'estree';
 import * as astValue from '../javascript/ast-value';
 import {Visitor} from '../javascript/estree-visitor';
 import * as esutil from '../javascript/esutil';
-import {JavaScriptDocument} from '../javascript/javascript-document';
+import {ParsedJavaScriptDocument} from '../javascript/javascript-document';
 import {JavaScriptScanner} from '../javascript/javascript-scanner';
 import * as jsdoc from '../javascript/jsdoc';
 import {ScannedElement, ScannedFeature} from '../model/model';
@@ -30,7 +30,7 @@ export interface ScannedAttribute extends ScannedFeature {
 
 export class ElementScanner implements JavaScriptScanner {
   async scan(
-      document: JavaScriptDocument,
+      document: ParsedJavaScriptDocument,
       visit: (visitor: Visitor) => Promise<void>): Promise<ScannedElement[]> {
     const visitor = new ElementVisitor(document);
     await visit(visitor);
@@ -42,9 +42,9 @@ class ElementVisitor implements Visitor {
   private _possibleElements = new Map<string, ScannedElement>();
   private _registeredButNotFound = new Map<string, string>();
   private _elements: ScannedElement[] = [];
-  private _document: JavaScriptDocument;
+  private _document: ParsedJavaScriptDocument;
 
-  constructor(document: JavaScriptDocument) {
+  constructor(document: ParsedJavaScriptDocument) {
     this._document = document;
   }
 

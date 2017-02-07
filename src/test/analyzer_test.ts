@@ -21,11 +21,12 @@ import * as path from 'path';
 import * as shady from 'shady-css-parser';
 
 import {Analyzer} from '../analyzer';
+import {AnalysisContext} from '../core/analysis-context';
 import {ParsedCssDocument} from '../css/css-document';
 import {ParsedHtmlDocument} from '../html/html-document';
 import {HtmlParser} from '../html/html-parser';
 import {ScriptTagImport} from '../html/html-script-tag';
-import {JavaScriptDocument} from '../javascript/javascript-document';
+import {ParsedJavaScriptDocument} from '../javascript/javascript-document';
 import {Document, Import, ScannedImport, ScannedInlineDocument} from '../model/model';
 import {FSUrlLoader} from '../url-loader/fs-url-loader';
 import {UrlLoader} from '../url-loader/url-loader';
@@ -50,21 +51,25 @@ class TestUrlResolver implements UrlResolver {
 
 suite('Analyzer', () => {
   let analyzer: Analyzer;
+  let analysisContext: AnalysisContext;
 
   setup(() => {
     analyzer = new Analyzer({
       urlLoader: new FSUrlLoader(__dirname),
       urlResolver: new TestUrlResolver(),
     });
+    analysisContext = analyzer._context;
   });
 
   suite('analyze()', () => {
 
-    test(
+    test.only(
         'analyzes a document with an inline Polymer element feature',
         async() => {
           const document = await analyzer.analyze(
               'static/analysis/simple/simple-element.html');
+          console.log(
+              'analyzedDocuments', analyzer._context._cache.analyzedDocuments);
           const elements = Array.from(document.getByKind('element'));
           assert.deepEqual(elements.map(e => e.tagName), ['simple-element']);
         });
@@ -388,20 +393,19 @@ suite('Analyzer', () => {
 
     test('loads and parses an HTML document', async() => {
       const doc =
-          await analyzer['_context']['_parse']('static/html-parse-target.html');
+          await analysisContext['_parse']('static/html-parse-target.html');
       assert.instanceOf(doc, ParsedHtmlDocument);
       assert.equal(doc.url, 'static/html-parse-target.html');
     });
 
     test('loads and parses a JavaScript document', async() => {
-      const doc = await analyzer['_context']['_parse']('static/js-elements.js');
-      assert.instanceOf(doc, JavaScriptDocument);
+      const doc = await analysisContext['_parse']('static/js-elements.js');
+      assert.instanceOf(doc, ParsedJavaScriptDocument);
       assert.equal(doc.url, 'static/js-elements.js');
     });
 
     test('returns a Promise that rejects for non-existant files', async() => {
-      await assert.isRejected(
-          analyzer['_context']['_parse']('static/not-found'));
+      await assert.isRejected(analysisContext['_parse']('static/not-found'));
     });
   });
 
@@ -414,7 +418,7 @@ suite('Analyzer', () => {
         </head></html>`;
       const document = new HtmlParser().parse(contents, 'test.html');
       const features = <ScannedImport[]>(
-          await analyzer['_context']['_getScannedFeatures'](document));
+          await analysisContext._getPrescannedFeatures(document));
       assert.deepEqual(
           features.map(e => e.type),
           ['html-import', 'html-script', 'html-style']);
@@ -435,7 +439,7 @@ suite('Analyzer', () => {
       const document = new HtmlParser().parse(contents, 'test.html');
       const features =
           <ScannedImport[]>(
-              await analyzer['_context']['_getScannedFeatures'](document))
+              await analysisContext._getPrescannedFeatures(document))
               .filter(e => e instanceof ScannedImport);
       assert.equal(features.length, 1);
       assert.equal(features[0].type, 'css-import');
@@ -449,7 +453,7 @@ suite('Analyzer', () => {
         </head></html>`;
       const document = new HtmlParser().parse(contents, 'test.html');
       const features = <ScannedInlineDocument[]>(
-          await analyzer['_context']['_getScannedFeatures'](document));
+          await analysisContext._getPrescannedFeatures(document));
 
       assert.equal(features.length, 2);
       assert.instanceOf(features[0], ScannedInlineDocument);
@@ -491,7 +495,7 @@ suite('Analyzer', () => {
       const jsDocs = document.getByKind('js-document') as Set<Document>;
       assert.equal(1, jsDocs.size);
       const jsDoc = jsDocs.values().next().value;
-      (jsDoc.parsedDocument as JavaScriptDocument).visit([{
+      (jsDoc.parsedDocument as ParsedJavaScriptDocument).visit([{
         enterCallExpression(node: estree.CallExpression) {
           node.arguments =
               [{type: 'Literal', value: 'bar', raw: 'bar'}] as estree.Literal[];
@@ -619,7 +623,7 @@ suite('Analyzer', () => {
             analyzer.analyze(path, contents);
             if (Math.random() > 0.5) {
               const p = analyzer.analyze(path, contents);
-              const cacheContext = analyzer['_context'];
+              const cacheContext = analysisContext;
               intermediatePromises.push((async() => {
                 await p;
                 const docs = Array.from(

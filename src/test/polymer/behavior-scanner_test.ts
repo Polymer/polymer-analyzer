@@ -19,14 +19,14 @@ import * as path from 'path';
 
 
 import {Visitor} from '../../javascript/estree-visitor';
-import {JavaScriptDocument} from '../../javascript/javascript-document';
+import {ParsedJavaScriptDocument} from '../../javascript/javascript-document';
 import {JavaScriptParser} from '../../javascript/javascript-parser';
 import {ScannedBehavior, ScannedBehaviorAssignment} from '../../polymer/behavior';
 import {BehaviorScanner} from '../../polymer/behavior-scanner';
 
 suite('BehaviorScanner', () => {
 
-  let document: JavaScriptDocument;
+  let document: ParsedJavaScriptDocument;
   let behaviors: Map<string, ScannedBehavior>;
   let behaviorsList: ScannedBehavior[];
 

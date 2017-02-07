@@ -13,7 +13,7 @@
  */
 
 import {Analyzer} from '../analyzer';
-import {ScannedFeature} from '../model/model';
+import {ScannedDocument, ScannedFeature} from '../model/model';
 import {ParsedDocument} from '../parser/document';
 
 /**
@@ -25,8 +25,10 @@ import {ParsedDocument} from '../parser/document';
  * @template V the visitor type
  */
 export interface Scanner<D extends ParsedDocument<A, V>, A, V> {
-  scan(document: D, visit: (visitor: V) => Promise<void>):
-      Promise<ScannedFeature[]>;
+  scan(
+      parsedDocument: D, visit: (visitor: V) => Promise<void>,
+      scannedDocument?: ScannedDocument,
+      languageAnalysis?: any): Promise<ScannedFeature[]>;
 }
 
 export interface ScannerConstructor {
