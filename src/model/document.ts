@@ -224,10 +224,8 @@ export class Document implements Feature, Queryable {
       // We have a fast index! Use that.
       const features = this._featuresByKind.get(kind) || new Set();
       if (!options.externalPackages) {
-        console.log('filtering out external packages');
         return this._filterOutExternal(features);
       }
-      console.log('not filtering them');
       return features;
     } else if (this._doneResolving && options.imported) {
       // We're done discovering features in this document and its children so
