@@ -21,8 +21,11 @@ export type QueryOptions = object & {
   /**
    * If true then results will include features from outside the package, e.g.
    * from files in bower_components or node_modules directories.
+   *
+   * Note that even with this option you'll only get results from external files
+   * that are referenced from within the package.
    */
-  includeExternalCode?: boolean;
+  externalPackages?: boolean;
 };
 
 // A regexp that matches paths to external code.
@@ -135,7 +138,7 @@ export class Package implements Queryable {
 
   private _filter<FW extends Feature|Warning>(
       features: Iterable<FW>, options: QueryOptions): Set<FW> {
-    if (options.includeExternalCode) {
+    if (options.externalPackages) {
       return new Set(features);
     }
     const results = new Set();

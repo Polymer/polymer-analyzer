@@ -580,7 +580,7 @@ suite('Analyzer', () => {
       // bower_components directory that are reachable from imports in the
       // package.
       assert.deepEqual(
-          Array.from(pckage.getByKind('element', {includeExternalCode: true}))
+          Array.from(pckage.getByKind('element', {externalPackages: true}))
               .map((e) => e.tagName)
               .sort(),
           packageElements.concat(['imported-dependency']).sort());
