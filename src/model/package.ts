@@ -13,20 +13,11 @@
  */
 import {Warning} from '../warning/warning';
 
-import {Document, FeatureKinds} from './document';
+import {Document, FeatureKinds, QueryOptions as DocumentQueryOptions} from './document';
 import {Feature} from './feature';
-import {Queryable} from './queryable';
+import {BaseQueryOptions, Queryable} from './queryable';
 
-export type QueryOptions = object & {
-  /**
-   * If true then results will include features from outside the package, e.g.
-   * from files in bower_components or node_modules directories.
-   *
-   * Note that even with this option you'll only get results from external files
-   * that are referenced from within the package.
-   */
-  externalPackages?: boolean;
-};
+export type QueryOptions = object & BaseQueryOptions;
 
 // A regexp that matches paths to external code.
 // TODO(rictic): Make this extensible (polymer.json?).
@@ -72,11 +63,11 @@ export class Package implements Queryable {
   getByKind(kind: string, options?: QueryOptions): Set<Feature>;
   getByKind(kind: string, options?: QueryOptions): Set<Feature> {
     const result = new Set();
-    const docQueryOptions = {imported: true};
+    const docQueryOptions = this._getDocumentQueryOptions(options);
     for (const doc of this._documents) {
       addAll(result, doc.getByKind(kind, docQueryOptions));
     }
-    return this._filter(result, options || {});
+    return result;
   }
 
   getById<K extends keyof FeatureKinds>(
@@ -87,11 +78,11 @@ export class Package implements Queryable {
   getById(kind: string, identifier: string, options?: QueryOptions):
       Set<Feature> {
     const result = new Set();
-    const docQueryOptions = {imported: true};
+    const docQueryOptions = this._getDocumentQueryOptions(options);
     for (const doc of this._documents) {
       addAll(result, doc.getById(kind, identifier, docQueryOptions));
     }
-    return this._filter(result, options || {});
+    return result;
   }
 
   getOnlyAtId<K extends keyof FeatureKinds>(
@@ -101,14 +92,13 @@ export class Package implements Queryable {
       |undefined;
   getOnlyAtId(kind: string, identifier: string, options?: QueryOptions): Feature
       |undefined {
-    const results = this.getById(kind, identifier);
+    const results = this.getById(kind, identifier, options);
     if (results.size > 1) {
       throw new Error(
           `Expected to find at most one ${kind} with id ${identifier} ` +
           `but found ${results.size}.`);
     };
-    return this._filter(results, options || {}).values().next().value ||
-        undefined;
+    return results.values().next().value || undefined;
   }
 
   /**
@@ -116,11 +106,11 @@ export class Package implements Queryable {
    */
   getFeatures(options?: QueryOptions): Set<Feature> {
     const result = new Set();
-    const docQueryOptions = {imported: true};
+    const docQueryOptions = this._getDocumentQueryOptions(options);
     for (const doc of this._documents) {
       addAll(result, doc.getFeatures(docQueryOptions));
     }
-    return this._filter(result, options || {});
+    return result;
   }
 
   /**
@@ -128,31 +118,20 @@ export class Package implements Queryable {
    */
   getWarnings(options?: QueryOptions): Warning[] {
     const result = new Set(this._toplevelWarnings);
-    const docQueryOptions = {imported: true};
+    const docQueryOptions = this._getDocumentQueryOptions(options);
     for (const doc of this._documents) {
       addAll(result, new Set(doc.getWarnings(docQueryOptions)));
     }
 
-    return Array.from(this._filter(result, options || {}));
+    return Array.from(result);
   }
 
-  private _filter<FW extends Feature|Warning>(
-      features: Iterable<FW>, options: QueryOptions): Set<FW> {
-    if (options.externalPackages) {
-      return new Set(features);
-    }
-    const results = new Set();
-    for (const feature of features) {
-      if (!feature.sourceRange) {
-        // Include features without source ranges indiscriminately.
-        results.add(feature);
-      } else {
-        if (!Package.isExternal(feature.sourceRange.file)) {
-          results.add(feature);
-        }
-      }
-    }
-    return results;
+  private _getDocumentQueryOptions(options?: QueryOptions):
+      DocumentQueryOptions {
+    return {
+      imported: true,
+      externalPackages: !!(options && options.externalPackages)
+    };
   }
 }
 
