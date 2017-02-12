@@ -53,7 +53,9 @@ suite('BehaviorScanner', () => {
       'SimpleBehavior',
       'AwesomeBehavior',
       'Really.Really.Deep.Behavior',
-      'CustomBehaviorList'
+      'CustomBehaviorList',
+      'UnhoistedGeneratedBehaviorBefore',
+      'UnhoistedGeneratedBehaviorAfter'
     ].sort());
   });
 
@@ -100,6 +102,17 @@ suite('BehaviorScanner', () => {
     assert.deepEqual(
         deepChainedBehaviors.map((b: ScannedBehaviorAssignment) => b.name),
         ['Do.Re.Mi.Fa']);
+  });
+
+  test('Supports function calls', function() {
+    assert(behaviors.has('UnhoistedGeneratedBehaviorBefore'));
+    assert(behaviors.has('UnhoistedGeneratedBehaviorAfter'));
+    ['Before', 'After'].forEach((name) => {
+      const behavior = behaviors.get(`UnhoistedGeneratedBehavior${name}`)!;
+      assert.equal(behavior.properties.length, 1);
+      assert.equal(behavior.properties[0].name, 'generatedBy');
+      assert.equal(behavior.properties[0].default, '"unhoistedGenerateBehavior"');
+    });
   });
 
 });

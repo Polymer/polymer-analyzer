@@ -22,3 +22,35 @@ Really.Really.Deep.Behavior = [
 */
 CustomBehaviorList =
     [SimpleBehavior, CustomNamedBehavior, Really.Really.Deep.Behavior];
+
+function unhoistedGenerateBehaviorBefore() {
+  return {
+    properties: {
+      generatedBy: {
+        value: 'unhoistedGenerateBehavior'
+      }
+    }
+  };
+}
+
+/**
+ * Call to a function declared before
+ * @polymerBehavior
+*/
+var UnhoistedGeneratedBehaviorBefore = unhoistedGenerateBehaviorBefore();
+
+/**
+* Call to a function declared after
+* @polymerBehavior
+*/
+var UnhoistedGeneratedBehaviorAfter = unhoistedGenerateBehaviorAfter();
+
+function unhoistedGenerateBehaviorAfter() {
+  return {
+    properties: {
+      generatedBy: {
+        value: 'unhoistedGenerateBehavior'
+      }
+    }
+  };
+}

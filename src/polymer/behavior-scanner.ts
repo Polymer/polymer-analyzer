@@ -59,9 +59,17 @@ export class BehaviorScanner implements JavaScriptScanner {
   }
 }
 
+interface ScannedBehaviorCallAssignment extends ScannedBehaviorAssignment {
+  node: estree.Node;
+}
+
 class BehaviorVisitor implements Visitor {
   /** The behaviors we've found. */
   behaviors = new Set<ScannedBehavior>();
+  /** Behaviors that are function calls we are still looking for */
+  _behaviorFunctionCalls = new Map<String, ScannedBehaviorCallAssignment>();
+  /** Behaviors that are function calls after declaration */
+  _behaviorFunctionDeclarations = new Map<String, estree.ObjectExpression>();
 
   currentBehavior: ScannedBehavior|null = null;
   propertyHandlers: PropertyHandlers|null = null;
@@ -91,6 +99,49 @@ class BehaviorVisitor implements Visitor {
   enterAssignmentExpression(
       node: estree.AssignmentExpression, parent: estree.Node) {
     this._initBehavior(parent, () => esutil.objectKeyToString(node.left)!);
+  }
+
+  enterFunctionDeclaration(
+      node: estree.FunctionDeclaration, _parent: estree.Node) {
+    const statements = node.body.body;
+    const returnStatement = statements[statements.length - 1];
+    if (returnStatement.type !== 'ReturnStatement' ||
+        !returnStatement.argument ||
+        returnStatement.argument.type !== 'ObjectExpression') {
+      return;
+    }
+
+    // Function is declared after the call was made
+    if (this._behaviorFunctionCalls.has(node.id.name)) {
+      const assignment = this._behaviorFunctionCalls.get(node.id.name)!;
+      this._initBehavior(assignment.node, () => node.id.name);
+      this.enterObjectExpression(returnStatement.argument, _parent);
+      this._behaviorFunctionCalls.delete(node.id.name);
+    } else {
+      this._behaviorFunctionDeclarations.set(
+          node.id.name, returnStatement.argument);
+    }
+  }
+
+  enterCallExpression(node: estree.CallExpression, _parent: estree.Node) {
+    if (node.callee.type === 'Identifier') {
+      const callee: estree.Identifier = node.callee;
+
+      // Function is declared before the call was made
+      if (this._behaviorFunctionDeclarations.has(callee.name)) {
+        const declaration =
+            this._behaviorFunctionDeclarations.get(callee.name)!;
+        this._initBehavior(node, () => callee.name);
+        this.enterObjectExpression(declaration, _parent);
+        this._behaviorFunctionDeclarations.delete(callee.name);
+      } else {
+        this._behaviorFunctionCalls.set(callee.name, {
+          node: node,
+          name: callee.name,
+          sourceRange: this.document.sourceRangeForNode(node)!
+        });
+      }
+    }
   }
 
   /**
