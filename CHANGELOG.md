@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
    this comment.
 -->
 
+### Fixed
+
+* Fixed basic scanning of behaviors as direct function calls
+
 ## [2.0.0-alpha.23] - 2017-02-10
 
 ### Added
