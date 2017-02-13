@@ -32,8 +32,10 @@ export class PolymerElementScanner implements JavaScriptScanner {
       document: ParsedJavaScriptDocument,
       visit: (visitor: Visitor) => Promise<void>):
       Promise<ScannedPolymerElement[]> {
+    console.log('PolymerElementScanner.scan');
     const visitor = new ElementVisitor(document);
     await visit(visitor);
+    console.log(' PolymerElementScanner.scan', visitor.features);
     return visitor.features;
   }
 }

@@ -63,25 +63,27 @@ export class ScannedInlineDocument implements ScannedFeature, Resolvable {
     this.astNode = ast;
   }
 
-  resolve(document: Document): Document|undefined {
+  resolve(_document: Document): undefined {
     console.log('ScannedInlineDocument.resolve', this.sourceRange);
-    if (!this.scannedDocument) {
-      // Parse error on the inline document.
-      return;
-    }
-    const inlineDocument = new InlineDocument(this.scannedDocument, document);
-    inlineDocument.resolve();
-    return inlineDocument;
+    // if (!this.scannedDocument) {
+    //   // Parse error on the inline document.
+    //   return;
+    // }
+    // const inlineDocument = new InlineDocument(this.scannedDocument,
+    // document);
+    // inlineDocument.resolve();
+    // return inlineDocument;
+    return undefined;
   }
 }
 
-export class InlineDocument extends Document {
-  constructor(base: ScannedDocument, containerDocument: Document) {
-    super(base, containerDocument.analyzer);
-    this.kinds.add('inline-document');
-    this._addFeature(containerDocument);
-  }
-}
+// export class InlineDocument extends Document {
+//   constructor(base: ScannedDocument, containerDocument: Document) {
+//     super(base, containerDocument.analyzer);
+//     this.kinds.add('inline-document');
+//     this._addFeature(containerDocument);
+//   }
+// }
 
 export function getAttachedCommentText(node: ASTNode): string|undefined {
   // When the element is defined in a document fragment with a structure of

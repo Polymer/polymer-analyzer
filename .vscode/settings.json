@@ -3,6 +3,7 @@
   "clang-format.style": "file",
   "editor.formatOnSave": true,
   "editor.formatOnType": true,
+  "clang-format.executable": "${workspaceRoot}/node_modules/.bin/clang-format",
   "search.exclude": {
     "node_modules/": true,
     "lib/": true

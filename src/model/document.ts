@@ -17,6 +17,7 @@ import {ParsedDocument} from '../parser/document';
 import {Warning} from '../warning/warning';
 
 import {Feature} from './feature';
+import {ScannedFeature} from './feature';
 import {FeatureKinds} from './feature-kinds';
 import {Import} from './import';
 import {Queryable} from './queryable';
@@ -33,6 +34,7 @@ export class Document implements Feature, Queryable {
   analyzer: AnalysisContext;
   warnings: Warning[];
   languageAnalysis?: any;
+  scannedFeatures: ScannedFeature[];
 
   private _localFeatures = new Set<Feature>();
   private _scannedDocument: ScannedDocument;
@@ -53,8 +55,8 @@ export class Document implements Feature, Queryable {
   private _doneResolving = false;
 
   constructor(
-      base: ScannedDocument, analyzer: AnalysisContext,
-      languageAnalysis?: any) {
+      base: ScannedDocument, analyzer: AnalysisContext, languageAnalysis: any,
+      scannedFeatures: ScannedFeature[]) {
     if (base == null) {
       throw new Error('base is null');
     }
@@ -64,6 +66,7 @@ export class Document implements Feature, Queryable {
     this._scannedDocument = base;
     this.analyzer = analyzer;
     this.languageAnalysis = languageAnalysis;
+    this.scannedFeatures = scannedFeatures;
 
     if (!base.isInline) {
       this.identifiers.add(this.url);
@@ -113,11 +116,15 @@ export class Document implements Feature, Queryable {
     }
     this._begunResolving = true;
     this._addFeature(this);
-    console.log(
-        '  this._scannedDocument.features', this._scannedDocument.features);
-    for (const scannedFeature of this._scannedDocument.features) {
+    // console.log(
+    //     '  this._scannedDocument.features', this._scannedDocument.features);
+    // console.log('  features', this.scannedFeatures);
+    for (const scannedFeature of this.scannedFeatures) {
+      console.log('  feature', scannedFeature);
       if (isResolvable(scannedFeature)) {
+        console.log('    isResolvable');
         const feature = scannedFeature.resolve(this);
+        console.log('    resolved feature', feature);
         if (feature) {
           this._addFeature(feature);
         }
@@ -127,7 +134,7 @@ export class Document implements Feature, Queryable {
   }
 
   /**
-   * Adds and indexes a feature to this documentled before resolve().
+   * Adds and indexes a feature to this document before resolve().
    */
   _addFeature(feature: Feature) {
     if (this._doneResolving) {

@@ -34,11 +34,10 @@ export class ScannedScriptTagImport extends ScannedImport {
     // producing document objects. This will fit better with JS modules, where
     // the type attribute drives how the document is parsed.
 
-    const scannedDocument = document.analyzer._getScannedDocument(this.url);
-    if (scannedDocument) {
-      const importedDocument = new Document(scannedDocument, document.analyzer);
-      importedDocument._addFeature(document);
-      importedDocument.resolve();
+    const importedDocument = document.analyzer.getDocument(this.url);
+    if (importedDocument instanceof Document) {
+      // importedDocument._addFeature(document);
+      // importedDocument.resolve();
       return new ScriptTagImport(
           this.url,
           this.type,
@@ -48,8 +47,7 @@ export class ScannedScriptTagImport extends ScannedImport {
           this.astNode,
           this.warnings);
     } else {
-      // not found or syntax error
-      return undefined;
+      console.warn('could not find import for', this.url);
     }
   }
 }

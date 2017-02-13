@@ -20,18 +20,20 @@ import {TypeScriptAnalyzer} from '../../typescript/typescript-analyzer';
 import {PackageUrlResolver} from '../../url-loader/package-url-resolver';
 import {TestUrlLoader} from '../test-utils';
 
-async function getTypeScriptAnalyzer(files: {[url: string]: string}) {
-  const urlLoader = new TestUrlLoader(files);
-  const urlResolver = new PackageUrlResolver();
-  const analysisContext = new AnalysisContext({urlLoader, urlResolver});
-  // This puts documents into the scanned document cache
-  await Promise.all(
-      Object.keys(files).map((url) => analysisContext.prescan(url)));
-  return new TypeScriptAnalyzer(analysisContext);
-}
-
 suite('TypeScriptParser', () => {
   suite('parse()', () => {
+
+    let analysisContext: AnalysisContext;
+
+    async function getTypeScriptAnalyzer(files: {[url: string]: string}) {
+      const urlLoader = new TestUrlLoader(files);
+      const urlResolver = new PackageUrlResolver();
+      analysisContext = new AnalysisContext({urlLoader, urlResolver});
+      // This puts documents into the scanned document cache
+      await Promise.all(
+          Object.keys(files).map((url) => analysisContext.prescan(url)));
+      return new TypeScriptAnalyzer(analysisContext);
+    }
 
     test('parses classes', async() => {
       const fileName = '/typescript/test.ts';
@@ -41,7 +43,8 @@ suite('TypeScriptParser', () => {
             foo() { return 'bar'; }
           }`
       });
-      const program = typescriptAnalyzer.analyze(fileName);
+      const document = analysisContext._getPrescannedDocument(fileName)!;
+      const program = typescriptAnalyzer.analyze([document]);
       const checker = program.getTypeChecker();
 
       assert.deepEqual(program.getRootFileNames(), [fileName]);
@@ -69,7 +72,7 @@ suite('TypeScriptParser', () => {
             assert.include(baseTypes, htmlElement);
             const properties = checker.getPropertiesOfType(type);
             const ownProperties = properties.filter(
-                (p) => p.getDeclarations().some((d) => d.parent === clazz));
+                (p: ts.Symbol) => p.getDeclarations().some((d) => d.parent === clazz));
             assert.equal(ownProperties.length, 1);
             assert.equal(ownProperties[0].name, 'foo');
           }

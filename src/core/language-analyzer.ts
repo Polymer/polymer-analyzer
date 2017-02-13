@@ -12,4 +12,8 @@
  * http://polymer.github.io/PATENTS.txt
  */
 
-export interface LanguageAnalyzer<T> { analyze(url: string): T; }
+import { ScannedDocument } from '../model/model';
+
+export interface LanguageAnalyzer<T> { //
+  analyze(documents: Iterable<ScannedDocument>): T;
+}

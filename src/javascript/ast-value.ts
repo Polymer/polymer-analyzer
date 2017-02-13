@@ -27,7 +27,7 @@ function literalToValue(literal: estree.Literal): LiteralValue {
  * Early evaluates a unary expression.
  */
 function unaryToValue(unary: estree.UnaryExpression): LiteralValue {
-  const operand = expressionToValue(unary.argument);
+  const operand = expressionToValue(unary.argument)!;
   switch (unary.operator) {
     case '!':
       return !operand;

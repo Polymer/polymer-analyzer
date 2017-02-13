@@ -26,7 +26,7 @@ suite('AnalysisCache', () => {
     cache.parsedDocumentPromises.set(path, `parsed ${path} promise` as any);
     cache.scannedDocumentPromises.set(path, `scanned ${path} promise` as any);
     cache.analyzedDocumentPromises.set(path, `analyzed ${path} promise` as any);
-    cache.scannedDocuments.set(path, `scanned ${path}` as any);
+    cache.prescannedDocuments.set(path, `scanned ${path}` as any);
     cache.analyzedDocuments.set(path, `analyzed ${path}` as any);
     cache.dependencyGraph.addDocument(path, dependencies);
   }
@@ -39,7 +39,7 @@ suite('AnalysisCache', () => {
         await cache.scannedDocumentPromises.getOrCompute(path, null as any),
         `scanned ${path} promise`);
     // caller must assert on cache.analyzedDocumentPromises themselves
-    assert.equal(cache.scannedDocuments.get(path), `scanned ${path}`);
+    assert.equal(cache.prescannedDocuments.get(path), `scanned ${path}`);
     assert.equal(cache.analyzedDocuments.get(path), `analyzed ${path}`);
   }
 
@@ -47,7 +47,7 @@ suite('AnalysisCache', () => {
     assert.isFalse(cache.parsedDocumentPromises.has(path));
     assert.isFalse(cache.scannedDocumentPromises.has(path));
     // caller must assert on cache.analyzedDocumentPromises themselves
-    assert.isFalse(cache.scannedDocuments.has(path));
+    assert.isFalse(cache.prescannedDocuments.has(path));
     assert.isFalse(cache.analyzedDocuments.has(path));
   }
 
@@ -60,7 +60,7 @@ suite('AnalysisCache', () => {
     assert.equal(
         await cache.scannedDocumentPromises.getOrCompute(path, null as any),
         `scanned ${path} promise`);
-    assert.equal(cache.scannedDocuments.get(path), `scanned ${path}`);
+    assert.equal(cache.prescannedDocuments.get(path), `scanned ${path}`);
     assert.isFalse(cache.analyzedDocuments.has(path));
     assert.isFalse(cache.analyzedDocumentPromises.has(path));
   }

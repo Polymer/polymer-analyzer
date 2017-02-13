@@ -18,11 +18,14 @@ import * as now from 'performance-now';
 
 import {Analyzer} from '../analyzer';
 import {FSUrlLoader} from '../url-loader/fs-url-loader';
+import {OverlayUrlLoader} from '../url-loader/overlay-url-loader';
 
 import {Measurement} from './telemetry';
 
 const bowerDir = path.resolve(__dirname, `../../bower_components`);
-const analyzer = new Analyzer({urlLoader: new FSUrlLoader(bowerDir)});
+
+const urlLoader = new OverlayUrlLoader(new FSUrlLoader(bowerDir));
+const analyzer = new Analyzer({urlLoader});
 
 const filesToAnalyze: string[] = [];
 
@@ -79,7 +82,9 @@ async function measure() {
   const start = now();
   let document: any;
   for (let i = 0; i < 10; i++) {
-    document = await analyzer.analyze('ephemeral.html', fakeFileContents);
+    urlLoader.setContents('ephemeral.html', fakeFileContents);
+    await analyzer.filesChanged(['ephemeral.html'])
+    document = await analyzer.analyze('ephemeral.html');
   }
 
   global.gc();
@@ -93,7 +98,9 @@ async function measure() {
       `${((now() - start) / 1000).toFixed(2)} seconds total elapsed time`);
 
   for (let i = 0; i < 100; i++) {
-    await analyzer.analyze('ephemeral.html', fakeFileContents);
+    urlLoader.setContents('ephemeral.html', fakeFileContents);
+    await analyzer.filesChanged(['ephemeral.html'])
+        await analyzer.analyze('ephemeral.html');
   }
 
   global.gc();
@@ -176,7 +183,7 @@ class Averager<K> {
 
   entries(): Iterable<[K, number]> {
     const entries = this.count.keys().map(
-        (k) => <[K, number]>[k, this.elapsed.get(k) / this.count.get(k)]);
+        (k) => <[K, number]>[k, this.elapsed.get(k)! / this.count.get(k)!]);
     return entries.sort((a, b) => a[1] - b[1]);
   }
 }

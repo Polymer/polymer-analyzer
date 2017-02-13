@@ -32,10 +32,12 @@ export class AnalysisCache {
    * TODO(rictic): These synchronous caches need to be kept in sync with their
    *     async work cache analogues above.
    */
-  scannedDocuments: Map<string, ScannedDocument>;
+  prescannedDocuments: Map<string, ScannedDocument>;
   analyzedDocuments: Map<string, Document>;
 
   dependencyGraph: DependencyGraph;
+
+  globalAnalysisResults: Map<string, any>;
 
   /**
    * @param from Another AnalysisCache to copy the caches from. The new
@@ -54,9 +56,10 @@ export class AnalysisCache {
     this.dependenciesScannedPromises =
         new AsyncWorkCache(f.dependenciesScannedPromises);
 
-    this.scannedDocuments = new Map(f.scannedDocuments!);
+    this.prescannedDocuments = new Map(f.prescannedDocuments!);
     this.analyzedDocuments = new Map(f.analyzedDocuments!);
     this.dependencyGraph = newDependencyGraph || new DependencyGraph();
+    this.globalAnalysisResults = new Map<string, any>();
   }
 
   /**
@@ -75,7 +78,7 @@ export class AnalysisCache {
       newCache.parsedDocumentPromises.delete(path);
       newCache.scannedDocumentPromises.delete(path);
       newCache.dependenciesScannedPromises.delete(path);
-      newCache.scannedDocuments.delete(path);
+      newCache.prescannedDocuments.delete(path);
       newCache.analyzedDocuments.delete(path);
 
       // Analyzed documents need to be treated more carefully, because they have

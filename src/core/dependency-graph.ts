@@ -21,7 +21,9 @@ class DocumentRecord {
 
   // Represents the Promise that the dependencies are known, but nothing
   // about their state (loaded, scanned, etc)
-  dependenciesDeferred: Deferred<Set<string>>;
+  dependenciesKnownDeferred: Deferred<Set<string>>;
+
+  analyzedDeferred: Deferred<void>;
 
   static from(from: DocumentRecord) {
     return new DocumentRecord(from);
@@ -32,27 +34,41 @@ class DocumentRecord {
       this.url = urlOrFrom;
       this.dependencies = new Set();
       this.dependants = new Set();
-      this.dependenciesDeferred = new Deferred<Set<string>>();
+      this.dependenciesKnownDeferred = new Deferred<Set<string>>();
+      this.analyzedDeferred = new Deferred<void>();
     } else {
       const from = urlOrFrom;
       this.url = from.url;
       this.dependencies = from.dependencies;
       this.dependants = from.dependants;
-      this.dependenciesDeferred = new Deferred<Set<string>>();
-      if (from.dependenciesDeferred.resolved) {
-        this.dependenciesDeferred.resolve(this.dependencies);
-      } else if (from.dependenciesDeferred.rejected) {
-        this.dependenciesDeferred.reject(from.dependenciesDeferred.error);
+
+      this.dependenciesKnownDeferred = new Deferred<Set<string>>();
+      if (from.dependenciesKnownDeferred.resolved) {
+        this.dependenciesKnownDeferred.resolve(this.dependencies);
+      } else if (from.dependenciesKnownDeferred.rejected) {
+        this.dependenciesKnownDeferred.reject(
+            from.dependenciesKnownDeferred.error);
+      }
+
+      this.analyzedDeferred = new Deferred<void>();
+      if (from.analyzedDeferred.resolved) {
+        this.analyzedDeferred.resolve(undefined);
+      } else if (from.analyzedDeferred.rejected) {
+        this.analyzedDeferred.reject(from.analyzedDeferred.error);
       }
     }
-    this.dependenciesDeferred.promise.catch(
+    this.dependenciesKnownDeferred.promise.catch(
         (_) => {
             // no one listens for document rejections yet,
         });
   }
 
   get dependenciesKnown(): Promise<Set<string>> {
-    return this.dependenciesDeferred.promise;
+    return this.dependenciesKnownDeferred.promise;
+  }
+
+  get analyzed(): Promise<void> {
+    return this.analyzedDeferred.promise;
   }
 }
 
@@ -95,7 +111,7 @@ export class DependencyGraph {
       dependantRecord.dependants.add(url);
     }
     try {
-      record.dependenciesDeferred.resolve(record.dependencies);
+      record.dependenciesKnownDeferred.resolve(record.dependencies);
     } catch (e) {
       console.log(`error adding ${url}`);
       throw e;
@@ -103,7 +119,12 @@ export class DependencyGraph {
   }
 
   rejectDocument(url: string, error: Error) {
-    this._getRecordFor(url).dependenciesDeferred.reject(error);
+    this._getRecordFor(url).dependenciesKnownDeferred.reject(error);
+  }
+
+  markAnalyzed(url: string) {
+    const record = this._getRecordFor(url);
+    record.analyzedDeferred.resolve(undefined);
   }
 
   /**
@@ -128,6 +149,60 @@ export class DependencyGraph {
       await this._whenReady(dep, visited);
     }
   }
+
+  /**
+   * Invokes the async function `fn` for `url` and its dependencies in
+   * depth-first order. Resolves the return promise when all calls of
+   * `fn` have resolved.
+   */
+  async forEach(urls: string[], fn: (url: string) => Promise<any>) {
+    const visited = new Set<string>();
+    for (const url of urls) {
+      await this._forEach(url, fn, visited);
+    }
+  }
+
+  private async _forEach(
+      url: string, fn: (url: string) => Promise<any>, visited: Set<string>) {
+    if (visited.has(url)) {
+      return;
+    }
+    visited.add(url);
+
+    const record = this._getRecordFor(url);
+    const dependencies = record.dependencies;
+
+    for (const dep of dependencies) {
+      await this._forEach(dep, fn, visited);
+    }
+    await fn(url);
+  }
+
+  // async whenAnalyzed(url: string): Promise<void> {
+  //   await this._whenAnalyzed(url, new Set<string>());
+  // }
+
+  // async whenDependenciesAnalyzed(url: string): Promise<void> {
+  //   const visited = new Set<string>(['url']);
+  //   const record = this._getRecordFor(url);
+  //   const deps = record.dependencies;
+  //   for (const dep of deps) {
+  //     await this._whenAnalyzed(dep, visited);
+  //   }
+  // }
+
+  // private async _whenAnalyzed(url: string, visited: Set<string>) {
+  //   if (visited.has(url)) {
+  //     return;
+  //   }
+  //   visited.add(url);
+  //   const record = this._getRecordFor(url);
+  //   await record.analyzed;
+  //   const deps = record.dependencies;
+  //   for (const dep of deps) {
+  //     await this._whenAnalyzed(dep, visited);
+  //   }
+  // }
 
   /**
    * Returns a fork of this graph without the documents at the given paths.

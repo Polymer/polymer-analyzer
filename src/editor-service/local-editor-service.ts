@@ -15,20 +15,33 @@
 import {Analyzer, Options as AnalyzerOptions} from '../analyzer';
 import {ParsedHtmlDocument} from '../html/html-document';
 import {Document, Element, Property, ScannedProperty, SourceRange} from '../model/model';
-import {Warning, WarningCarryingException} from '../warning/warning';
+import {Warning} from '../warning/warning';
+import { OverlayUrlLoader } from '../url-loader/overlay-url-loader';
 
 import {getLocationInfoForPosition} from './ast-from-source-position';
 import {AttributeCompletion, EditorService, SourcePosition, TypeaheadCompletion} from './editor-service';
 
 export class LocalEditorService extends EditorService {
+
   private _analyzer: Analyzer;
+  private _urlLoader: OverlayUrlLoader;
+
   constructor(options: AnalyzerOptions) {
     super();
-    this._analyzer = new Analyzer(options);
+    const localOptions = Object.create(options);
+    this._urlLoader = new OverlayUrlLoader(options.urlLoader);
+    localOptions.urlLoader = this._urlLoader;
+    this._analyzer = new Analyzer(localOptions);
   }
 
   async fileChanged(localPath: string, contents?: string): Promise<void> {
-    await this._analyzer.analyze(localPath, contents);
+    if (contents != null) {
+      this._urlLoader.setContents(localPath, contents);
+    } else {
+      this._urlLoader.removeFile(localPath);
+    }
+    await this._analyzer.filesChanged([localPath]);
+    // await this._analyzer.analyze(localPath);
   }
 
   async getDocumentationAtPosition(localPath: string, position: SourcePosition):
@@ -58,7 +71,11 @@ export class LocalEditorService extends EditorService {
   async getTypeaheadCompletionsAtPosition(
       localPath: string,
       position: SourcePosition): Promise<TypeaheadCompletion|undefined> {
-    const document = await this._analyzer.analyze(localPath);
+    const documentOrWarning = await this._analyzer.analyze(localPath);
+    if (!(documentOrWarning instanceof Document)) {
+      return;
+    }
+    const document = documentOrWarning;
     const location = await this._getLocationResult(document, position);
     if (!location) {
       return;
@@ -125,28 +142,24 @@ export class LocalEditorService extends EditorService {
   }
 
   async getWarningsForFile(localPath: string): Promise<Warning[]> {
-    try {
-      const doc = await this._analyzer.analyze(localPath);
-      return doc.getWarnings();
-    } catch (e) {
-      // This might happen if, e.g. `localPath` has a parse error. In that case
-      // we can't construct a valid Document, but we might still be able to give
-      // a reasonable warning.
-      if (e instanceof WarningCarryingException) {
-        const warnException: WarningCarryingException = e;
-        return [warnException.warning];
-      }
-      throw e;
+    const documentOrWarning = await this._analyzer.analyze(localPath);
+    if (!(documentOrWarning instanceof Document)) {
+      return [documentOrWarning];
     }
+    return documentOrWarning.getWarnings();
   }
 
   async _clearCaches() {
-    this._analyzer.clearCaches();
+    await this._analyzer.clearCaches();
   }
 
   private async _getFeatureAt(localPath: string, position: SourcePosition):
       Promise<Element|Property|undefined> {
-    const document = await this._analyzer.analyze(localPath);
+    const documentOrWarning = await this._analyzer.analyze(localPath);
+    if (!(documentOrWarning instanceof Document)) {
+      return;
+    }
+    const document = documentOrWarning;
     const location = await this._getLocationResult(document, position);
     if (!location) {
       return;

@@ -58,7 +58,13 @@ export class ScannedImport implements Resolvable {
 
   resolve(document: Document): Import|undefined {
     console.log('Import.resolve', this.url);
-    const importedDocument = document.analyzer._getDocument(this.url);
+    const importedDocumentOrWarning = document.analyzer.getDocument(this.url);
+    if (!(importedDocumentOrWarning instanceof Document)) {
+      // TODO(justinfagnani): put the warning in the Import, and remove
+      // warnings from the ScannedImport
+      return;
+    }
+    const importedDocument = importedDocumentOrWarning;
     return importedDocument && new Import(
                                    this.url,
                                    this.type,

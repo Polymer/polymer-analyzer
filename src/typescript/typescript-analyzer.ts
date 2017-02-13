@@ -18,6 +18,8 @@ import * as ts from 'typescript';
 
 import {AnalysisContext} from '../core/analysis-context';
 import {LanguageAnalyzer} from '../core/language-analyzer';
+import {ScannedDocument} from '../model/model';
+
 import {ParsedTypeScriptDocument} from './typescript-document';
 
 const _compilerOptions: ts.CompilerOptions = {
@@ -33,9 +35,10 @@ export class TypeScriptAnalyzer implements LanguageAnalyzer<ts.Program> {
     this._context = analysisContext;
   }
 
-  analyze(url: string): ts.Program {
+  analyze(documents: Iterable<ScannedDocument>): ts.Program {
+    const urls = Array.from(documents).map((d) => d.url);
     const host = new AnalyzerCompilerHost(this._context);
-    return ts.createProgram([url], _compilerOptions, host);
+    return ts.createProgram(urls, _compilerOptions, host);
   }
 }
 
@@ -49,7 +52,7 @@ function isLibraryPath(filename: string) {
   return filename.startsWith('/$lib/');
 }
 
-const libraryCache = new Map<string, string>();
+const libraryCache = new Map<string, string|undefined>();
 function getLibrarySource(filePath: string) {
   if (libraryCache.has(filePath)) {
     return libraryCache.get(filePath);
@@ -93,7 +96,7 @@ class AnalyzerCompilerHost implements ts.CompilerHost {
       // This method will be called during analysis, but after all files
       // in the dependency graph have been loaded, so it can call a synchronous
       // method to get the source of a file.
-      const scannedDocument = this.context._getScannedDocument(fileName);
+      const scannedDocument = this.context._getPrescannedDocument(fileName);
       if (scannedDocument != null) {
         const typescriptDocument =
             scannedDocument.parsedDocument as ParsedTypeScriptDocument;
@@ -146,7 +149,7 @@ class AnalyzerCompilerHost implements ts.CompilerHost {
     const resolvedUrl = this.context.resolveUrl(fileName);
     return isLibraryPath(resolvedUrl) &&
         getLibrarySource(resolvedUrl) != null ||
-        this.context._getScannedDocument(resolvedUrl) != null;
+        this.context._getPrescannedDocument(resolvedUrl) != null;
   }
 
   readFile(fileName: string): string {
@@ -155,7 +158,7 @@ class AnalyzerCompilerHost implements ts.CompilerHost {
       const libPath = require.resolve(`typescript/lib/${fileName}`);
       return fs.readFileSync(libPath, {encoding: 'utf-8'});
     }
-    const document = this.context._getScannedDocument(resolvedUrl);
+    const document = this.context._getPrescannedDocument(resolvedUrl);
     return (document) ? document.parsedDocument.contents :
                         null as any as string;
   }

@@ -14,13 +14,16 @@
 
 /// <reference path="../custom_typings/main.d.ts" />
 
-import {AnalysisContext} from './core/analysis-context';
+import * as path from 'path';
+
+import {AnalysisContext, AnalysisResult} from './core/analysis-context';
 import {Document, Package} from './model/model';
 import {Parser} from './parser/parser';
 import {Measurement} from './perf/telemetry';
 import {Scanner} from './scanning/scanner';
 import {UrlLoader} from './url-loader/url-loader';
 import {UrlResolver} from './url-loader/url-resolver';
+// import {Warning} from './warning/warning';
 
 export interface Options {
   urlLoader: UrlLoader;
@@ -40,6 +43,7 @@ export class NoKnownParserError extends Error {};
 export type ScannerTable = Map<string, Scanner<any, any, any>[]>;
 export type LazyEdgeMap = Map<string, string[]>;
 
+
 /**
  * A static analyzer for web projects.
  *
@@ -49,9 +53,12 @@ export type LazyEdgeMap = Map<string, string[]>;
  * which do the actual work of understanding different file types.
  */
 export class Analyzer {
-  _context: AnalysisContext;
+  // _context: AnalysisContext;
+  private _analysisComplete: Promise<AnalysisContext>;
+
   constructor(options: Options) {
-    this._context = new AnalysisContext(options);
+    // this._context = new AnalysisContext(options);
+    this._analysisComplete = Promise.resolve(new AnalysisContext(options));
   }
 
   /**
@@ -67,19 +74,78 @@ export class Analyzer {
    * reading it from disk. Clears the caches so that the news contents is used
    * and reanalyzed. Useful for editors that want to re-analyze changed files.
    */
-  async analyze(url: string, contents?: string): Promise<Document> {
-    if (contents != null) {
-      this._context = this._context.filesChanged([url]);
+  async analyze(url: string): Promise<AnalysisResult>;
+  async analyze(urls: string[]): Promise<AnalysisResult[]>;
+  async analyze(urls: string | string[]): Promise<AnalysisResult | AnalysisResult[]> {
+
+    const urlList = Array.isArray(urls) ? urls : [urls];
+
+    const previousAnalysisComplete = this._analysisComplete;
+    this._analysisComplete = (async () => {
+      const previousContext = await previousAnalysisComplete;
+      return await previousContext.analyze(urlList);
+    })();
+    
+    const context = await this._analysisComplete;
+    if (Array.isArray(urls)) {
+      return urls.map((url) => context.getDocument(url));
+    } else {
+      return context.getDocument(urls);
     }
-    return this._context.analyze(url, contents);
+  }
+
+  async filesChanged(urls: string[]): Promise<void> {
+    const previousAnalysisComplete = this._analysisComplete;
+    this._analysisComplete = (async () => {
+      const previousContext = await previousAnalysisComplete;
+      return await previousContext.filesChanged(urls);
+    })();
+    await this._analysisComplete;
   }
 
   async analyzePackage(): Promise<Package> {
-    return this._context.analyzePackage();
+    const previousAnalysisComplete = this._analysisComplete;
+    let _package: Package|null = null;
+    this._analysisComplete = (async () => {
+      const previousContext = await previousAnalysisComplete;
+      if (!previousContext._loader.readDirectory) {
+        throw new Error(
+          `This analyzer doesn't support analyzerPackage, ` +
+          `the urlLoader can't list the files in a directory.`);
+      }
+      const allFiles = await previousContext._loader.readDirectory('', true);
+      // TODO(rictic): parameterize this, perhaps with polymer.json.
+      const dependencyDirPrefixes: string[] =
+        ['bower_components', 'node_modules'];
+      const filesInPackage = allFiles.filter(file => {
+        const dirname = path.dirname(file);
+        return !dependencyDirPrefixes.some(prefix => dirname.startsWith(prefix));
+      });
+      const extensions = new Set(previousContext._parsers.keys());
+      const filesWithParsers = filesInPackage.filter(
+        (fn) => extensions.has(path.extname(fn).substring(1)));
+      
+      const newContext = await previousContext.analyze(filesWithParsers);
+
+      const documentsOrWarnings = filesWithParsers.map((url) => newContext.getDocument(url));
+      const documents = [];
+      const warnings = [];
+      for (const docOrWarning of documentsOrWarnings) {
+        if (docOrWarning instanceof Document) {
+          documents.push(docOrWarning);
+        } else {
+          warnings.push(docOrWarning);
+        }
+      }
+      _package = new Package(documents, []);
+      return newContext;
+    })();
+    await this._analysisComplete;
+    return _package!;
   }
 
   async getTelemetryMeasurements(): Promise<Measurement[]> {
-    return this._context.getTelemetryMeasurements();
+    return (await this._analysisComplete).getTelemetryMeasurements();
   }
 
   /**
@@ -89,8 +155,13 @@ export class Analyzer {
    * files that changed rather than clearing caches like this. Caching provides
    * large performance gains.
    */
-  clearCaches(): void {
-    this._context = this._context.clearCaches();
+  async clearCaches(): Promise<void> {
+    const previousAnalysisComplete = this._analysisComplete;
+    this._analysisComplete = (async () => {
+      const previousContext = await previousAnalysisComplete;
+      return await previousContext.clearCaches();
+    })();
+    await this._analysisComplete;
   }
 
   /**
@@ -100,11 +171,11 @@ export class Analyzer {
    * are used instead of hitting the UrlLoader (e.g. when you have in-memory
    * contents that should override disk).
    */
-  async load(resolvedUrl: string, providedContents?: string) {
-    return this._context.load(resolvedUrl, providedContents);
+  async load(resolvedUrl: string) {
+    return (await this._analysisComplete).load(resolvedUrl);
   }
 
-  resolveUrl(url: string): string {
-    return this._context.resolveUrl(url);
-  }
+  // resolveUrl(url: string): string {
+  //   return this._context.resolveUrl(url);
+  // }
 }
