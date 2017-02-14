@@ -33,7 +33,7 @@ export function getBehaviorAssignmentOrWarning(
   const behaviorName = astValue.getIdentifierName(argNode);
   if (!behaviorName) {
     return {
-      kind: 'warning' as 'warning',
+      kind: 'warning',
       warning: {
         code: 'could-not-determine-behavior-name',
         message:
@@ -45,7 +45,7 @@ export function getBehaviorAssignmentOrWarning(
     };
   }
   return {
-    kind: 'behaviorAssignment' as 'behaviorAssignment',
+    kind: 'behaviorAssignment',
     assignment: {
       name: behaviorName,
       sourceRange: document.sourceRangeForNode(argNode)!
