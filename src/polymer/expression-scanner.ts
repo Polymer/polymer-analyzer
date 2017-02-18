@@ -78,6 +78,8 @@ export class ScannedDatabindingExpression {
    */
   readonly eventName: string|undefined;
 
+  private readonly locationOffset: LocationOffset;
+
   constructor(
       astNode: parse5.ASTNode, attribute: parse5.ASTAttribute|undefined,
       sourceRange: SourceRange, direction: '{'|'[', expressionText: string,
@@ -92,6 +94,27 @@ export class ScannedDatabindingExpression {
     this.expressionText = expressionText;
     this.expressionAst = ast;
     this.eventName = eventName;
+    this.locationOffset = {
+      line: sourceRange.start.line,
+      col: sourceRange.start.column
+    };
+  }
+
+  /**
+   * Given an estree node in this databinding expression, give its source range.
+   */
+  sourceRangeForNode(node: estree.Node) {
+    if (!node || !node.loc) {
+      return;
+    }
+    const databindingRelativeSourceRange = {
+      file: this.sourceRange.file,
+      // Note: estree uses 1-indexed lines, but SourceRange uses 0 indexed.
+      start: {line: (node.loc.start.line - 1), column: node.loc.start.column},
+      end: {line: (node.loc.end.line - 1), column: node.loc.end.column}
+    };
+    return correctSourceRange(
+        databindingRelativeSourceRange, this.locationOffset);
   }
 }
 
