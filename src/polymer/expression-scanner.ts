@@ -173,7 +173,10 @@ function extractDataBindingsFromTextNode(
     return;
   }
   const newlineIndexes = findNewlineIndexes(text);
-  const nodeSourceRange = document.sourceRangeForNode(node)!;
+  const nodeSourceRange = document.sourceRangeForNode(node);
+  if (!nodeSourceRange) {
+    return;
+  }
   // We have indexes into the text node, we'll want to correct that so that
   // it's a range relative to the start of the document.
   const startOfTextNodeOffset: LocationOffset = {
@@ -189,16 +192,12 @@ function extractDataBindingsFromTextNode(
     const sourceRange =
         correctSourceRange(sourceRangeWithinTextNode, startOfTextNodeOffset)!;
 
-    const dataBindingStartOffset: LocationOffset = {
-      line: sourceRange.start.line,
-      col: sourceRange.start.column
-    };
-    const parseResult = parseJs(
-        dataBinding.expressionText,
-        nodeSourceRange.file,
-        dataBindingStartOffset,
-        'polymer-expression-parse-error');
+    const parseResult =
+        parseExpression(dataBinding.expressionText, sourceRange);
 
+    if (!parseResult) {
+      continue;
+    }
     if (parseResult.type === 'failure') {
       warnings.push(parseResult.warning);
     } else {
@@ -228,7 +227,10 @@ function extractDataBindingsFromAttr(
   }
   const dataBindings = findDatabindingInString(attr.value);
   const attributeValueRange =
-      document.sourceRangeForAttributeValue(node, attr.name, true)!;
+      document.sourceRangeForAttributeValue(node, attr.name, true);
+  if (!attributeValueRange) {
+    return;
+  }
   const attributeOffset: LocationOffset = {
     line: attributeValueRange.start.line,
     col: attributeValueRange.start.column
@@ -255,15 +257,10 @@ function extractDataBindingsFromAttr(
         newlineIndexes);
     const sourceRange =
         correctSourceRange(sourceRangeWithinAttribute, attributeOffset)!;
-    const sourceRangeLocationOffset: LocationOffset = {
-      line: sourceRange.start.line,
-      col: sourceRange.start.column,
-    };
-    const parseResult = parseJs(
-        expressionText,
-        attributeValueRange.file,
-        sourceRangeLocationOffset,
-        'polymer-expression-parse-error');
+    const parseResult = parseExpression(expressionText, sourceRange);
+    if (!parseResult) {
+      continue;
+    }
     if (parseResult.type === 'failure') {
       warnings.push(parseResult.warning);
     } else {
@@ -351,4 +348,26 @@ function indexesToSourceRange(
     },
     end: {line: endLineNumLinesIntoText, column: endIndex - endOfLineIndex}
   };
+}
+
+function parseExpression(content: string, expressionSourceRange: SourceRange) {
+  const expressionOffset = {
+    line: expressionSourceRange.start.line,
+    col: expressionSourceRange.start.column
+  };
+  const parseResult = parseJs(
+      content,
+      expressionSourceRange.file,
+      expressionOffset,
+      'polymer-expression-parse-error');
+  if (parseResult.type === 'success') {
+    return parseResult;
+  }
+  // The polymer databinding expression language allows for foo.0 and foo.*
+  // formats when accessing sub properties. These aren't valid JS, but we don't
+  // want to warn for them either. So just return undefined for now.
+  if (/\.(\*|\d+)/.test(content)) {
+    return undefined;
+  }
+  return parseResult;
 }

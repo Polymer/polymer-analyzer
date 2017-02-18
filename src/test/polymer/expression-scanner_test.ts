@@ -215,6 +215,10 @@ suite('ExpressionScanner', () => {
             foo bar
           ]]'></div>
           {{]}}
+
+          <!-- ignores expressions that are invalid JS -->
+          <div id="{{foo(bar.*)}}"></div>
+          <div id="{{foo(bar.0)}}"></div>
         </template>
       `;
 
