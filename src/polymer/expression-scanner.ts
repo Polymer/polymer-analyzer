@@ -49,7 +49,7 @@ export function getAllDataBindingTemplates(node: parse5.ASTNode) {
 /**
  * A databinding expression.
  */
-export class ScannedDatabindingExpression {
+export class DatabindingExpression {
   /**
    * If databinding into an attribute this is the element whose attribute is
    * assigned to. If databinding into a text node, this is that text node.
@@ -122,7 +122,7 @@ export class ScannedDatabindingExpression {
  * Find and parse Polymer databinding expressions in HTML.
  */
 export function scanForExpressions(document: ParsedHtmlDocument) {
-  const results: ScannedDatabindingExpression[] = [];
+  const results: DatabindingExpression[] = [];
   const warnings: Warning[] = [];
   const dataBindingTemplates = getAllDataBindingTemplates(document.ast);
   for (const template of dataBindingTemplates) {
@@ -144,7 +144,7 @@ export function scanForExpressions(document: ParsedHtmlDocument) {
 function _extractDataBindingsFromTextNode(
     document: ParsedHtmlDocument,
     node: parse5.ASTNode,
-    results: ScannedDatabindingExpression[],
+    results: DatabindingExpression[],
     warnings: Warning[]) {
   const text = node.value || '';
   const dataBindings = findDatabindingInString(text);
@@ -181,7 +181,7 @@ function _extractDataBindingsFromTextNode(
     if (parseResult.type === 'failure') {
       warnings.push(parseResult.warning);
     } else {
-      results.push(new ScannedDatabindingExpression(
+      results.push(new DatabindingExpression(
           node,
           undefined,
           sourceRange,
@@ -200,7 +200,7 @@ function _extractDataBindingsFromAttr(
     document: ParsedHtmlDocument,
     node: parse5.ASTNode,
     attr: parse5.ASTAttribute,
-    results: ScannedDatabindingExpression[],
+    results: DatabindingExpression[],
     warnings: Warning[]) {
   if (!attr.value) {
     return;
@@ -246,7 +246,7 @@ function _extractDataBindingsFromAttr(
     if (parseResult.type === 'failure') {
       warnings.push(parseResult.warning);
     } else {
-      results.push(new ScannedDatabindingExpression(
+      results.push(new DatabindingExpression(
           node,
           attr,
           sourceRange,
