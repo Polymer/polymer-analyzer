@@ -62,16 +62,16 @@ suite('ExpressionScanner', () => {
           await underliner.underline(expressions.map((e) => e.sourceRange)), [
             `
             <div id="{{foo}}"></div>
-                    ~~~~~~~~~`,
+                       ~~~`,
             `
             <input value="{{val::changed}}">
-                         ~~~~~~~~~~~~~~~~~~`,
+                            ~~~~~~~~~~~~`,
             `
               <div id="[[bar]]"></div>
-                      ~~~~~~~~~`,
+                         ~~~`,
             `
           <div id="{{baz}}"></div>
-                  ~~~~~~~~~`
+                     ~~~`
           ]);
       assert.deepEqual(
           expressions.map((e) => e.direction), ['{', '{', '[', '{']);
@@ -108,16 +108,16 @@ suite('ExpressionScanner', () => {
           await underliner.underline(expressions.map((e) => e.sourceRange)), [
             `
           <div id=" {{foo}}"></div>
-                  ~~~~~~~~~~`,
+                      ~~~`,
             `
           <div id="bar {{val}} baz">
-                  ~~~~~~~~~~~~~~~~~`,
+                         ~~~`,
             `
           <div id=" [[x]]{{y}}"></div>
-                  ~~~~~~~~~~~~~`,
+                      ~`,
             `
           <div id=" [[x]]{{y}}"></div>
-                  ~~~~~~~~~~~~~`
+                           ~`
           ]);
       assert.deepEqual(
           expressions.map((e) => e.direction), ['{', '{', '[', '{']);

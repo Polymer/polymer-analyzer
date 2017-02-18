@@ -169,6 +169,13 @@ export class ExpressionScanner implements HtmlScanner {
       return;
     }
     const dataBindings = findDatabindingInString(attr.value);
+    const attributeValueRange =
+        document.sourceRangeForAttributeValue(node, attr.name, true)!;
+    const attributeOffset: LocationOffset = {
+      line: attributeValueRange.start.line,
+      col: attributeValueRange.start.column
+    };
+    const newlineIndexes = findNewlineIndexes(attr.value);
     for (const dataBinding of dataBindings) {
       const isFullAttributeBinding = dataBinding.startIndex === 2 &&
           dataBinding.endIndex + 2 === attr.value.length;
@@ -183,10 +190,15 @@ export class ExpressionScanner implements HtmlScanner {
           eventName = match[2];
         }
       }
+      const sourceRange = indexesToSourceRange(
+          dataBinding.startIndex,
+          dataBinding.endIndex,
+          attributeValueRange.file,
+          newlineIndexes);
       results.push(new ScannedDatabindingExpression(
           node,
           attr,
-          document.sourceRangeForAttributeValue(node, attr.name)!,
+          correctSourceRange(sourceRange, attributeOffset)!,
           dataBinding.direction,
           expressionText,
           eventName,
