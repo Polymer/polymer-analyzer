@@ -20,7 +20,7 @@ import * as parse5 from 'parse5';
 import {HtmlVisitor, ParsedHtmlDocument} from '../html/html-document';
 import {HtmlScanner} from '../html/html-scanner';
 import {baseParseOptions} from '../javascript/javascript-parser';
-import {ScannedFeature, SourceRange} from '../model/model';
+import {correctSourceRange, LocationOffset, ScannedFeature, SourceRange} from '../model/model';
 import {Warning} from '../warning/warning';
 
 const p = dom5.predicates;
@@ -115,54 +115,83 @@ export class ExpressionScanner implements HtmlScanner {
     for (const template of dataBindingTemplates) {
       dom5.nodeWalkAll(template.content, (node) => {
         if (dom5.isTextNode(node) && node.value) {
-          const dataBindings = findDatabindingInString(node.value);
-          for (const dataBinding of dataBindings) {
-            results.push(new ScannedDatabindingExpression(
-                node,
-                undefined,
-                document.sourceRangeForNode(node)!,
-                dataBinding.direction,
-                dataBinding.expressionText,
-                undefined,
-                'string-interpolation'));
-          }
+          this._extractDataBindingsFromTextNode(document, node, results);
         }
         if (node.attrs) {
           for (const attr of node.attrs) {
-            if (!attr.value) {
-              continue;
-            }
-            const dataBindings = findDatabindingInString(attr.value);
-            for (const dataBinding of dataBindings) {
-              const isFullAttributeBinding = dataBinding.startIndex === 2 &&
-                  dataBinding.endIndex + 2 === attr.value.length;
-              const databindingInto =
-                  isFullAttributeBinding ? 'attribute' : 'string-interpolation';
-              let expressionText = dataBinding.expressionText;
-              let eventName = undefined;
-              if (dataBinding.direction === '{') {
-                const match = expressionText.match(/(.*)::(.*)/);
-                if (match) {
-                  expressionText = match[1];
-                  eventName = match[2];
-                }
-              }
-              results.push(new ScannedDatabindingExpression(
-                  node,
-                  attr,
-                  document.sourceRangeForAttributeValue(node, attr.name)!,
-                  dataBinding.direction,
-                  expressionText,
-                  eventName,
-                  databindingInto));
-            }
+            this._extractDataBindingsFromAttr(document, node, attr, results);
           }
         }
-
         return false;
       });
     }
     return results;
+  }
+
+  private _extractDataBindingsFromTextNode(
+      document: ParsedHtmlDocument, node: parse5.ASTNode,
+      results: ScannedDatabindingExpression[]) {
+    const text = node.value || '';
+    const dataBindings = findDatabindingInString(text);
+    if (dataBindings.length === 0) {
+      return;
+    }
+    const newlineIndexes = findNewlineIndexes(text);
+    const nodeSourceRange = document.sourceRangeForNode(node)!;
+    // We have indexes into the text node, we'll want to correct that so that
+    // it's a range relative to the start of the document.
+    const startOfTextNodeOffset: LocationOffset = {
+      line: nodeSourceRange.start.line,
+      col: nodeSourceRange.start.column
+    };
+    for (const dataBinding of dataBindings) {
+      const sourceRange = indexesToSourceRange(
+          dataBinding.startIndex,
+          dataBinding.endIndex,
+          nodeSourceRange.file,
+          newlineIndexes);
+
+      results.push(new ScannedDatabindingExpression(
+          node,
+          undefined,
+          correctSourceRange(sourceRange, startOfTextNodeOffset)!,
+          dataBinding.direction,
+          dataBinding.expressionText,
+          undefined,
+          'string-interpolation'));
+    }
+  }
+
+  private _extractDataBindingsFromAttr(
+      document: ParsedHtmlDocument, node: parse5.ASTNode,
+      attr: parse5.ASTAttribute, results: ScannedDatabindingExpression[]) {
+    if (!attr.value) {
+      return;
+    }
+    const dataBindings = findDatabindingInString(attr.value);
+    for (const dataBinding of dataBindings) {
+      const isFullAttributeBinding = dataBinding.startIndex === 2 &&
+          dataBinding.endIndex + 2 === attr.value.length;
+      const databindingInto =
+          isFullAttributeBinding ? 'attribute' : 'string-interpolation';
+      let expressionText = dataBinding.expressionText;
+      let eventName = undefined;
+      if (dataBinding.direction === '{') {
+        const match = expressionText.match(/(.*)::(.*)/);
+        if (match) {
+          expressionText = match[1];
+          eventName = match[2];
+        }
+      }
+      results.push(new ScannedDatabindingExpression(
+          node,
+          attr,
+          document.sourceRangeForAttributeValue(node, attr.name)!,
+          dataBinding.direction,
+          expressionText,
+          eventName,
+          databindingInto));
+    }
   }
 }
 
@@ -193,4 +222,48 @@ function findDatabindingInString(str: string) {
     openers.lastIndex = endIndex + 2;
   }
   return expressions;
+}
+
+function findNewlineIndexes(str: string) {
+  const indexes = [];
+  let prev;
+  let index = str.indexOf('\n');
+  while (index !== -1) {
+    indexes.push(index);
+    prev = index;
+    index = str.indexOf('\n', prev + 1);
+  }
+  return indexes;
+}
+
+function indexesToSourceRange(
+    startIndex: number,
+    endIndex: number,
+    filename: string,
+    newlineIndexes: number[]): SourceRange {
+  let startLineNumLinesIntoText = 0;
+  let startOfLineIndex = 0;
+  let endLineNumLinesIntoText = 0;
+  let endOfLineIndex = 0;
+  for (const index of newlineIndexes) {
+    if (index < startIndex) {
+      startLineNumLinesIntoText++;
+      startOfLineIndex = index + 1;
+    }
+    if (index < endIndex) {
+      endLineNumLinesIntoText++;
+      endOfLineIndex = index + 1;
+    } else {
+      // Nothing more interesting to do.
+      break;
+    }
+  }
+  return {
+    file: filename,
+    start: {
+      line: startLineNumLinesIntoText,
+      column: startIndex - startOfLineIndex
+    },
+    end: {line: endLineNumLinesIntoText, column: endIndex - endOfLineIndex}
+  };
 }

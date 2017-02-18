@@ -116,7 +116,7 @@ export class ParsedHtmlDocument extends ParsedDocument<ASTNode, HtmlVisitor> {
     };
   }
 
-  // dom5 locations are 1 based but ours are 0 based.
+  // parse5 locations are 1 based but ours are 0 based.
   protected _sourceRangeForNode(node: ASTNode): SourceRange|undefined {
     const location = node.__location;
     if (!node.__location) {

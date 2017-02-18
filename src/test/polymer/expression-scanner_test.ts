@@ -57,6 +57,7 @@ suite('ExpressionScanner', () => {
       const visit = async(visitor: HtmlVisitor) => document.visit([visitor]);
 
       const expressions = await scanner.scan(document, visit);
+      // TODO(rictic): improve these source ranges.
       assert.deepEqual(
           await underliner.underline(expressions.map((e) => e.sourceRange)), [
             `
@@ -142,6 +143,11 @@ suite('ExpressionScanner', () => {
           <div>{{foo}}</div>
           <div>
             {{bar}} + {{baz}}[[zod]]
+            {{
+              multiline(
+                expressions
+              )
+            }}
           </div>
         </template>
       `;
@@ -152,46 +158,53 @@ suite('ExpressionScanner', () => {
 
       const expressions = await scanner.scan(document, visit);
 
-      // TODO(rictic): improve these source ranges.
       assert.deepEqual(
           await underliner.underline(expressions.map((e) => e.sourceRange)), [
             `
           <div>{{foo}}</div>
-               ~~~~~~~`,
+                 ~~~`,
             `
-          <div>
-               ~
             {{bar}} + {{baz}}[[zod]]
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-          </div>
-~~~~~~~~~~`,
+              ~~~`,
             `
-          <div>
-               ~
             {{bar}} + {{baz}}[[zod]]
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-          </div>
-~~~~~~~~~~`,
+                        ~~~`,
             `
-          <div>
-               ~
             {{bar}} + {{baz}}[[zod]]
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-          </div>
-~~~~~~~~~~`,
+                               ~~~`,
+            `
+            {{
+              ~
+              multiline(
+~~~~~~~~~~~~~~~~~~~~~~~~
+                expressions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+              )
+~~~~~~~~~~~~~~~
+            }}
+~~~~~~~~~~~~`
           ]);
       assert.deepEqual(
-          expressions.map((e) => e.direction), ['{', '{', '{', '[']);
-      assert.deepEqual(
-          expressions.map((e) => e.expressionText),
-          ['foo', 'bar', 'baz', 'zod']);
+          expressions.map((e) => e.direction), ['{', '{', '{', '[', '{']);
+      assert.deepEqual(expressions.map((e) => e.expressionText), [
+        'foo',
+        'bar',
+        'baz',
+        'zod',
+        `
+              multiline(
+                expressions
+              )
+            `
+      ]);
       assert.deepEqual(
           expressions.map((e) => e.eventName),
-          [undefined, undefined, undefined, undefined]);
+          [undefined, undefined, undefined, undefined, undefined]);
       assert.deepEqual(
           expressions.map((e) => e.attribute && e.attribute.name),
-          [undefined, undefined, undefined, undefined]);
+          [undefined, undefined, undefined, undefined, undefined]);
       assert.deepEqual(expressions.map((e) => e.databindingInto), [
+        'string-interpolation',
         'string-interpolation',
         'string-interpolation',
         'string-interpolation',
