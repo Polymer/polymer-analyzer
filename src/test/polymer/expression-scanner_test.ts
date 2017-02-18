@@ -16,7 +16,7 @@
 import {assert} from 'chai';
 
 import {HtmlParser} from '../../html/html-parser';
-import {scanForExpressions} from '../../polymer/expression-scanner';
+import {scanDocumentForExpressions} from '../../polymer/expression-scanner';
 import {CodeUnderliner} from '../test-utils';
 
 suite('ExpressionScanner', () => {
@@ -48,7 +48,7 @@ suite('ExpressionScanner', () => {
       const underliner = CodeUnderliner.withMapping('test.html', contents);
       const document = new HtmlParser().parse(contents, 'test.html');
 
-      const results = await scanForExpressions(document);
+      const results = await scanDocumentForExpressions(document);
       const expressions = results.expressions;
 
       assert.deepEqual(results.warnings, []);
@@ -94,7 +94,7 @@ suite('ExpressionScanner', () => {
       const underliner = CodeUnderliner.withMapping('test.html', contents);
       const document = new HtmlParser().parse(contents, 'test.html');
 
-      const results = await scanForExpressions(document);
+      const results = await scanDocumentForExpressions(document);
       const expressions = results.expressions;
 
       assert.deepEqual(results.warnings, []);
@@ -149,7 +149,7 @@ suite('ExpressionScanner', () => {
       const underliner = CodeUnderliner.withMapping('test.html', contents);
       const document = new HtmlParser().parse(contents, 'test.html');
 
-      const results = await scanForExpressions(document);
+      const results = await scanDocumentForExpressions(document);
       const expressions = results.expressions;
 
       assert.deepEqual(results.warnings, []);
@@ -221,7 +221,7 @@ suite('ExpressionScanner', () => {
       const underliner = CodeUnderliner.withMapping('test.html', contents);
       const document = new HtmlParser().parse(contents, 'test.html');
 
-      const results = await scanForExpressions(document);
+      const results = await scanDocumentForExpressions(document);
       assert.deepEqual(
           await underliner.underline(
               results.warnings.map((w) => w.sourceRange)),

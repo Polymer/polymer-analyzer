@@ -38,6 +38,15 @@ const isDataBindingTemplate = p.AND(
 
 export interface Template extends parse5.ASTNode { content: parse5.ASTNode; }
 
+/**
+ * Given a node, return all databinding templates inside it.
+ *
+ * A template is "databinding" if polymer databinding expressions are expected
+ * to be evaluated inside. e.g. <template is='dom-if'> or <dom-module><template>
+ *
+ * Results include both direct and nested templates (e.g. dom-if inside
+ * dom-module).
+ */
 export function getAllDataBindingTemplates(node: parse5.ASTNode) {
   return dom5.queryAll(
       node,
@@ -121,18 +130,30 @@ export class DatabindingExpression {
 /**
  * Find and parse Polymer databinding expressions in HTML.
  */
-export function scanForExpressions(document: ParsedHtmlDocument) {
+export function scanDocumentForExpressions(document: ParsedHtmlDocument) {
+  return extractDataBindingsFromTemplates(
+      document, getAllDataBindingTemplates(document.ast));
+}
+
+export function scanDatabindingTemplateForExpressions(
+    document: ParsedHtmlDocument, template: Template) {
+  return extractDataBindingsFromTemplates(
+      document,
+      [template].concat(getAllDataBindingTemplates(template.content)));
+}
+
+function extractDataBindingsFromTemplates(
+    document: ParsedHtmlDocument, templates: Iterable<Template>) {
   const results: DatabindingExpression[] = [];
   const warnings: Warning[] = [];
-  const dataBindingTemplates = getAllDataBindingTemplates(document.ast);
-  for (const template of dataBindingTemplates) {
+  for (const template of templates) {
     dom5.nodeWalkAll(template.content, (node) => {
       if (dom5.isTextNode(node) && node.value) {
-        _extractDataBindingsFromTextNode(document, node, results, warnings);
+        extractDataBindingsFromTextNode(document, node, results, warnings);
       }
       if (node.attrs) {
         for (const attr of node.attrs) {
-          _extractDataBindingsFromAttr(document, node, attr, results, warnings);
+          extractDataBindingsFromAttr(document, node, attr, results, warnings);
         }
       }
       return false;
@@ -141,7 +162,7 @@ export function scanForExpressions(document: ParsedHtmlDocument) {
   return {expressions: results, warnings};
 }
 
-function _extractDataBindingsFromTextNode(
+function extractDataBindingsFromTextNode(
     document: ParsedHtmlDocument,
     node: parse5.ASTNode,
     results: DatabindingExpression[],
@@ -196,7 +217,7 @@ function _extractDataBindingsFromTextNode(
   }
 }
 
-function _extractDataBindingsFromAttr(
+function extractDataBindingsFromAttr(
     document: ParsedHtmlDocument,
     node: parse5.ASTNode,
     attr: parse5.ASTAttribute,
