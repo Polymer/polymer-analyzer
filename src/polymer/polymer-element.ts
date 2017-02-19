@@ -289,10 +289,18 @@ function resolveElement(
       element.events,
       behaviors.map((b) => ({source: b.className, values: b.events})));
 
-  const domModule = document.getOnlyAtId(
-      'dom-module',
-      scannedElement.tagName || '',
-      {imported: true, externalPackages: true});
+  const domModules = document.getFeatures({
+    kind: 'dom-module',
+    id: scannedElement.tagName || '',
+    imported: true,
+    externalPackages: true
+  });
+  let domModule = undefined;
+  if (domModules.size === 1) {
+    // TODO(rictic): warn if this isn't true.
+    domModule = domModules.values().next().value;
+  }
+
 
   if (domModule) {
     element.description = element.description || domModule.comment || '';
@@ -408,11 +416,12 @@ function applySuperClass(
     document: Document) {
   if (scannedElement.superClass &&
       scannedElement.superClass.identifier !== 'HTMLElement') {
-    const superElements =
-        document.getById('element', scannedElement.superClass.identifier, {
-          externalPackages: true,
-          imported: true,
-        });
+    const superElements = document.getFeatures({
+      kind: 'element',
+      id: scannedElement.superClass.identifier,
+      externalPackages: true,
+      imported: true,
+    });
     if (superElements.size === 1) {
       const superElement = superElements.values().next().value;
       if (!superElement.kinds.has('polymer-element')) {
@@ -461,7 +470,9 @@ function applyMixins(
     const mixinReference = scannedMixinReference.resolve(document);
     const mixinId = mixinReference.identifier;
     element.mixins.push(mixinReference);
-    const mixins = document.getById('element-mixin', mixinId, {
+    const mixins = document.getFeatures({
+      kind: 'element-mixin',
+      id: mixinId,
       externalPackages: true,
       imported: true,
     });
@@ -512,8 +523,12 @@ function _getFlattenedAndResolvedBehaviors(
     resolvedBehaviors: Set<Behavior>) {
   const warnings: Warning[] = [];
   for (const behavior of behaviorAssignments) {
-    const foundBehaviors = document.getById(
-        'behavior', behavior.name, {imported: true, externalPackages: true});
+    const foundBehaviors = document.getFeatures({
+      kind: 'behavior',
+      id: behavior.name,
+      imported: true,
+      externalPackages: true
+    });
     if (foundBehaviors.size === 0) {
       warnings.push({
         message: `Unable to resolve behavior ` +
