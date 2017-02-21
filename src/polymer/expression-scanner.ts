@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+ * Copyright (c) 2017 The Polymer Project Authors. All rights reserved.
  * This code may only be used under the BSD style license found at
  * http://polymer.github.io/LICENSE.txt
  * The complete set of authors may be found at
@@ -25,7 +25,8 @@ import {Warning} from '../warning/warning';
 
 const p = dom5.predicates;
 const isTemplate = p.hasTagName('template');
-const matchInnerDataBindingTemplate = p.AND(
+
+const isDataBindingTemplate = p.AND(
     isTemplate,
     p.OR(
         p.hasAttrValue('is', 'dom-bind'),
@@ -34,34 +35,17 @@ const matchInnerDataBindingTemplate = p.AND(
         p.parentMatches(p.OR(
             p.hasTagName('dom-bind'),
             p.hasTagName('dom-if'),
-            p.hasTagName('dom-repeat')))));
-export const isDomBindTemplate =
-    p.AND(p.hasTagName('template'), p.hasAttrValue('is', 'dom-bind'));
-export const isDomModuleTemplate = p.AND(
-    p.parentMatches(p.hasTagName('dom-module')), p.hasTagName('template'));
+            p.hasTagName('dom-repeat'),
+            p.hasTagName('dom-module')))));
 
 export interface Template extends parse5.ASTNode { content: parse5.ASTNode; }
 
 export function getAllDataBindingTemplates(node: parse5.ASTNode) {
-  const toplevelTemplates = dom5.queryAll(
+  return dom5.queryAll(
       node,
-      dom5.predicates.OR(isDomBindTemplate, isDomModuleTemplate)) as Template[];
-
-  const results = new Set<Template>();
-  for (const template of toplevelTemplates) {
-    results.add(template);
-
-    const innerTemplates = dom5.queryAll(
-        template.content,
-        matchInnerDataBindingTemplate,
-        [],
-        dom5.childNodesIncludeTemplate) as Template[];
-    for (const innerTemplate of innerTemplates) {
-      results.add(innerTemplate);
-    }
-  }
-
-  return results;
+      isDataBindingTemplate,
+      [],
+      dom5.childNodesIncludeTemplate) as Template[];
 }
 
 
@@ -75,7 +59,7 @@ export class ScannedAttributeExpression implements ScannedFeature {
   attribute: parse5.ASTAttribute;
   sourceRange: SourceRange;
   warnings: Warning[] = [];
-  directionality: 'down-only'|'bidirectional';
+  direction: '{'|'[';
   expressionText: string;
   expressionAst: estree.Program;
 
@@ -87,12 +71,12 @@ export class ScannedAttributeExpression implements ScannedFeature {
 
   constructor(
       astNode: parse5.ASTNode, attribute: parse5.ASTAttribute,
-      sourceRange: SourceRange, directionality: 'down-only'|'bidirectional',
-      expressionText: string, eventName: string|undefined) {
+      sourceRange: SourceRange, direction: '{'|'[', expressionText: string,
+      eventName: string|undefined) {
     this.astNode = astNode;
     this.attribute = attribute;
     this.sourceRange = sourceRange;
-    this.directionality = directionality;
+    this.direction = direction;
     this.expressionText = expressionText;
     this.eventName = eventName;
     this.expressionAst = espree.parse(
@@ -131,7 +115,7 @@ export class ExpressionScanner implements HtmlScanner {
                   node,
                   attr,
                   document.sourceRangeForAttributeValue(node, attr.name)!,
-                  'down-only',
+                  '[',
                   expressionText,
                   undefined));
             } else if (bidiMatch) {
@@ -146,7 +130,7 @@ export class ExpressionScanner implements HtmlScanner {
                   node,
                   attr,
                   document.sourceRangeForAttributeValue(node, attr.name)!,
-                  'bidirectional',
+                  '{',
                   expressionText,
                   eventName));
             } else {
