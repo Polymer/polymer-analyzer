@@ -116,7 +116,7 @@ export class DatabindingExpression {
       col: sourceRange.start.column
     };
 
-    this._extract();
+    this._extractPropertiesAndValidate();
   }
 
   /**
@@ -136,31 +136,34 @@ export class DatabindingExpression {
         databindingRelativeSourceRange, this.locationOffset);
   }
 
-  private _extract() {
+  private _extractPropertiesAndValidate() {
     if (this._expressionAst.body.length !== 1) {
       this.warnings.push(this._validationWarning(
-          'Expected exactly one expression', this._expressionAst));
+          `Expected one expression, got ${this._expressionAst.body.length}`,
+          this._expressionAst));
       return;
     }
     const expressionStatement = this._expressionAst.body[0]!;
     if (expressionStatement.type !== 'ExpressionStatement') {
       this.warnings.push(this._validationWarning(
-          'ExpressionStatement expected', expressionStatement));
+          `Expect an expression, not a ${expressionStatement.type}`,
+          expressionStatement));
       return;
     }
     let expression = expressionStatement.expression;
     if (expression.type === 'UnaryExpression') {
       if (expression.operator !== '!') {
         this.warnings.push(this._validationWarning(
-            'Only the not (!) operator is supported.', expression));
+            'Only the logical not (!) operator is supported.', expression));
         return;
       }
       expression = expression.argument;
     }
-    this._handleSubExpression(expression);
+    this._extractAndValidateSubExpression(expression, true);
   }
 
-  private _handleSubExpression(expression: estree.Node) {
+  private _extractAndValidateSubExpression(
+      expression: estree.Node, callAllowed: boolean) {
     if (expression.type === 'Literal') {
       return;
     }
@@ -172,19 +175,19 @@ export class DatabindingExpression {
       return;
     }
     if (expression.type === 'MemberExpression') {
-      this._handleSubExpression(expression.object);
+      this._extractAndValidateSubExpression(expression.object, false);
       return;
     }
-    if (expression.type === 'CallExpression') {
-      this._handleSubExpression(expression.callee);
+    if (callAllowed && expression.type === 'CallExpression') {
+      this._extractAndValidateSubExpression(expression.callee, false);
       for (const arg of expression.arguments) {
-        this._handleSubExpression(arg);
+        this._extractAndValidateSubExpression(arg, false);
       }
       return;
     }
     this.warnings.push(this._validationWarning(
-        `Unexpected node type: ${expression.type
-        } - expected either an identifier, a member expression, or a call expression.`,
+        `Only simple syntax is supported in Polymer databinding expressions. ` +
+            `${expression.type} not expected here.`,
         expression));
   }
 
