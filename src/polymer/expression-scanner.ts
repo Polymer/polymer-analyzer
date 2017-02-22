@@ -161,6 +161,9 @@ export class DatabindingExpression {
   }
 
   private _handleSubExpression(expression: estree.Node) {
+    if (expression.type === 'Literal') {
+      return;
+    }
     if (expression.type === 'Identifier') {
       this.properties.push(expression.name);
       return;
