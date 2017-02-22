@@ -19,7 +19,7 @@ import * as parse5 from 'parse5';
 import {ParsedHtmlDocument} from '../html/html-document';
 import {parseJs} from '../javascript/javascript-parser';
 import {correctSourceRange, LocationOffset, SourceRange} from '../model/model';
-import {Warning} from '../warning/warning';
+import {Severity, Warning} from '../warning/warning';
 
 const p = dom5.predicates;
 const isTemplate = p.hasTagName('template');
@@ -89,6 +89,14 @@ export class DatabindingExpression {
 
   private readonly locationOffset: LocationOffset;
 
+  /**
+   * Toplevel properties on the model that are referenced in this expression.
+   *
+   * e.g. in {{foo(bar, baz.zod)}} the properties are foo, bar, and baz
+   * (but not zod).
+   */
+  properties: string[] = [];
+
   constructor(
       astNode: parse5.ASTNode, attribute: parse5.ASTAttribute|undefined,
       sourceRange: SourceRange, direction: '{'|'[', expressionText: string,
@@ -107,6 +115,8 @@ export class DatabindingExpression {
       line: sourceRange.start.line,
       col: sourceRange.start.column
     };
+
+    this._extract();
   }
 
   /**
@@ -124,6 +134,61 @@ export class DatabindingExpression {
     };
     return correctSourceRange(
         databindingRelativeSourceRange, this.locationOffset);
+  }
+
+  private _extract() {
+    if (this.expressionAst.body.length !== 1) {
+      this.warnings.push(this._validationWarning(
+          'Expected exactly one expression', this.expressionAst));
+      return;
+    }
+    const expressionStatement = this.expressionAst.body[0]!;
+    if (expressionStatement.type !== 'ExpressionStatement') {
+      this.warnings.push(this._validationWarning(
+          'ExpressionStatement expected', expressionStatement));
+      return;
+    }
+    let expression = expressionStatement.expression;
+    if (expression.type === 'UnaryExpression') {
+      if (expression.operator !== '!') {
+        this.warnings.push(this._validationWarning(
+            'Only the not (!) operator is supported.', expression));
+        return;
+      }
+      expression = expression.argument;
+    }
+    this._handleSubExpression(expression);
+  }
+
+  private _handleSubExpression(expression: estree.Node) {
+    if (expression.type === 'Identifier') {
+      this.properties.push(expression.name);
+      return;
+    }
+    if (expression.type === 'MemberExpression') {
+      this._handleSubExpression(expression.object);
+      return;
+    }
+    if (expression.type === 'CallExpression') {
+      this._handleSubExpression(expression.callee);
+      for (const arg of expression.arguments) {
+        this._handleSubExpression(arg);
+      }
+      return;
+    }
+    this.warnings.push(this._validationWarning(
+        `Unexpected node type: ${expression.type
+        } - expected either an identifier, a member expression, or a call expression.`,
+        expression));
+  }
+
+  private _validationWarning(message: string, node: estree.Node): Warning {
+    return {
+      code: 'invalid-polymer-expression',
+      message,
+      sourceRange: this.sourceRangeForNode(node)!,
+      severity: Severity.WARNING
+    };
   }
 }
 
@@ -201,7 +266,7 @@ function extractDataBindingsFromTextNode(
     if (parseResult.type === 'failure') {
       warnings.push(parseResult.warning);
     } else {
-      results.push(new DatabindingExpression(
+      const expression = new DatabindingExpression(
           node,
           undefined,
           sourceRange,
@@ -209,7 +274,11 @@ function extractDataBindingsFromTextNode(
           dataBinding.expressionText,
           undefined,
           'string-interpolation',
-          parseResult.program));
+          parseResult.program);
+      for (const warning of expression.warnings) {
+        warnings.push(warning);
+      }
+      results.push(expression);
     }
 
     ;
@@ -264,7 +333,7 @@ function extractDataBindingsFromAttr(
     if (parseResult.type === 'failure') {
       warnings.push(parseResult.warning);
     } else {
-      results.push(new DatabindingExpression(
+      const expression = new DatabindingExpression(
           node,
           attr,
           sourceRange,
@@ -272,7 +341,11 @@ function extractDataBindingsFromAttr(
           expressionText,
           eventName,
           databindingInto,
-          parseResult.program));
+          parseResult.program);
+      for (const warning of expression.warnings) {
+        warnings.push(warning);
+      }
+      results.push(expression);
     }
   }
 }
