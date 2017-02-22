@@ -76,7 +76,7 @@ export class DatabindingExpression {
   /** The databinding syntax used. */
   readonly direction: '{'|'[';
   readonly expressionText: string;
-  readonly expressionAst: estree.Program;
+  private readonly _expressionAst: estree.Program;
 
 
   readonly databindingInto: 'string-interpolation'|'attribute';
@@ -95,7 +95,7 @@ export class DatabindingExpression {
    * e.g. in {{foo(bar, baz.zod)}} the properties are foo, bar, and baz
    * (but not zod).
    */
-  properties: string[] = [];
+  properties: Array<{name: string, sourceRange: SourceRange}> = [];
 
   constructor(
       astNode: parse5.ASTNode, attribute: parse5.ASTAttribute|undefined,
@@ -109,7 +109,7 @@ export class DatabindingExpression {
     this.direction = direction;
     this.databindingInto = databindingInto;
     this.expressionText = expressionText;
-    this.expressionAst = ast;
+    this._expressionAst = ast;
     this.eventName = eventName;
     this.locationOffset = {
       line: sourceRange.start.line,
@@ -137,12 +137,12 @@ export class DatabindingExpression {
   }
 
   private _extract() {
-    if (this.expressionAst.body.length !== 1) {
+    if (this._expressionAst.body.length !== 1) {
       this.warnings.push(this._validationWarning(
-          'Expected exactly one expression', this.expressionAst));
+          'Expected exactly one expression', this._expressionAst));
       return;
     }
-    const expressionStatement = this.expressionAst.body[0]!;
+    const expressionStatement = this._expressionAst.body[0]!;
     if (expressionStatement.type !== 'ExpressionStatement') {
       this.warnings.push(this._validationWarning(
           'ExpressionStatement expected', expressionStatement));
@@ -165,7 +165,10 @@ export class DatabindingExpression {
       return;
     }
     if (expression.type === 'Identifier') {
-      this.properties.push(expression.name);
+      this.properties.push({
+        name: expression.name,
+        sourceRange: this.sourceRangeForNode(expression)!
+      });
       return;
     }
     if (expression.type === 'MemberExpression') {

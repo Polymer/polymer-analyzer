@@ -63,7 +63,7 @@ suite('ExpressionScanner', () => {
                             ~~~~~~~~~~~~`,
             `
             <div id="{{bada(wing, daba.boom, 10)}}"></div>
-                       ~~~~~~~~~~~~~~~~~~~~~~~~`,
+                       ~~~~~~~~~~~~~~~~~~~~~~~~~`,
             `
               <div id="[[bar]]"></div>
                          ~~~`,
@@ -83,7 +83,7 @@ suite('ExpressionScanner', () => {
           expressions.map((e) => e.attribute && e.attribute.name),
           ['id', 'value', 'id', 'id', 'id']);
       assert.deepEqual(
-          expressions.map((e) => e.properties),
+          expressions.map((e) => e.properties.map((p) => p.name)),
           [['foo'], ['val'], ['bada', 'wing', 'daba'], ['bar'], ['baz']]);
       assert.deepEqual(
           expressions.map((e) => e.warnings), [[], [], [], [], []]);
@@ -127,7 +127,7 @@ suite('ExpressionScanner', () => {
       assert.deepEqual(
           expressions.map((e) => e.expressionText), ['foo', 'val', 'x', 'y']);
       assert.deepEqual(
-          expressions.map((e) => e.properties),
+          expressions.map((e) => e.properties.map((p) => p.name)),
           [['foo'], ['val'], ['x'], ['y']]);
       assert.deepEqual(expressions.map((e) => e.warnings), [[], [], [], []]);
       assert.deepEqual(
@@ -206,7 +206,7 @@ suite('ExpressionScanner', () => {
             `
       ]);
       assert.deepEqual(
-          expressions.map((e) => e.properties),
+          expressions.map((e) => e.properties.map((p) => p.name)),
           [['foo'], ['bar'], ['baz'], ['zod'], ['multiline', 'expressions']]);
       assert.deepEqual(
           expressions.map((e) => e.warnings), [[], [], [], [], []]);
