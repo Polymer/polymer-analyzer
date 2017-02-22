@@ -57,13 +57,16 @@ export class ScannedDatabindingExpression implements ScannedFeature {
    * assigned to. If databinding into a text node, this is that text node.
    */
   readonly astNode: parse5.ASTNode;
+  /**
+ * If databindingInto is 'attribute' this will hold the HTML element
+ * attribute that's being assigned to. Otherwise it's undefined.
+ */
+  readonly attribute: parse5.ASTAttribute|undefined;
+
   readonly sourceRange: SourceRange;
   readonly warnings: Warning[] = [];
 
-  /**
-   * The databinding syntax used. If {{}} then it's bidirectional, if [[]] then
-   * it's down-only.
-   */
+  /** The databinding syntax used. */
   readonly direction: '{'|'[';
   readonly expressionText: string;
   readonly expressionAst: estree.Program;
@@ -72,13 +75,7 @@ export class ScannedDatabindingExpression implements ScannedFeature {
   readonly databindingInto: 'string-interpolation'|'attribute';
 
   /**
-   * If databindingInto is 'attribute' this will hold the HTML element
-   * attribute that's being assigned to. Otherwise it's undefined.
-   */
-  readonly attribute: parse5.ASTAttribute|undefined;
-
-  /**
-   * If this is a bidirectional data binding, and an event name was specified
+   * If this is a two-way data binding, and an event name was specified
    * (using ::eventName syntax), this is that event name.
    */
   readonly eventName: string|undefined;
@@ -117,8 +114,8 @@ export class ExpressionScanner implements HtmlScanner {
     const dataBindingTemplates = getAllDataBindingTemplates(document.ast);
     for (const template of dataBindingTemplates) {
       dom5.nodeWalkAll(template.content, (node) => {
-        if (dom5.isTextNode(node)) {
-          const dataBindings = findDatabindingInString(node.value || '');
+        if (dom5.isTextNode(node) && node.value) {
+          const dataBindings = findDatabindingInString(node.value);
           for (const dataBinding of dataBindings) {
             results.push(new ScannedDatabindingExpression(
                 node,
@@ -178,8 +175,8 @@ interface RawDatabinding {
 function findDatabindingInString(str: string) {
   const expressions: RawDatabinding[] = [];
   const openers = /{{|\[\[/g;
-  let match = openers.exec(str);
-  while (match) {
+  let match;
+  while (match = openers.exec(str)) {
     const matchedOpeners = match[0];
     const startIndex = match.index + 2;
     const direction = matchedOpeners === '{{' ? '{' : '[';
@@ -194,9 +191,6 @@ function findDatabindingInString(str: string) {
 
     // Start looking for the next expression after the end of this one.
     openers.lastIndex = endIndex + 2;
-
-    // Look for the next openers
-    match = openers.exec(str);
   }
   return expressions;
 }
