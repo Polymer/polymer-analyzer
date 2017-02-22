@@ -42,6 +42,7 @@ export class JavaScriptParser implements Parser<JavaScriptDocument> {
     inlineInfo = inlineInfo || {};
     const result = parseJs(contents, url, inlineInfo.locationOffset);
     if (result.type === 'failure') {
+      // TODO(rictic): define and return a ParseResult instead of throwing.
       throw new WarningCarryingException(result.warning);
     }
 
