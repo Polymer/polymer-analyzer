@@ -532,6 +532,45 @@ suite('Analyzer', () => {
     });
   });
 
+  test('analyzes a document with a namespace', async() => {
+    const document =
+        await analyzer.analyze('static/namespaces/import-all.html');
+
+    const namespaces =
+        Array.from(document.getByKind('namespace', {imported: true}));
+    assert.deepEqual(namespaces.map((b) => b.name), [
+      'ExplicitlyNamedNamespace',
+      'ExplicitlyNamedNamespace.NestedNamespace',
+      'ImplicitlyNamedNamespace',
+      'ImplicitlyNamedNamespace.NestedNamespace',
+      'DynamicNamespace.ArrayNotation',
+      'DynamicNamespace.Aliased',
+    ]);
+  });
+
+  test('creates warnings when duplicate namespaces are analyzed', async() => {
+    const document =
+        await analyzer.analyze('static/namespaces/import-duplicates.html');
+    const namespaces =
+        Array.from(document.getByKind('namespace', {imported: true}));
+    assert.deepEqual(namespaces.map((b) => b.name), [
+      'ExplicitlyNamedNamespace',
+      'ExplicitlyNamedNamespace.NestedNamespace',
+    ]);
+    assert.deepEqual(
+        document.getWarnings({imported: true}), [{
+          message:
+              'Found more than one namespace named ExplicitlyNamedNamespace.',
+          severity: Severity.WARNING,
+          code: 'multiple-polymer-namespaces',
+          sourceRange: {
+            file: 'static/namespaces/namespace-duplicate.js',
+            start: {column: 0, line: 5},
+            end: {column: 28, line: 5}
+          }
+        }]);
+  });
+
   suite('legacy tests', () => {
 
     // ported from old js-parser_test.js

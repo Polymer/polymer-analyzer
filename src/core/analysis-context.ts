@@ -29,6 +29,7 @@ import {Parser} from '../parser/parser';
 import {BehaviorScanner} from '../polymer/behavior-scanner';
 import {CssImportScanner} from '../polymer/css-import-scanner';
 import {DomModuleScanner} from '../polymer/dom-module-scanner';
+import {NamespaceScanner} from '../polymer/namespace-scanner';
 import {PolymerElementScanner} from '../polymer/polymer-element-scanner';
 import {Polymer2MixinScanner} from '../polymer/polymer2-mixin-scanner';
 import {PseudoElementScanner} from '../polymer/pseudo-element-scanner';
@@ -93,7 +94,7 @@ export class AnalysisContext {
           new DomModuleScanner(),
           new CssImportScanner(),
           new HtmlCustomElementReferenceScanner(),
-          new PseudoElementScanner()
+          new PseudoElementScanner(),
         ]
       ],
       [
@@ -102,7 +103,8 @@ export class AnalysisContext {
           new PolymerElementScanner(),
           new Polymer2MixinScanner(),
           new BehaviorScanner(),
-          new VanillaElementScanner()
+          new VanillaElementScanner(),
+          new NamespaceScanner(),
         ]
       ],
     ]);
