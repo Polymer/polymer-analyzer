@@ -85,6 +85,38 @@ suite('Analyzer', () => {
           assert.deepEqual(elements.map((e) => e.tagName), ['my-element']);
         });
 
+    test('analyzes inline scripts correctly', async() => {
+      const document = await analyzer.analyze(
+          'static/inline-documents/inline-documents.html');
+      const jsDocs = document.getByKind('js-document');
+      assert.equal(jsDocs.size, 1);
+      const jsDoc = jsDocs.values().next().value;
+      assert.deepEqual(jsDoc.sourceRange, {
+        file: 'static/inline-documents/inline-documents.html',
+        start: {line: 3, column: 2},
+        end: {line: 5, column: 11}
+      });
+      assert.isObject(jsDoc.astNode);
+      assert.equal(jsDoc.astNode!.tagName, 'script');
+      assert.equal(jsDoc.astNode!.parentNode!.tagName, 'head');
+    });
+
+    test('analyzes inline styles correctly', async() => {
+      const document = await analyzer.analyze(
+          'static/inline-documents/inline-documents.html');
+      const cssDocs = document.getByKind('css-document');
+      assert.equal(cssDocs.size, 1);
+      const cssDoc = cssDocs.values().next().value;
+      assert.deepEqual(cssDoc.sourceRange, {
+        file: 'static/inline-documents/inline-documents.html',
+        start: {line: 6, column: 2},
+        end: {line: 10, column: 10}
+      });
+      assert.isObject(cssDoc.astNode);
+      assert.equal(cssDoc.astNode!.tagName, 'style');
+      assert.equal(cssDoc.astNode!.parentNode!.tagName, 'head');
+    });
+
     test('analyzes a document with an import', async() => {
       const document =
           await analyzer.analyze('static/analysis/behaviors/behavior.html');
