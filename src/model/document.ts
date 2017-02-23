@@ -46,7 +46,6 @@ export class ScannedDocument {
   // not have to be set awkwardly after the fact.
   sourceRange: SourceRange|undefined = undefined;
   astNode: dom5.Node|undefined = undefined;
-  ;
 
   constructor(
       document: ParsedDocument<any, any>, features: ScannedFeature[],
