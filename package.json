@@ -10,6 +10,9 @@
     "url": "https://github.com/Polymer/polymer-analyzer.git"
   },
   "main": "lib/analyzer.js",
+  "bin": {
+    "analyze": "bin/analyze.js"
+  },
   "typings": "lib/analyzer.d.ts",
   "files": [
     "LICENSE",
