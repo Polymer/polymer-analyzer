@@ -71,8 +71,9 @@ class NamespaceVisitor implements Visitor {
 
     const docs = jsdoc.parseJsdoc(comment);
     const name = jsdoc.getTag(docs, 'namespace', 'name') || getName();
+    // TODO(fks): Propagate a warning if name could not be determined
     if (!name) {
-      throw new Error(`Unable to determine name for @namespace: ${comment}`);
+      return;
     }
 
     const sourceRange = this.document.sourceRangeForNode(node);
@@ -81,6 +82,6 @@ class NamespaceVisitor implements Visitor {
           `Unable to determine sourceRange for @namespace: ${comment}`);
     }
 
-    this.namespaces.add(new ScannedNamespace(name, node, docs, sourceRange));
+    this.namespaces.add(new ScannedNamespace(name!, node, docs, sourceRange));
   }
 }

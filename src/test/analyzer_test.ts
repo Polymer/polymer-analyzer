@@ -546,6 +546,7 @@ suite('Analyzer', () => {
       'DynamicNamespace.ArrayNotation',
       'DynamicNamespace.DynamicArrayNotation',
       'DynamicNamespace.Aliased',
+      'DynamicNamespace.baz',
     ]);
   });
 
