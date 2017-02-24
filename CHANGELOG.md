@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 -->
 
 <!--## Unreleased-->
+* Protocol-less URLs such as `//host/path` are properly handled instead of treated as absolute paths.
 * Add a new 'namespace' feature to support the `@namespace` jsdoc tag.
 
 ## [2.0.0-alpha.26] - 2017-02-22
