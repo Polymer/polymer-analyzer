@@ -557,18 +557,17 @@ suite('Analyzer', () => {
       'ExplicitlyNamedNamespace',
       'ExplicitlyNamedNamespace.NestedNamespace',
     ]);
-    assert.deepEqual(
-        document.getWarnings({imported: true}), [{
+    const warnings = document.getWarnings({imported: true});
+    assert.containSubset(
+        warnings, [{
           message:
               'Found more than one namespace named ExplicitlyNamedNamespace.',
           severity: Severity.WARNING,
           code: 'multiple-polymer-namespaces',
-          sourceRange: {
-            file: 'static/namespaces/namespace-duplicate.js',
-            start: {column: 0, line: 5},
-            end: {column: 28, line: 5}
-          }
         }]);
+    assert.deepEqual(await underliner.underline(warnings), [`
+var DuplicateNamespace = {};
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~`]);
   });
 
   suite('legacy tests', () => {
