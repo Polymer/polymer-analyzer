@@ -18,9 +18,9 @@ import * as path from 'path';
 
 import {Visitor} from '../../javascript/estree-visitor';
 import {JavaScriptParser} from '../../javascript/javascript-parser';
+import {ScannedNamespace} from '../../javascript/namespace';
+import {NamespaceScanner} from '../../javascript/namespace-scanner';
 import {ScannedFeature} from '../../model/model';
-import {ScannedNamespace} from '../../polymer/namespace';
-import {NamespaceScanner} from '../../polymer/namespace-scanner';
 import {FSUrlLoader} from '../../url-loader/fs-url-loader';
 import {CodeUnderliner} from '../test-utils';
 

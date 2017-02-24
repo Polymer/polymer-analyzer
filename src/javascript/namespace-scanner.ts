@@ -20,7 +20,7 @@ import * as esutil from '../javascript/esutil';
 import {JavaScriptDocument} from '../javascript/javascript-document';
 import {JavaScriptScanner} from '../javascript/javascript-scanner';
 import * as jsdoc from '../javascript/jsdoc';
-import {ScannedNamespace} from '../polymer/namespace';
+import {ScannedNamespace} from './namespace';
 
 export class NamespaceScanner implements JavaScriptScanner {
   async scan(
@@ -82,6 +82,6 @@ class NamespaceVisitor implements Visitor {
           `Unable to determine sourceRange for @namespace: ${comment}`);
     }
 
-    this.namespaces.add(new ScannedNamespace(name!, node, docs, sourceRange));
+    this.namespaces.add(new ScannedNamespace(name, node, docs, sourceRange));
   }
 }

@@ -14,10 +14,10 @@
 import * as dom5 from 'dom5';
 
 import {AnalysisContext} from '../core/analysis-context';
+import {Namespace} from '../javascript/namespace';
 import {ParsedDocument} from '../parser/document';
 import {Behavior} from '../polymer/behavior';
 import {DomModule} from '../polymer/dom-module-scanner';
-import {Namespace} from '../polymer/namespace';
 import {PolymerElement} from '../polymer/polymer-element';
 import {PolymerElementMixin} from '../polymer/polymer-element-mixin';
 import {Warning} from '../warning/warning';
