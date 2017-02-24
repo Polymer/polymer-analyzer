@@ -63,7 +63,7 @@ class NamespaceVisitor implements Visitor {
   }
 
   private _initNamespace(node: estree.Node, getName: () => string) {
-    const comment = esutil.getAttachedComment(node) || '';
+    const comment = esutil.getAttachedComment(node);
     // Quickly filter down to potential candidates.
     if (!comment || comment.indexOf('@namespace') === -1) {
       return;
