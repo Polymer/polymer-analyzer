@@ -22,10 +22,12 @@ import {ScannedFeature} from '../../model/model';
 import {ScannedNamespace} from '../../polymer/namespace';
 import {NamespaceScanner} from '../../polymer/namespace-scanner';
 import {FSUrlLoader} from '../../url-loader/fs-url-loader';
+import {CodeUnderliner} from '../test-utils';
 
 suite('NamespaceScanner', () => {
   const testFilesDir = path.resolve(__dirname, '../static/namespaces/');
   const urlLoader = new FSUrlLoader(testFilesDir);
+  const underliner = new CodeUnderliner(urlLoader);
 
   async function getNamespaces(filename: string): Promise<any[]> {
     const file = await urlLoader.load(filename);
@@ -46,21 +48,21 @@ suite('NamespaceScanner', () => {
     assert.equal(namespaces[0].name, 'ExplicitlyNamedNamespace');
     assert.equal(namespaces[0].description, '\n');
     assert.deepEqual(namespaces[0].warnings, []);
-    assert.deepEqual(namespaces[0].sourceRange, {
-      file: 'namespace-named.js',
-      start: {line: 3, column: 0},
-      end: {line: 3, column: 34}
-    });
+    assert.equal(await underliner.underline(namespaces[0].sourceRange), `
+var ExplicitlyNamedNamespace = {};
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~`);
 
     assert.equal(
         namespaces[1].name, 'ExplicitlyNamedNamespace.NestedNamespace');
     assert.equal(namespaces[1].description, '\n');
     assert.deepEqual(namespaces[1].warnings, []);
-    assert.deepEqual(namespaces[1].sourceRange, {
-      file: 'namespace-named.js',
-      start: {line: 8, column: 0},
-      end: {line: 10, column: 2}
-    });
+    assert.equal(await underliner.underline(namespaces[1].sourceRange), `
+ExplicitlyNamedNamespace.NestedNamespace = {
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  foo: \'bar\'
+~~~~~~~~~~~~
+};
+~~`);
   });
 
   test('scans unnamed namespaces', async() => {
@@ -70,58 +72,76 @@ suite('NamespaceScanner', () => {
     assert.equal(namespaces[0].name, 'ImplicitlyNamedNamespace');
     assert.equal(namespaces[0].description, '\n');
     assert.deepEqual(namespaces[0].warnings, []);
-    assert.deepEqual(namespaces[0].sourceRange, {
-      file: 'namespace-unnamed.js',
-      start: {line: 3, column: 0},
-      end: {line: 3, column: 34},
-    });
+    assert.equal(await underliner.underline(namespaces[0].sourceRange), `
+var ImplicitlyNamedNamespace = {};
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~`);
 
     assert.equal(
         namespaces[1].name, 'ImplicitlyNamedNamespace.NestedNamespace');
     assert.equal(namespaces[1].description, '\n');
     assert.deepEqual(namespaces[1].warnings, []);
-    assert.deepEqual(namespaces[1].sourceRange, {
-      file: 'namespace-unnamed.js',
-      start: {line: 8, column: 0},
-      end: {line: 10, column: 2},
-    });
+    assert.equal(await underliner.underline(namespaces[1].sourceRange), `
+ImplicitlyNamedNamespace.NestedNamespace = {
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  foo: \'bar\'
+~~~~~~~~~~~~
+};
+~~`);
   });
 
   test('scans named, dynamic namespaces', async() => {
     const namespaces = await getNamespaces('namespace-dynamic-named.js');
-    assert.equal(namespaces.length, 2);
-
-    assert.equal(namespaces[0].name, 'DynamicNamespace.ArrayNotation');
-    assert.equal(namespaces[0].description, '\n');
-    assert.deepEqual(namespaces[0].warnings, []);
-    assert.deepEqual(namespaces[0].sourceRange, {
-      file: 'namespace-dynamic-named.js',
-      start: {line: 3, column: 0},
-      end: {line: 5, column: 2},
-    });
-
-    assert.equal(namespaces[1].name, 'DynamicNamespace.Aliased');
-    assert.equal(namespaces[1].description, '\n');
-    assert.deepEqual(namespaces[1].warnings, []);
-    assert.deepEqual(namespaces[1].sourceRange, {
-      file: 'namespace-dynamic-named.js',
-      start: {line: 10, column: 0},
-      end: {line: 12, column: 2},
-    });
+    assert.equal(namespaces.length, 3);
+    assert.containSubset(namespaces, [
+      {
+        name: 'DynamicNamespace.ArrayNotation',
+        description: '\n',
+        warnings: [],
+      },
+      {
+        name: 'DynamicNamespace.DynamicArrayNotation',
+        description: '\n',
+        warnings: [],
+      },
+      {
+        name: 'DynamicNamespace.Aliased',
+        description: '\n',
+        warnings: [],
+      },
+    ]);
+    assert.deepEqual(
+        await underliner.underline(namespaces.map((ns) => ns.sourceRange)), [
+          `
+DynamicNamespace['ArrayNotation'] = {
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  foo: 'bar'
+~~~~~~~~~~~~
+};
+~~`,
+          `
+DynamicNamespace[baz] = {
+~~~~~~~~~~~~~~~~~~~~~~~~~
+  foo: 'bar'
+~~~~~~~~~~~~
+};
+~~`,
+          `
+aliasToNamespace = {
+~~~~~~~~~~~~~~~~~~~~
+  foo: 'bar'
+~~~~~~~~~~~~
+};
+~~`,
+        ]);
   });
 
   test('throws unnamed, dynamic namespaces', async() => {
-    const namespaces = await getNamespaces('namespace-dynamic-unnamed.js');
-    assert.equal(namespaces.length, 1);
-
-    assert.equal(namespaces[0].name, 'DynamicNamespace.ArrayNotation');
-    assert.equal(namespaces[0].description, '\n');
-    assert.deepEqual(namespaces[0].warnings, []);
-    assert.deepEqual(namespaces[0].sourceRange, {
-      file: 'namespace-dynamic-unnamed.js',
-      start: {line: 3, column: 0},
-      end: {line: 5, column: 2},
-    });
+    try {
+      await getNamespaces('namespace-dynamic-unnamed.js');
+      throw new Error('TEST: Error Expected!');
+    } catch (err) {
+      assert.match(err.message, /Unable to determine name for \@namespace/);
+    }
   });
 
 });

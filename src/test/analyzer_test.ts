@@ -544,6 +544,7 @@ suite('Analyzer', () => {
       'ImplicitlyNamedNamespace',
       'ImplicitlyNamedNamespace.NestedNamespace',
       'DynamicNamespace.ArrayNotation',
+      'DynamicNamespace.DynamicArrayNotation',
       'DynamicNamespace.Aliased',
     ]);
   });
@@ -563,7 +564,7 @@ suite('Analyzer', () => {
           message:
               'Found more than one namespace named ExplicitlyNamedNamespace.',
           severity: Severity.WARNING,
-          code: 'multiple-polymer-namespaces',
+          code: 'multiple-javascript-namespaces',
         }]);
     assert.deepEqual(await underliner.underline(warnings), [`
 var DuplicateNamespace = {};

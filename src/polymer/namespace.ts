@@ -19,7 +19,7 @@ import {Document, Feature, Resolvable, SourceRange} from '../model/model';
 import {Severity, Warning} from '../warning/warning';
 
 /**
- * The metadata for a Polymer namespace.
+ * The metadata for a JavaScript namespace.
  */
 export class ScannedNamespace implements Resolvable {
   name: string;
@@ -47,7 +47,7 @@ export class ScannedNamespace implements Resolvable {
       document.warnings.push({
         message: `Found more than one namespace named ${this.name}.`,
         severity: Severity.WARNING,
-        code: 'multiple-polymer-namespaces',
+        code: 'multiple-javascript-namespaces',
         sourceRange: this.sourceRange
       });
       return;

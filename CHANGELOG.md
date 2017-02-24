@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 -->
 
 <!--## Unreleased-->
-* Add `@namespace` annotation support.
+* Add a new 'namespace' feature to support the `@namespace` jsdoc tag.
 
 ## [2.0.0-alpha.26] - 2017-02-22
 * Fix issue with file missing from package.json "files" array.

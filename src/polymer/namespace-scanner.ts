@@ -14,6 +14,7 @@
 
 import * as estree from 'estree';
 
+import {getIdentifierName} from '../javascript/ast-value';
 import {Visitor} from '../javascript/estree-visitor';
 import * as esutil from '../javascript/esutil';
 import {JavaScriptDocument} from '../javascript/javascript-document';
@@ -49,7 +50,7 @@ class NamespaceVisitor implements Visitor {
     }
     this._initNamespace(node, () => {
       const id = node.declarations[0].id;
-      return esutil.objectKeyToString(id)!;
+      return getIdentifierName(id)!;
     });
   }
 
@@ -58,7 +59,7 @@ class NamespaceVisitor implements Visitor {
    */
   enterAssignmentExpression(
       node: estree.AssignmentExpression, parent: estree.Node) {
-    this._initNamespace(parent, () => esutil.objectKeyToString(node.left)!);
+    this._initNamespace(parent, () => getIdentifierName(node.left)!);
   }
 
   private _initNamespace(node: estree.Node, getName: () => string) {
