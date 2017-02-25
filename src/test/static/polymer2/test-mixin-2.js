@@ -1,5 +1,6 @@
 /**
  * @polymerMixin
+ * @memberof Polymer
  */
 const TestMixin = (superclass) => class extends superclass {
   static get config() {

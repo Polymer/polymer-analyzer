@@ -14,7 +14,7 @@
 
 import * as estree from 'estree';
 
-import {getIdentifierName} from '../javascript/ast-value';
+import {getIdentifierName, namespaceIdentifierName} from '../javascript/ast-value';
 import {Visitor} from '../javascript/estree-visitor';
 import * as esutil from '../javascript/esutil';
 import {JavaScriptDocument} from '../javascript/javascript-document';
@@ -55,11 +55,14 @@ class MixinVisitor implements Visitor {
     const docs = jsdoc.parseJsdoc(comment);
     if (this._hasPolymerMixinDocTag(docs)) {
       const name = getIdentifierName(node.left);
+      const namespacedName =
+          name ? namespaceIdentifierName(name, parent) : undefined;
       const sourceRange = this._document.sourceRangeForNode(node);
       this._currentMixin = new ScannedPolymerElementMixin({
-          name, sourceRange,
-          // TODO(justinfagnani): fix descriptions correctly in parseJsdoc
-          // description: docs.description,
+        name: namespacedName,
+        sourceRange,
+        // TODO(justinfagnani): fix descriptions correctly in parseJsdoc
+        // description: docs.description,
       });
       this._currentMixinNode = node;
       this._mixins.push(this._currentMixin);
@@ -72,12 +75,15 @@ class MixinVisitor implements Visitor {
     const docs = jsdoc.parseJsdoc(comment);
     if (this._hasPolymerMixinDocTag(docs)) {
       const name = node.id.name;
+      const namespacedName =
+          name ? namespaceIdentifierName(name, node) : undefined;
       const sourceRange = this._document.sourceRangeForNode(node);
       this._currentMixinFunction = node;
       this._currentMixin = new ScannedPolymerElementMixin({
-          name, sourceRange,
-          // TODO(justinfagnani): fix descriptions correctly in parseJsdoc
-          // description: docs.description,
+        name: namespacedName,
+        sourceRange,
+        // TODO(justinfagnani): fix descriptions correctly in parseJsdoc
+        // description: docs.description,
       });
       this._currentMixinNode = node;
       this._mixins.push(this._currentMixin);
@@ -120,9 +126,11 @@ class MixinVisitor implements Visitor {
   }
 
   enterVariableDeclarator(
-      node: estree.VariableDeclarator, _parent: estree.Node) {
+      node: estree.VariableDeclarator, parent: estree.Node) {
     if (this._currentMixin != null && this._currentMixinFunction == null) {
-      this._currentMixin.name = (node.id as estree.Identifier).name;
+      const name = (node.id as estree.Identifier).name;
+      const namespacedName = namespaceIdentifierName(name, parent);
+      this._currentMixin.name = namespacedName;
     }
   }
 

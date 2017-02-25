@@ -107,7 +107,7 @@ function TestMixin(superclass) {
     const mixins = await getMixins('test-mixin-2.js');
     const mixinData = mixins.map(getTestProps);
     assert.deepEqual(mixinData, [{
-                       name: 'TestMixin',
+                       name: 'Polymer.TestMixin',
                        description: '',
                        properties: [{
                          name: 'foo',
@@ -148,7 +148,7 @@ const TestMixin = (superclass) => class extends superclass {
     const mixins = await getMixins('test-mixin-3.js');
     const mixinData = mixins.map(getTestProps);
     assert.deepEqual(mixinData, [{
-                       name: 'TestMixin',
+                       name: 'Polymer.TestMixin',
                        description: '',
                        properties: [{
                          name: 'foo',
@@ -195,7 +195,7 @@ const TestMixin = function(superclass) {
         const mixins = await getMixins('test-mixin-4.js');
         const mixinData = mixins.map(getTestProps);
         assert.deepEqual(mixinData, [{
-                           name: 'TestMixin',
+                           name: 'Polymer.TestMixin',
                            description: '',
                            properties: [],
                            attributes: [],
@@ -217,7 +217,7 @@ let TestMixin;
     const mixins = await getMixins('test-mixin-6.js');
     const mixinData = mixins.map(getTestProps);
     assert.deepEqual(mixinData, [{
-                       name: 'TestMixin',
+                       name: 'Polymer.TestMixin',
                        description: '',
                        properties: [],
                        attributes: [],

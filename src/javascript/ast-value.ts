@@ -15,6 +15,8 @@
 import * as estree from 'estree';
 
 import {LiteralObj, LiteralValue} from '../model/model';
+import * as esutil from './esutil';
+import * as jsdoc from './jsdoc';
 
 /**
  * Converts an ast literal to its underlying valie.
@@ -195,5 +197,22 @@ export function getIdentifierName(node: estree.Node): string|undefined {
     }
   }
 }
+
+/**
+ * Formats the given identifier name under a namespace, if one is mentioned in
+ * the commentedNode's comment. Otherwise, name is returned.
+ */
+export function namespaceIdentifierName(
+    name: string, commentedNode: estree.Node): string {
+  const comment = esutil.getAttachedComment(commentedNode) || '';
+  const docs = jsdoc.parseJsdoc(comment);
+  const namespaceName = jsdoc.getTag(docs, 'memberof', 'description');
+  if (namespaceName) {
+    return namespaceName + '.' + name;
+  } else {
+    return name;
+  }
+}
+
 
 export const CANT_CONVERT = 'UNKNOWN';
