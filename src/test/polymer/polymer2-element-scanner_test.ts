@@ -203,7 +203,7 @@ class BaseElement extends Polymer.Element {
   });
 
   test('properly sets className for elements with the memberof tag', async() => {
-    const elements = await getElements('test-element-6.js');
+    const elements = await getElements('test-element-8.js');
     const elementData = elements.map(getTestProps);
     assert.containSubset(elementData, [
       {
@@ -238,7 +238,7 @@ namespaced name.`,
   });
 
   test('Read mixes annotations', async() => {
-    const elements = await getElements('test-element-8.js');
+    const elements = await getElements('test-element-6.js');
     const elementData = elements.map(getTestProps);
 
     assert.deepEqual(elementData, [

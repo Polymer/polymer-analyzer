@@ -1,12 +1,39 @@
 /**
- * @polymerElement
- * @extends Polymer.Element
- * @mixes Mixin2
- * @mixes Mixin1
+ * This element is a member of Polymer namespace and is registered with its
+ * namespaced name.
+ * @memberof Polymer
  */
-class TestElement extends Mixin1
-(Mixin2(Polymer.Element)) {
-  static get is() {
-    return 'test-element';
+class TestElementOne extends Polymer.Element {
+  static get config() {
+    return {
+      properties: {
+        foo: {
+          notify: true,
+          type: String,
+        }
+      },
+    };
   }
 }
+Polymer.TestElementOne = TestElementOne;
+window.customElements.define('test-element-one', Polymer.TestElementOne);
+
+/**
+ * This element is a member of Polymer namespace and is registered without its
+ * namespaced name.
+ * @memberof Polymer
+ */
+class TestElementTwo extends Polymer.Element {
+  static get config() {
+    return {
+      properties: {
+        foo: {
+          notify: true,
+          type: String,
+        }
+      },
+    };
+  }
+}
+Polymer.TestElementTwo = TestElementTwo;
+window.customElements.define('test-element-two', TestElementTwo);
