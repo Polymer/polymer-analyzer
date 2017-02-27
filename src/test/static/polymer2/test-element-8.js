@@ -4,14 +4,12 @@
  * @memberof Polymer
  */
 class TestElementOne extends Polymer.Element {
-  static get config() {
+  static get properties() {
     return {
-      properties: {
-        foo: {
-          notify: true,
-          type: String,
-        }
-      },
+      foo: {
+        notify: true,
+        type: String,
+      }
     };
   }
 }
@@ -24,14 +22,12 @@ window.customElements.define('test-element-one', Polymer.TestElementOne);
  * @memberof Polymer
  */
 class TestElementTwo extends Polymer.Element {
-  static get config() {
+  static get properties() {
     return {
-      properties: {
-        foo: {
-          notify: true,
-          type: String,
-        }
-      },
+      foo: {
+        notify: true,
+        type: String,
+      }
     };
   }
 }
