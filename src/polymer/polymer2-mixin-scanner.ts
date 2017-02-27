@@ -61,7 +61,7 @@ class MixinVisitor implements Visitor {
       this._currentMixin = new ScannedPolymerElementMixin({
         name: namespacedName,
         sourceRange,
-        description: docs.description,
+        description: parentJsDocs.description,
       });
       this._currentMixinNode = node;
       this._mixins.push(this._currentMixin);
@@ -81,7 +81,7 @@ class MixinVisitor implements Visitor {
       this._currentMixin = new ScannedPolymerElementMixin({
         name: namespacedName,
         sourceRange,
-        description: docs.description,
+        description: nodeJsDocs.description,
       });
       this._currentMixinNode = node;
       this._mixins.push(this._currentMixin);

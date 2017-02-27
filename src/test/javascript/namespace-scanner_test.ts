@@ -89,7 +89,7 @@ ImplicitlyNamedNamespace.NestedNamespace = {
 ~~`);
 
     assert.equal(namespaces[2].name, 'ParentNamespace.FooNamespace');
-    assert.equal(namespaces[2].description, '\n');
+    assert.equal(namespaces[2].description, '');
     assert.deepEqual(namespaces[2].warnings, []);
     assert.equal(await underliner.underline(namespaces[2].sourceRange), `
 FooNamespace = {
@@ -100,7 +100,7 @@ FooNamespace = {
 ~~`);
 
     assert.equal(namespaces[3].name, 'ParentNamespace.BarNamespace');
-    assert.equal(namespaces[3].description, '\n');
+    assert.equal(namespaces[3].description, '');
     assert.deepEqual(namespaces[3].warnings, []);
     assert.equal(await underliner.underline(namespaces[3].sourceRange), `
 ParentNamespace.BarNamespace = {
