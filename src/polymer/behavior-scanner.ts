@@ -14,7 +14,7 @@
 
 import * as estree from 'estree';
 
-import {getIdentifierName, namespaceIdentifierName} from '../javascript/ast-value';
+import {getIdentifierName, getNamespacedIdentifier} from '../javascript/ast-value';
 import {Visitor} from '../javascript/estree-visitor';
 import * as esutil from '../javascript/esutil';
 import {JavaScriptDocument} from '../javascript/javascript-document';
@@ -173,7 +173,7 @@ class BehaviorVisitor implements Visitor {
 
     behavior.className =
         jsdoc.getTag(behavior.jsdoc, 'polymerBehavior', 'name') ||
-        namespaceIdentifierName(symbol, node);
+        getNamespacedIdentifier(symbol, behavior.jsdoc);
     if (!behavior.className) {
       throw new Error(
           `Unable to determine name for @polymerBehavior: ${comment}`);

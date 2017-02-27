@@ -14,7 +14,7 @@
 
 import * as estree from 'estree';
 
-import {getIdentifierName, namespaceIdentifierName} from '../javascript/ast-value';
+import {getIdentifierName, getNamespacedIdentifier} from '../javascript/ast-value';
 import {Visitor} from '../javascript/estree-visitor';
 import * as esutil from '../javascript/esutil';
 import {JavaScriptDocument} from '../javascript/javascript-document';
@@ -51,12 +51,12 @@ class MixinVisitor implements Visitor {
     if (parent.type !== 'ExpressionStatement') {
       return;
     }
-    const comment = esutil.getAttachedComment(parent) || '';
-    const docs = jsdoc.parseJsdoc(comment);
-    if (this._hasPolymerMixinDocTag(docs)) {
+    const parentComments = esutil.getAttachedComment(parent) || '';
+    const parentJsDocs = jsdoc.parseJsdoc(parentComments);
+    if (this._hasPolymerMixinDocTag(parentJsDocs)) {
       const name = getIdentifierName(node.left);
       const namespacedName =
-          name ? namespaceIdentifierName(name, parent) : undefined;
+          name ? getNamespacedIdentifier(name, parentJsDocs) : undefined;
       const sourceRange = this._document.sourceRangeForNode(node);
       this._currentMixin = new ScannedPolymerElementMixin({
         name: namespacedName,
@@ -71,12 +71,12 @@ class MixinVisitor implements Visitor {
 
   enterFunctionDeclaration(
       node: estree.FunctionDeclaration, _parent: estree.Node) {
-    const comment = esutil.getAttachedComment(node) || '';
-    const docs = jsdoc.parseJsdoc(comment);
-    if (this._hasPolymerMixinDocTag(docs)) {
+    const nodeComments = esutil.getAttachedComment(node) || '';
+    const nodeJsDocs = jsdoc.parseJsdoc(nodeComments);
+    if (this._hasPolymerMixinDocTag(nodeJsDocs)) {
       const name = node.id.name;
       const namespacedName =
-          name ? namespaceIdentifierName(name, node) : undefined;
+          name ? getNamespacedIdentifier(name, nodeJsDocs) : undefined;
       const sourceRange = this._document.sourceRangeForNode(node);
       this._currentMixinFunction = node;
       this._currentMixin = new ScannedPolymerElementMixin({
@@ -129,8 +129,9 @@ class MixinVisitor implements Visitor {
       node: estree.VariableDeclarator, parent: estree.Node) {
     if (this._currentMixin != null && this._currentMixinFunction == null) {
       const name = (node.id as estree.Identifier).name;
-      const namespacedName = namespaceIdentifierName(name, parent);
-      this._currentMixin.name = namespacedName;
+      const parentComments = esutil.getAttachedComment(parent) || '';
+      const parentJsDocs = jsdoc.parseJsdoc(parentComments);
+      this._currentMixin.name = getNamespacedIdentifier(name, parentJsDocs);
     }
   }
 

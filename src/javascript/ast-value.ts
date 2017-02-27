@@ -202,10 +202,11 @@ export function getIdentifierName(node: estree.Node): string|undefined {
  * Formats the given identifier name under a namespace, if one is mentioned in
  * the commentedNode's comment. Otherwise, name is returned.
  */
-export function namespaceIdentifierName(
-    name: string, commentedNode: estree.Node): string {
-  const comment = esutil.getAttachedComment(commentedNode) || '';
-  const docs = jsdoc.parseJsdoc(comment);
+export function getNamespacedIdentifier(
+    name: string, docs?: jsdoc.Annotation): string {
+  if (!docs) {
+    return name;
+  }
   const namespaceName = jsdoc.getTag(docs, 'memberof', 'description');
   if (namespaceName) {
     return namespaceName + '.' + name;
