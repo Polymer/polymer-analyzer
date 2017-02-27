@@ -29,9 +29,9 @@ export interface Tag {
 
 /**
  * The parsed representation of a JSDoc comment.
- * If no description is found, the description property will be an empty string.
  */
 export interface Annotation {
+  // If no description is found, the property will be an empty string.
   description: string;
   tags: Tag[]|null;
 }

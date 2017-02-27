@@ -104,7 +104,6 @@ class MixinVisitor implements Visitor {
     const isMixin = this._hasPolymerMixinDocTag(docs);
     const sourceRange = this._document.sourceRangeForNode(node);
     if (isMixin) {
-      console.log('C', cmment, docs);
       this._currentMixin = new ScannedPolymerElementMixin({
         sourceRange,
         description: docs.description,
