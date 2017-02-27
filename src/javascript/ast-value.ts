@@ -206,9 +206,10 @@ export function getNamespacedIdentifier(
   if (!docs) {
     return name;
   }
-  const namespaceName = jsdoc.getTag(docs, 'memberof', 'description');
-  if (namespaceName) {
-    return namespaceName + '.' + name;
+  const namespace = jsdoc.getTag(docs, 'memberof', 'description');
+  if (namespace) {
+    const rightMostIdentifierName = name.substring(name.lastIndexOf('.') + 1);
+    return namespace + '.' + rightMostIdentifierName;
   } else {
     return name;
   }

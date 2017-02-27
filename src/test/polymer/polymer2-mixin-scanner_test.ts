@@ -279,4 +279,22 @@ Polymer.TestMixin = Polymer.woohoo(function TestMixin(base) {
 ~~`);
   });
 
+  test(
+      'properly analyzes nested mixin assignments with memberof tags',
+      async() => {
+        const mixins = await getMixins('test-mixin-8.js');
+        const mixinData = mixins.map(getTestProps);
+        assert.deepEqual(mixinData, [{
+                           name: 'Polymer.TestMixin',
+                           description: '',
+                           properties: [{
+                             name: 'foo',
+                           }],
+                           attributes: [{
+                             name: 'foo',
+                           }],
+                         }]);
+
+      });
+
 });

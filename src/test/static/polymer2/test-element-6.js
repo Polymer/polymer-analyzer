@@ -1,5 +1,5 @@
 /**
- * This element is a member of Polymer namespace and is defined with its
+ * This element is a member of Polymer namespace and is registered with its
  * namespaced name.
  * @memberof Polymer
  */
@@ -19,7 +19,7 @@ Polymer.TestElementOne = TestElementOne;
 window.customElements.define('test-element-one', Polymer.TestElementOne);
 
 /**
- * This element is a member of Polymer namespace and is defined without its
+ * This element is a member of Polymer namespace and is registered without its
  * namespaced name.
  * @memberof Polymer
  */

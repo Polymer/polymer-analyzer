@@ -210,7 +210,7 @@ class BaseElement extends Polymer.Element {
     ]);
   });
 
-  test('Properly sets className for elements with the memberof tag', async() => {
+  test('properly sets className for elements with the memberof tag', async() => {
     const elements = await getElements('test-element-6.js');
     const elementData = elements.map(getTestProps);
     assert.containSubset(elementData, [
@@ -219,7 +219,7 @@ class BaseElement extends Polymer.Element {
         className: 'Polymer.TestElementOne',
         superClass: 'Polymer.Element',
         description:
-            `This element is a member of Polymer namespace and is defined with its
+            `This element is a member of Polymer namespace and is registered with its
 namespaced name.`,
         properties: [{
           name: 'foo',
@@ -233,7 +233,7 @@ namespaced name.`,
         className: 'Polymer.TestElementTwo',
         superClass: 'Polymer.Element',
         description:
-            `This element is a member of Polymer namespace and is defined without its
+            `This element is a member of Polymer namespace and is registered without its
 namespaced name.`,
         properties: [{
           name: 'foo',
