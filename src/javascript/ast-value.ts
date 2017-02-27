@@ -15,7 +15,6 @@
 import * as estree from 'estree';
 
 import {LiteralObj, LiteralValue} from '../model/model';
-import * as esutil from './esutil';
 import * as jsdoc from './jsdoc';
 
 /**
