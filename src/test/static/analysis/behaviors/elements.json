@@ -126,25 +126,7 @@
           }
         }
       ],
-      "methods": [
-        {
-          "description": "",
-          "metadata": {},
-          "name": "created",
-          "params": [],
-          "sourceRange": {
-            "end": {
-              "column": 5,
-              "line": 23
-            },
-            "start": {
-              "column": 4,
-              "line": 21
-            }
-          },
-          "type": "Function"
-        }
-      ],
+      "methods": [],
       "styling": {
         "cssVariables": [],
         "selectors": []
