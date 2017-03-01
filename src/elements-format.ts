@@ -249,12 +249,6 @@ export interface Method extends Feature {
   /** The name of the property. e.g. `value`, `icon`, `shouldCollapse`. */
   name: string;
 
-  /**
-   * The javascript type of function. ex: 'ArrowFunctionExpression',
-   * 'FunctionExpression'.
-   */
-  type?: string;
-
   /** A markdown description of the property. */
   description: string;
 

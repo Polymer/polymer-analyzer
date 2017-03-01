@@ -246,9 +246,6 @@ function serializeMethod(
     sourceRange:
         resolveSourceRangePath(elementPath, resolvedMethod.sourceRange),
   };
-  if (resolvedMethod.type) {
-    method.type = resolvedMethod.type;
-  }
   if (resolvedMethod.params) {
     method.params = resolvedMethod.params;
   }
