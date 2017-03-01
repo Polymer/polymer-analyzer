@@ -96,9 +96,6 @@ export interface ScannedPolymerExtension extends ScannedElementBase {
 
 export function addProperty(
     target: ScannedPolymerExtension, prop: ScannedPolymerProperty) {
-  if (prop.name.startsWith('_') || prop.name.endsWith('_')) {
-    prop.private = true;
-  }
   target.properties.push(prop);
   const attributeName = propertyToAttributeName(prop.name);
   if (prop.private || !attributeName || !prop.published) {
@@ -123,8 +120,8 @@ export function addProperty(
 }
 
 export function addMethod(
-    target: ScannedPolymerExtension, prop: ScannedMethod) {
-  target.methods.push(prop);
+    target: ScannedPolymerExtension, method: ScannedMethod) {
+  target.methods.push(method);
 }
 
 /**
@@ -292,6 +289,14 @@ function resolveElement(
 
   if (scannedElement.pseudo) {
     element.kinds.add('pseudo-element');
+  }
+
+  // Elements have their own logic to dictate when a method is private or public
+  // that overrides whatever our scanner detected.
+  for (const method of element.methods) {
+    const hasJsDoc = !!method.jsdoc;
+    const hasJsDocPrivateTag = !!jsdoc.getTag(method.jsdoc, 'private');
+    method.private = hasJsDoc && !hasJsDocPrivateTag;
   }
 
   return element;

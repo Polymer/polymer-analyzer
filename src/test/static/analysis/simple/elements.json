@@ -47,6 +47,56 @@
           }
         }
       ],
+      "methods": [
+        {
+          "description": "",
+          "metadata": {},
+          "name": "customFunction",
+          "params": [
+            {
+              "name": "a"
+            },
+            {
+              "name": "b"
+            }
+          ],
+          "sourceRange": {
+            "end": {
+              "column": 39,
+              "line": 15
+            },
+            "start": {
+              "column": 4,
+              "line": 15
+            }
+          },
+          "type": "Function"
+        },
+        {
+          "description": "This is the description.\n@param {Number} a\n@param {Number} b\n@return {boolean}",
+          "metadata": {},
+          "name": "customFunctionWithJsDoc",
+          "params": [
+            {
+              "name": "a"
+            },
+            {
+              "name": "b"
+            }
+          ],
+          "sourceRange": {
+            "end": {
+              "column": 61,
+              "line": 22
+            },
+            "start": {
+              "column": 4,
+              "line": 22
+            }
+          },
+          "type": "Function"
+        }
+      ],
       "styling": {
         "cssVariables": [],
         "selectors": []
@@ -68,7 +118,7 @@
           "column": 10
         },
         "end": {
-          "line": 15,
+          "line": 23,
           "column": 3
         }
       }
