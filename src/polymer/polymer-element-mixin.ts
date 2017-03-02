@@ -14,10 +14,11 @@
 import * as dom5 from 'dom5';
 import * as estree from 'estree';
 
-import {Annotation as JsDocAnnotation, getPrivacy, isAnnotationEmpty} from '../javascript/jsdoc';
+import {Annotation as JsDocAnnotation, isAnnotationEmpty} from '../javascript/jsdoc';
 import {Document, ElementMixin, LiteralValue, Method, ScannedAttribute, ScannedElementMixin, ScannedEvent, ScannedMethod, ScannedProperty, SourceRange} from '../model/model';
 
 import {ScannedBehaviorAssignment} from './behavior';
+import {getOrInferPrivacy} from './js-utils';
 import {addMethod, addProperty, LocalId, PolymerExtension, PolymerProperty, ScannedPolymerExtension, ScannedPolymerProperty} from './polymer-element';
 
 export interface Options {
@@ -86,17 +87,9 @@ export class ScannedPolymerElementMixin extends ScannedElementMixin implements
     const element = new PolymerElementMixin();
     Object.assign(element, this);
 
-    // Mixins have their own logic to dictate when a method is private or
-    // public that overrides whatever our scanner detected.
     for (const method of element.methods) {
-      const explicitPrivacy = getPrivacy(method.jsdoc);
-      if (explicitPrivacy) {
-        method.privacy = explicitPrivacy;
-      } else if (method.jsdoc && !isAnnotationEmpty(method.jsdoc)) {
-        method.privacy = 'public';
-      } else {
-        method.privacy = 'private';
-      }
+      // methods are only public by default if they're documented.
+      method.privacy = getOrInferPrivacy(method.name, method.jsdoc, true);
     }
 
     return element;

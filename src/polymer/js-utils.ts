@@ -17,7 +17,7 @@ import * as estree from 'estree';
 
 import {closureType, getAttachedComment, objectKeyToString} from '../javascript/esutil';
 import * as jsdoc from '../javascript/jsdoc';
-import {ScannedMethod, SourceRange} from '../model/model';
+import {Privacy, ScannedMethod, SourceRange} from '../model/model';
 import {Severity, Warning} from '../warning/warning';
 
 import {ScannedPolymerProperty} from './polymer-element';
@@ -53,21 +53,9 @@ export function toScannedPolymerProperty(
     sourceRange: sourceRange,
     astNode: node, warnings,
     isConfiguration: configurationProperties.has(name || ''),
-    jsdoc: parsedJsdoc
+    jsdoc: parsedJsdoc,
+    privacy: getOrInferPrivacy(name || '', parsedJsdoc, false)
   };
-
-  const explicitPrivacy = jsdoc.getPrivacy(parsedJsdoc);
-  if (explicitPrivacy) {
-    result.privacy = explicitPrivacy;
-  } else if (result.name.startsWith('__')) {
-    result.privacy = 'private';
-  } else if (result.name.startsWith('_')) {
-    result.privacy = 'protected';
-  } else if (result.name.endsWith('_')) {
-    result.privacy = 'private';
-  } else {
-    result.privacy = 'public';
-  }
 
   return result;
 };
@@ -112,4 +100,32 @@ export function toScannedMethod(
   }
 
   return scannedMethod;
+}
+
+
+export function getOrInferPrivacy(
+    name: string,
+    annotation: jsdoc.Annotation|undefined,
+    privateUnlessDocumented: boolean): Privacy|undefined {
+  const explicitPrivacy = jsdoc.getPrivacy(annotation);
+  if (explicitPrivacy) {
+    return explicitPrivacy;
+  } else if (name.startsWith('__')) {
+    return 'private';
+  } else if (name.startsWith('_')) {
+    return 'protected';
+  } else if (name.endsWith('_')) {
+    return 'private';
+  } else {
+    if (privateUnlessDocumented) {
+      // Some members, like methods or properties on classes are private by
+      // default unless they have documentation.
+      const hasDocs = !!annotation && !jsdoc.isAnnotationEmpty(annotation);
+      return hasDocs ? 'public' : 'private';
+    } else {
+      // Other members, like entries in the Polymer `properties` block are
+      // public unless there are clear signals otherwise.
+      return 'public';
+    }
+  }
 }

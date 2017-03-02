@@ -15,12 +15,13 @@
 import * as dom5 from 'dom5';
 import * as estree from 'estree';
 
-import {Annotation as JsDocAnnotation, getPrivacy, isAnnotationEmpty} from '../javascript/jsdoc';
+import {Annotation as JsDocAnnotation, isAnnotationEmpty} from '../javascript/jsdoc';
 import {Document, Element, ElementBase, LiteralValue, Method, Property, ScannedAttribute, ScannedElement, ScannedElementBase, ScannedEvent, ScannedMethod, ScannedProperty, SourceRange} from '../model/model';
 import {ScannedReference} from '../model/reference';
 import {Severity, Warning} from '../warning/warning';
 
 import {Behavior, ScannedBehaviorAssignment} from './behavior';
+import {getOrInferPrivacy} from './js-utils';
 import {PolymerElementMixin} from './polymer-element-mixin';
 
 export interface BasePolymerProperty {
@@ -295,21 +296,9 @@ function resolveElement(
     element.kinds.add('pseudo-element');
   }
 
-  // Elements have their own logic to dictate when a method is private or public
-  // that overrides whatever our scanner detected.
   for (const method of element.methods) {
-    const explicitPrivacy = getPrivacy(method.jsdoc);
-    if (explicitPrivacy) {
-      method.privacy = explicitPrivacy;
-    } else if (method.name.startsWith('__')) {
-      method.privacy = 'private';
-    } else if (method.name.startsWith('_')) {
-      method.privacy = 'protected';
-    } else if (method.jsdoc && !isAnnotationEmpty(method.jsdoc)) {
-      method.privacy = 'public';
-    } else {
-      method.privacy = 'private';
-    }
+    // methods are only public by default if they're documented.
+    method.privacy = getOrInferPrivacy(method.name, method.jsdoc, true);
   }
 
   return element;
