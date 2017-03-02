@@ -20,7 +20,7 @@ import {getAttachedComment, isFunctionType, objectKeyToString} from '../javascri
 import {JavaScriptDocument} from '../javascript/javascript-document';
 import {JavaScriptScanner} from '../javascript/javascript-scanner';
 import * as jsdoc from '../javascript/jsdoc';
-import {Privacy} from '../model/model';
+import {getOrInferPrivacy} from '../polymer/js-utils';
 
 import {ScannedFunction} from './function';
 
@@ -145,27 +145,11 @@ class FunctionVisitor implements Visitor {
     // TODO(fks): parse params directly from `fn`, merge with docs.tags data
 
     const specificName = functionName.slice(functionName.lastIndexOf('.') + 1);
-    let privacy: Privacy;
-    const explicitPrivacy = jsdoc.getPrivacy(docs);
-    if (explicitPrivacy) {
-      privacy = explicitPrivacy;
-    } else if (specificName.startsWith('__')) {
-      privacy = 'private';
-    } else if (specificName.startsWith('_')) {
-      privacy = 'protected';
-    } else if (specificName.endsWith('_')) {
-      privacy = 'private';
-    } else if (!docs || jsdoc.isAnnotationEmpty(docs)) {
-      privacy = 'private';
-    } else {
-      privacy = 'public';
-    }
-
     this.functions.add(new ScannedFunction(
         functionName,
         description,
         summary,
-        privacy,
+        getOrInferPrivacy(specificName, docs, true),
         node,
         docs,
         sourceRange,
