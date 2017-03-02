@@ -32,10 +32,10 @@ export function toScannedPolymerProperty(
   const parsedJsdoc = jsdoc.parseJsdoc(getAttachedComment(node) || '');
   const description =
       jsdoc.removeLeadingAsterisks(getAttachedComment(node) || '').trim();
-  const name = objectKeyToString(node.key);
+  const maybeName = objectKeyToString(node.key);
 
   const warnings: Warning[] = [];
-  if (!name) {
+  if (!maybeName) {
     warnings.push({
       code: 'unknown-prop-name',
       message:
@@ -45,22 +45,26 @@ export function toScannedPolymerProperty(
       severity: Severity.WARNING
     });
   }
-
+  const name = maybeName || '';
   const result: ScannedPolymerProperty = {
-    name: name || '',
-    type: type,
-    description: description,
-    sourceRange: sourceRange,
-    astNode: node, warnings,
-    isConfiguration: configurationProperties.has(name || ''),
+    name,
+    type,
+    description,
+    sourceRange,
+    warnings,
+    astNode: node,
+    isConfiguration: configurationProperties.has(name),
     jsdoc: parsedJsdoc,
-    privacy: getOrInferPrivacy(name || '', parsedJsdoc, false)
+    privacy: getOrInferPrivacy(name, parsedJsdoc, false)
   };
 
   return result;
 };
 
-/** Properties on element prototypes that are purely configuration. */
+/**
+ * Properties on Polymer element prototypes that are part of Polymer's
+ * configuration syntax.
+ */
 const configurationProperties = new Set([
   'attached',
   'attributeChanged',
@@ -75,9 +79,10 @@ const configurationProperties = new Set([
   'is',
   'listeners',
   'mixins',
+  'observers',
   'properties',
   'ready',
-  'registered'
+  'registered',
 ]);
 
 /**
@@ -116,6 +121,8 @@ export function getOrInferPrivacy(
     return 'protected';
   } else if (name.endsWith('_')) {
     return 'private';
+  } else if (configurationProperties.has(name)) {
+    return 'protected';
   } else {
     if (privateUnlessDocumented) {
       // Some members, like methods or properties on classes are private by

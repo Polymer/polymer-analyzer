@@ -102,6 +102,9 @@ export function addProperty(
     target: ScannedPolymerExtension, prop: ScannedPolymerProperty) {
   target.properties.push(prop);
   const attributeName = propertyToAttributeName(prop.name);
+  // Don't produce attributes or events for nonpublic properties, properties
+  // that aren't in Polymer's `properties` block (i.e. not published),
+  // or properties whose names can't be converted into attribute names.
   if ((prop.privacy && prop.privacy !== 'public') || !attributeName ||
       !prop.published) {
     return;
