@@ -14,7 +14,7 @@
 import * as dom5 from 'dom5';
 import * as estree from 'estree';
 
-import {Annotation as JsDocAnnotation, isAnnotationEmpty} from '../javascript/jsdoc';
+import {Annotation as JsDocAnnotation} from '../javascript/jsdoc';
 import {Document, ElementMixin, LiteralValue, Method, ScannedAttribute, ScannedElementMixin, ScannedEvent, ScannedMethod, ScannedProperty, SourceRange} from '../model/model';
 
 import {ScannedBehaviorAssignment} from './behavior';
