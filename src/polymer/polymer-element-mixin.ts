@@ -14,7 +14,7 @@
 import * as dom5 from 'dom5';
 import * as estree from 'estree';
 
-import {Annotation as JsDocAnnotation, getTag as JsDocGetTag, isAnnotationEmpty} from '../javascript/jsdoc';
+import {Annotation as JsDocAnnotation, getPrivacy, isAnnotationEmpty} from '../javascript/jsdoc';
 import {Document, ElementMixin, LiteralValue, Method, ScannedAttribute, ScannedElementMixin, ScannedEvent, ScannedMethod, ScannedProperty, SourceRange} from '../model/model';
 
 import {ScannedBehaviorAssignment} from './behavior';
@@ -89,9 +89,14 @@ export class ScannedPolymerElementMixin extends ScannedElementMixin implements
     // Mixins have their own logic to dictate when a method is private or
     // public that overrides whatever our scanner detected.
     for (const method of element.methods) {
-      const hasJsDocPrivateTag = !!JsDocGetTag(method.jsdoc, 'private');
-      method.private = !method.jsdoc || isAnnotationEmpty(method.jsdoc) ||
-          hasJsDocPrivateTag;
+      const explicitPrivacy = getPrivacy(method.jsdoc);
+      if (explicitPrivacy) {
+        method.privacy = explicitPrivacy;
+      } else if (method.jsdoc && !isAnnotationEmpty(method.jsdoc)) {
+        method.privacy = 'public';
+      } else {
+        method.privacy = 'private';
+      }
     }
 
     return element;

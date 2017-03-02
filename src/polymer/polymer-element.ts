@@ -15,7 +15,7 @@
 import * as dom5 from 'dom5';
 import * as estree from 'estree';
 
-import {Annotation as JsDocAnnotation, getTag as JsDocGetTag, isAnnotationEmpty} from '../javascript/jsdoc';
+import {Annotation as JsDocAnnotation, getPrivacy, isAnnotationEmpty} from '../javascript/jsdoc';
 import {Document, Element, ElementBase, LiteralValue, Method, Property, ScannedAttribute, ScannedElement, ScannedElementBase, ScannedEvent, ScannedMethod, ScannedProperty, SourceRange} from '../model/model';
 import {ScannedReference} from '../model/reference';
 import {Severity, Warning} from '../warning/warning';
@@ -29,9 +29,12 @@ export interface BasePolymerProperty {
   observer?: string;
   observerNode?: estree.Expression|estree.Pattern;
   reflectToAttribute?: boolean;
-  configuration?: boolean;
-  getter?: boolean;
-  setter?: boolean;
+  /**
+   * True if the property is part of Polymer's element configuration syntax.
+   *
+   * e.g. 'properties', 'is', 'extends', etc
+   */
+  isConfiguration?: boolean;
 }
 
 export interface ScannedPolymerProperty extends ScannedProperty,
@@ -98,7 +101,8 @@ export function addProperty(
     target: ScannedPolymerExtension, prop: ScannedPolymerProperty) {
   target.properties.push(prop);
   const attributeName = propertyToAttributeName(prop.name);
-  if (prop.private || !attributeName || !prop.published) {
+  if ((prop.privacy && prop.privacy !== 'public') || !attributeName ||
+      !prop.published) {
     return;
   }
   target.attributes.push({
@@ -294,9 +298,18 @@ function resolveElement(
   // Elements have their own logic to dictate when a method is private or public
   // that overrides whatever our scanner detected.
   for (const method of element.methods) {
-    const hasJsDocPrivateTag = !!JsDocGetTag(method.jsdoc, 'private');
-    method.private =
-        !method.jsdoc || isAnnotationEmpty(method.jsdoc) || hasJsDocPrivateTag;
+    const explicitPrivacy = getPrivacy(method.jsdoc);
+    if (explicitPrivacy) {
+      method.privacy = explicitPrivacy;
+    } else if (method.name.startsWith('__')) {
+      method.privacy = 'private';
+    } else if (method.name.startsWith('_')) {
+      method.privacy = 'protected';
+    } else if (method.jsdoc && !isAnnotationEmpty(method.jsdoc)) {
+      method.privacy = 'public';
+    } else {
+      method.privacy = 'private';
+    }
   }
 
   return element;

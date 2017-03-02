@@ -17,7 +17,7 @@ import * as estree from 'estree';
 
 import {closureType, getAttachedComment, objectKeyToString} from '../javascript/esutil';
 import * as jsdoc from '../javascript/jsdoc';
-import {ScannedMethod, ScannedProperty, SourceRange} from '../model/model';
+import {ScannedMethod, SourceRange} from '../model/model';
 import {Severity, Warning} from '../warning/warning';
 
 import {ScannedPolymerProperty} from './polymer-element';
@@ -25,10 +25,11 @@ import {ScannedPolymerProperty} from './polymer-element';
 /**
  * Create a ScannedProperty object from an estree Property AST node.
  */
-export function toScannedProperty(
+export function toScannedPolymerProperty(
     node: estree.Property|estree.MethodDefinition,
-    sourceRange: SourceRange): ScannedProperty {
+    sourceRange: SourceRange): ScannedPolymerProperty {
   const type = closureType(node.value, sourceRange);
+  const parsedJsdoc = jsdoc.parseJsdoc(getAttachedComment(node) || '');
   const description =
       jsdoc.removeLeadingAsterisks(getAttachedComment(node) || '').trim();
   const name = objectKeyToString(node.key);
@@ -51,16 +52,45 @@ export function toScannedProperty(
     description: description,
     sourceRange: sourceRange,
     astNode: node, warnings,
-    private: !!name && (name.startsWith('_') || name.endsWith('_')),
+    isConfiguration: configurationProperties.has(name || ''),
+    jsdoc: parsedJsdoc
   };
 
-  if (node.kind === 'get' || node.kind === 'set') {
-    result.type = '';
+  const explicitPrivacy = jsdoc.getPrivacy(parsedJsdoc);
+  if (explicitPrivacy) {
+    result.privacy = explicitPrivacy;
+  } else if (result.name.startsWith('__')) {
+    result.privacy = 'private';
+  } else if (result.name.startsWith('_')) {
+    result.privacy = 'protected';
+  } else if (result.name.endsWith('_')) {
+    result.privacy = 'private';
+  } else {
+    result.privacy = 'public';
   }
 
   return result;
 };
 
+/** Properties on element prototypes that are purely configuration. */
+const configurationProperties = new Set([
+  'attached',
+  'attributeChanged',
+  'beforeRegister',
+  'configure',
+  'constructor',
+  'created',
+  'detached',
+  'enableCustomStyleProperties',
+  'extends',
+  'hostAttributes',
+  'is',
+  'listeners',
+  'mixins',
+  'properties',
+  'ready',
+  'registered'
+]);
 
 /**
  * Create a ScannedMethod object from an estree Property AST node.
@@ -68,7 +98,8 @@ export function toScannedProperty(
 export function toScannedMethod(
     node: estree.Property|estree.MethodDefinition,
     sourceRange: SourceRange): ScannedMethod {
-  const scannedMethod = <ScannedMethod>toScannedProperty(node, sourceRange);
+  const scannedMethod: ScannedMethod =
+      toScannedPolymerProperty(node, sourceRange);
 
   if (scannedMethod.type === 'Function' ||
       scannedMethod.type === 'ArrowFunction') {
@@ -81,19 +112,4 @@ export function toScannedMethod(
   }
 
   return scannedMethod;
-}
-
-/**
- * Create a ScannedPolymerProperty object from an estree Property AST node.
- */
-export function toScannedPolymerProperty(
-    node: estree.Property, sourceRange: SourceRange): ScannedPolymerProperty {
-  const scannedPolymerProperty =
-      <ScannedPolymerProperty>toScannedProperty(node, sourceRange);
-
-  if (node.kind === 'get' || node.kind === 'set') {
-    node[`${node.kind}ter`] = true;
-  }
-
-  return scannedPolymerProperty;
 }
