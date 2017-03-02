@@ -14,13 +14,13 @@
 
 import * as estree from 'estree';
 
-import {getIdentifierName, getNamespacedIdentifier} from
-'../javascript/ast-value';
+import {getIdentifierName, getNamespacedIdentifier} from '../javascript/ast-value';
 import {Visitor} from '../javascript/estree-visitor';
-import {getAttachedComment, objectKeyToString, isFunctionType} from '../javascript/esutil';
+import {getAttachedComment, isFunctionType, objectKeyToString} from '../javascript/esutil';
 import {JavaScriptDocument} from '../javascript/javascript-document';
 import {JavaScriptScanner} from '../javascript/javascript-scanner';
 import * as jsdoc from '../javascript/jsdoc';
+
 import {ScannedFunction} from './function';
 
 export class FunctionScanner implements JavaScriptScanner {
@@ -128,21 +128,21 @@ class FunctionVisitor implements Visitor {
       };
     }
 
-    let functionParams;
+    const functionParams: {type: string, desc: string, name: string}[] = [];
     if (docs.tags) {
-      const paramTags = docs.tags.filter((tag) => tag.tag === 'param');
-      if (paramTags.length > 0) {
-        functionParams = paramTags.map((paramTag) => {
-          return {
-            type: paramTag.type || 'N/A',
-            desc: paramTag.description || '',
-            name: paramTag.name || 'N/A'
-          };
+      docs.tags.forEach((tag) => {
+        if (tag.tag !== 'param') {
+          return;
+        }
+        functionParams.push({
+          type: tag.type || 'N/A',
+          desc: tag.description || '',
+          name: tag.name || 'N/A'
         });
-      }
+      });
     }
+    // TODO(fks): parse params directly from `fn`, merge with docs.tags data
 
-    // TODO(fks): parse params directly from `fn`, merge with paramTags
 
     this.functions.add(new ScannedFunction(
         functionName,

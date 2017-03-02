@@ -85,7 +85,7 @@ function aaa(a) {
         description: 'bbb',
         summary: '',
         warnings: [],
-        params: undefined, return: undefined,
+        params: [], return: undefined,
         codeSnippet: `
 Polymer.bbb = function bbb() {
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -99,7 +99,7 @@ Polymer.bbb = function bbb() {
         description: 'ccc',
         summary: '',
         warnings: [],
-        params: undefined, return: undefined,
+        params: [], return: undefined,
         codeSnippet: `
   function ccc() {
   ~~~~~~~~~~~~~~~~
@@ -111,7 +111,7 @@ Polymer.bbb = function bbb() {
         description: 'ddd',
         summary: '',
         warnings: [],
-        params: undefined, return: undefined,
+        params: [], return: undefined,
         codeSnippet: `
   ddd: function() {
   ~~~~~~~~~~~~~~~~~
@@ -125,7 +125,7 @@ Polymer.bbb = function bbb() {
         description: 'eee',
         summary: '',
         warnings: [],
-        params: undefined, return: undefined,
+        params: [], return: undefined,
         codeSnippet: `
   eee: () => {},
   ~~~~~~~~~~~~~`,
@@ -135,7 +135,7 @@ Polymer.bbb = function bbb() {
         description: 'fff',
         summary: '',
         warnings: [],
-        params: undefined, return: undefined,
+        params: [], return: undefined,
         codeSnippet: `
   fff() {
   ~~~~~~~
@@ -149,7 +149,7 @@ Polymer.bbb = function bbb() {
         description: 'ggg',
         summary: '',
         warnings: [],
-        params: undefined, return: undefined,
+        params: [], return: undefined,
         codeSnippet: `
   ggg: someFunction,
   ~~~~~~~~~~~~~~~~~`,
@@ -159,7 +159,7 @@ Polymer.bbb = function bbb() {
         description: 'hhh',
         summary: '',
         warnings: [],
-        params: undefined, return: undefined,
+        params: [], return: undefined,
         codeSnippet: `
 var hhh = function() {
 ~~~~~~~~~~~~~~~~~~~~~~
