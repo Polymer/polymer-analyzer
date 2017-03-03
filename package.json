@@ -11,7 +11,7 @@
   },
   "main": "lib/analyzer.js",
   "bin": {
-    "analyze": "bin/analyze.js"
+    "analyze": "lib/analyze.js"
   },
   "typings": "lib/analyzer.d.ts",
   "files": [
