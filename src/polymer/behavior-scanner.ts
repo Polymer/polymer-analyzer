@@ -146,8 +146,8 @@ class BehaviorVisitor implements Visitor {
         return;
       }
     }
-    const jsDoc = jsdoc.parseJsdoc(comment || '');
-    if (!jsdoc.hasTag(jsDoc, 'polymerBehavior')) {
+    const parsedJsdocs = jsdoc.parseJsdoc(comment || '');
+    if (!jsdoc.hasTag(parsedJsdocs, 'polymerBehavior')) {
       if (symbol !== templatizer) {
         return;
       }
@@ -157,7 +157,7 @@ class BehaviorVisitor implements Visitor {
       description: comment,
       events: esutil.getEventComments(node),
       sourceRange: this.document.sourceRangeForNode(node),
-      privacy: getOrInferPrivacy(symbol, jsDoc, false),
+      privacy: getOrInferPrivacy(symbol, parsedJsdocs, false),
     }));
     const behavior = this.currentBehavior!;
 
