@@ -26,6 +26,10 @@ export {Warning} from './warning/warning';
 export {WarningPrinter, Verbosity as WarningPrinterVerbosity, Options as WarningPrinterOptions} from './warning/warning-printer';
 export {WarningFilter} from './warning/warning-filter';
 
+// Analysis
+export {generateAnalysis, validateAnalysis} from './generate-analysis';
+export {Analysis} from './analysis-format';
+
 // URL Loaders and Resolvers
 export {FetchUrlLoader} from './url-loader/fetch-url-loader';
 export {FSUrlLoader} from './url-loader/fs-url-loader';
