@@ -187,6 +187,8 @@ export interface ElementLike extends Feature {
     // Would be nice to document the default styling a bit here, whether it's
     // display: block or inline or whatever.
   };
+
+  privacy: Privacy;
 }
 
 export interface Element extends ElementLike {
@@ -226,7 +228,6 @@ export interface ElementMixin extends ElementLike {  //
    * e.g. `MyMixin`, `Polymer.PaperInputMixin`
    */
   name: string;
-  privacy: Privacy;
 }
 
 export interface Attribute extends Feature {

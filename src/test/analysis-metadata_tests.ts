@@ -20,6 +20,7 @@ const paperButtonElement: Element = {
   tagname: 'paper-button',
   superclass: 'HTMLElement',
   demos: ['demo/index.html'],
+  privacy: 'public',
 
   attributes: [
     {
