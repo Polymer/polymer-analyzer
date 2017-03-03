@@ -5,6 +5,9 @@
   "homepage": "https://github.com/Polymer/polymer-analyzer",
   "bugs": "https://github.com/Polymer/polymer-analyzer/issues",
   "license": "BSD-3-Clause",
+  "bin": {
+    "pathBetween": "lib/walk-imports.js"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/Polymer/polymer-analyzer.git"
