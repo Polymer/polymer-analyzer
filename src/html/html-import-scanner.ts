@@ -56,14 +56,15 @@ export class HtmlImportScanner implements HtmlScanner {
     const imports: ScannedImport[] = [];
 
     await visit((node) => {
-      let type: string;
+      let lazy: boolean;
       if (isHtmlImportNode(node)) {
-        type = 'html-import';
+        lazy = false;
       } else if (isLazyImportNode(node)) {
-        type = 'lazy-html-import';
+        lazy = true;
       } else {
         return;
       }
+      const type = 'html-import';
       const href = dom5.getAttribute(node, 'href')!;
       const importUrl = resolveUrl(document.baseUrl, href);
       imports.push(new ScannedImport(
@@ -71,14 +72,15 @@ export class HtmlImportScanner implements HtmlScanner {
           importUrl,
           document.sourceRangeForNode(node)!,
           document.sourceRangeForAttributeValue(node, 'href')!,
-          node));
+          node,
+          lazy));
     });
     if (this._lazyEdges) {
       const edges = this._lazyEdges.get(document.url);
       if (edges) {
         for (const edge of edges) {
           imports.push(new ScannedImport(
-              'lazy-html-import', edge, undefined, undefined, null));
+              'html-import', edge, undefined, undefined, null, true));
         }
       }
     }
