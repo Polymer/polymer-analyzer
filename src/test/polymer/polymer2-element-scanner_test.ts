@@ -489,5 +489,20 @@ namespaced name.`,
           observerProperties: [['foo'], ['foo', 'bar']],
         }]);
 
+    test('can identify elements registered with ClassName.is', async() => {
+      const elements = await getElements('test-element-11.js');
+      const elementData = elements.map(getTestProps);
+      assert.deepEqual(elementData, [{
+                         attributes: [{name: 'prop1'}],
+                         className: 'MyElement',
+                         description: '',
+                         methods: [],
+                         properties: [{name: 'prop1'}],
+                         summary: '',
+                         superClass: 'Polymer.Element',
+                         tagName: 'my-app',
+
+                       }]);
+    });
   });
 });
