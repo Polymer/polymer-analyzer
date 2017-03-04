@@ -39,6 +39,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [2.0.0-alpha.30] - 2017-03-03
 
 * Fix typo in package.json.
+* By default queries for features and warnings now traverse lazy imports. Added a query option to limit results only to those reachable by strict imports.
 
 ## [2.0.0-alpha.29] - 2017-03-03
 
