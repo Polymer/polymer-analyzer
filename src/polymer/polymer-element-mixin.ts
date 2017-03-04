@@ -75,8 +75,8 @@ export class ScannedPolymerElementMixin extends ScannedElementMixin implements
     }
     element.mixins = [];
     for (const mixin of this.mixins) {
-      // Should we resolve the mixin properties onto ourselves here?
-      // That seems premature.
+      // TODO(rictic): we should mix these mixins into `this`. See
+      // PolymerElement's logic for this.
       element.mixins.push(mixin.resolve(document));
     }
 
