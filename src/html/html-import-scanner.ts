@@ -39,8 +39,7 @@ const isLazyImportNode = p.AND(
     p.hasAttr('href'),
     p.NOT(p.hasSpaceSeparatedAttrValue('rel', 'import')),
     notCssLink,
-    p.parentMatches(
-        p.AND(p.hasTagName('dom-module'), p.NOT(p.hasTagName('template')))));
+    p.NOT(p.parentMatches(p.hasTagName('template'))));
 
 /**
  * Scans for <link rel="import"> and <link rel="lazy-import">
