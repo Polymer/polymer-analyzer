@@ -26,8 +26,7 @@ declare class SyntaxError {
   column: number;
 }
 
-// TODO(rictic): stop exporting this.
-export const baseParseOptions = {
+const baseParseOptions = {
   ecmaVersion: 8,
   attachComment: true,
   comment: true,
