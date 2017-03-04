@@ -20,7 +20,7 @@ import * as esutil from '../javascript/esutil';
 import {JavaScriptDocument} from '../javascript/javascript-document';
 import {JavaScriptScanner} from '../javascript/javascript-scanner';
 import * as jsdoc from '../javascript/jsdoc';
-import {Warning} from '../model/model';
+import {IncompleteFeature, ScannedFeature, Severity, Warning} from '../model/model';
 
 import {getOrInferPrivacy} from './js-utils';
 import {ScannedPolymerElementMixin} from './polymer-element-mixin';
@@ -28,23 +28,27 @@ import {getMethods, getProperties} from './polymer2-config';
 
 export class Polymer2MixinScanner implements JavaScriptScanner {
   async scan(
-      document: JavaScriptDocument, visit: (visitor: Visitor) => Promise<void>):
-      Promise<ScannedPolymerElementMixin[]> {
+      document: JavaScriptDocument,
+      visit: (visitor: Visitor) => Promise<void>): Promise<ScannedFeature[]> {
     const visitor = new MixinVisitor(document);
     await visit(visitor);
-    return visitor._mixins;
+    const result: ScannedFeature[] = visitor._mixins;
+    return result.concat(
+        visitor._warnings.map((w) => new IncompleteFeature(w)));
   }
 }
 
 class MixinVisitor implements Visitor {
   _mixins: ScannedPolymerElementMixin[] = [];
+  _warnings: Warning[] = [];
+
   private _document: JavaScriptDocument;
 
   private _currentMixin: ScannedPolymerElementMixin|null = null;
   private _currentMixinNode: estree.Node|null = null;
   private _currentMixinFunction: estree.BaseFunction|null = null;
-  // TODO(rictic): do something with these warnings.
-  private _warnings: Warning[] = [];
+
+
 
   constructor(document: JavaScriptDocument) {
     this._document = document;
@@ -79,7 +83,12 @@ class MixinVisitor implements Visitor {
         this._currentMixinNode = node;
         this._mixins.push(this._currentMixin);
       } else {
-        // TODO(rictic): warn for a mixin whose name we can't determine.
+        this._warnings.push({
+          code: 'unable-to-determine-mixin-name',
+          message: `Unable to determine the mixin name from this assignment.`,
+          severity: Severity.WARNING,
+          sourceRange: this._document.sourceRangeForNode(node.left)!,
+        });
       }
     }
   }
@@ -111,7 +120,12 @@ class MixinVisitor implements Visitor {
         this._currentMixinNode = node;
         this._mixins.push(this._currentMixin);
       } else {
-        // Warn about a mixin whose name we can't infer.
+        this._warnings.push({
+          code: 'unable-to-determine-mixin-name',
+          message: `Unable to determine the mixin name from this assignment.`,
+          severity: Severity.WARNING,
+          sourceRange: this._document.sourceRangeForNode(node.id)!,
+        });
       }
     }
   }
@@ -156,7 +170,12 @@ class MixinVisitor implements Visitor {
         this._currentMixinNode = node;
         this._mixins.push(this._currentMixin);
       } else {
-        // TODO(rictic); warn about being unable to determine mixin name.
+        this._warnings.push({
+          code: 'unable-to-analyze-mixin',
+          message: `The Analyzer is unable to analyze this mixin declaration.`,
+          severity: Severity.WARNING,
+          sourceRange: this._document.sourceRangeForNode(node)!,
+        });
       }
     }
   }
