@@ -15,19 +15,28 @@
 import {Analyzer, Options as AnalyzerOptions} from '../analyzer';
 import {ParsedHtmlDocument} from '../html/html-document';
 import {Attribute, Document, Element, Property, ScannedProperty, SourcePosition, SourceRange, Warning, WarningCarryingException} from '../model/model';
+import {InMemoryOverlayLoader} from '../url-loader/in-memory-overlay-loader';
 
 import {getLocationInfoForPosition} from './ast-from-source-position';
 import {AttributeCompletion, EditorService, TypeaheadCompletion} from './editor-service';
 
 export class LocalEditorService extends EditorService {
-  private _analyzer: Analyzer;
+  private readonly _analyzer: Analyzer;
+  private readonly _inMemoryOverlay: InMemoryOverlayLoader;
   constructor(options: AnalyzerOptions) {
     super();
-    this._analyzer = new Analyzer(options);
+    this._inMemoryOverlay = new InMemoryOverlayLoader(options.urlLoader);
+    this._analyzer = new Analyzer(
+        Object.assign({}, options, {urlLoader: this._inMemoryOverlay}));
   }
 
-  async fileChanged(localPath: string, contents?: string): Promise<void> {
-    await this._analyzer.analyze(localPath, contents);
+  async fileChanged(localPath: string, contents?: string) {
+    if (contents == null) {
+      this._inMemoryOverlay.unmapFile(localPath);
+    } else {
+      this._inMemoryOverlay.mapFile(localPath, contents);
+    }
+    this._analyzer.filesChanged([localPath]);
   }
 
   async getDocumentationAtPosition(localPath: string, position: SourcePosition):
