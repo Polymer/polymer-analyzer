@@ -103,22 +103,17 @@ class ElementVisitor implements Visitor {
       return;
     }
 
-    const prop = <estree.Property>{
-      key: node.key,
-      value: node.value,
-      kind: node.kind,
+    const prop = Object.assign({}, node, {
       method: true,
-      leadingComments: node.leadingComments,
       shorthand: false,
       computed: false,
-      type: 'Property'
-    };
+    });
 
     if (node.kind === 'get') {
       const returnStatement = <estree.ReturnStatement>node.value.body.body[0];
       const argument = <estree.ArrayExpression>returnStatement.argument;
       const propDesc = docs.annotate(toScannedPolymerProperty(
-          prop, this.document.sourceRangeForNode(prop)!));
+          prop, this.document.sourceRangeForNode(node)!));
 
       // We only support observers and behaviors getters that return array
       // literals.
@@ -163,7 +158,7 @@ class ElementVisitor implements Visitor {
 
     if (node.kind === 'method') {
       const methodDesc = docs.annotate(
-          toScannedMethod(prop, this.document.sourceRangeForNode(prop)!));
+          toScannedMethod(prop, this.document.sourceRangeForNode(node)!));
       element.addMethod(methodDesc);
     }
   }

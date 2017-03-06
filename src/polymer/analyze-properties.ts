@@ -102,6 +102,7 @@ export function analyzeProperties(
           case 'observer':
             const val = astValue.expressionToValue(propertyArg.value);
             prop.observerNode = propertyArg.value;
+            console.log(`found observer for prop ${prop.name}`);
             const parseResult = parseExpressionInJsStringLiteral(
                 document, propertyArg.value, 'identifierOnly');
             prop.warnings = prop.warnings.concat(parseResult.warnings);

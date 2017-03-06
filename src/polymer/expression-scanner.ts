@@ -562,6 +562,9 @@ export function parseExpressionInJsStringLiteral(
   } else if (parsed && parsed.type === 'success') {
     result.databinding = new JavascriptDatabindingExpression(
         stringLiteral, sourceRange, expressionText, parsed.program, kind);
+    for (const warning of result.databinding.warnings) {
+      warnings.push(warning);
+    }
   }
   return result;
 }
