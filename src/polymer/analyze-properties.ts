@@ -102,8 +102,8 @@ export function analyzeProperties(
           case 'observer':
             const val = astValue.expressionToValue(propertyArg.value);
             prop.observerNode = propertyArg.value;
-            const parseResult =
-                parseExpressionInJsStringLiteral(document, propertyArg.value);
+            const parseResult = parseExpressionInJsStringLiteral(
+                document, propertyArg.value, 'identifierOnly');
             prop.warnings = prop.warnings.concat(parseResult.warnings);
             prop.observerExpression = parseResult.databinding;
             if (val === undefined) {
@@ -120,6 +120,10 @@ export function analyzeProperties(
             break;
           case 'computed':
             isComputed = true;
+            const computedParseResult = parseExpressionInJsStringLiteral(
+                document, propertyArg.value, 'callExpression');
+            prop.warnings = prop.warnings.concat(computedParseResult.warnings);
+            prop.computedExpression = computedParseResult.databinding;
             break;
           case 'value':
             prop.default =

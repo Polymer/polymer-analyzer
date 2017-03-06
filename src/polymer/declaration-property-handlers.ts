@@ -20,6 +20,7 @@ import {Severity, Warning} from '../model/model';
 import {ScannedBehaviorAssignment} from '../polymer/behavior';
 
 import {analyzeProperties} from './analyze-properties';
+import {parseExpressionInJsStringLiteral} from './expression-scanner';
 import {ScannedPolymerElement} from './polymer-element';
 
 export type BehaviorAssignmentOrWarning = {
@@ -98,7 +99,15 @@ export function declarationPropertyHandlers(
         if (v === undefined) {
           v = astValue.CANT_CONVERT;
         }
-        declaration.observers.push({javascriptNode: element, expression: v});
+        const parseResult = parseExpressionInJsStringLiteral(
+            document, element, 'callExpression');
+        declaration.warnings =
+            declaration.warnings.concat(parseResult.warnings);
+        declaration.observers.push({
+          javascriptNode: element,
+          expression: v,
+          parsedExpression: parseResult.databinding
+        });
       }
     },
     listeners(node: estree.Node) {

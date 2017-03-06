@@ -29,8 +29,9 @@ export interface BasePolymerProperty {
   notify?: boolean;
   observer?: string;
   observerNode?: estree.Expression|estree.Pattern;
-  observerExpression?: JavascriptDatabindingExpression|undefined;
+  observerExpression?: JavascriptDatabindingExpression;
   reflectToAttribute?: boolean;
+  computedExpression?: JavascriptDatabindingExpression;
   /**
    * True if the property is part of Polymer's element configuration syntax.
    *
@@ -53,6 +54,13 @@ export class LocalId {
   }
 }
 
+export interface Observer {
+  javascriptNode: estree.Expression|estree.SpreadElement;
+  expression: LiteralValue;
+  parsedExpression: JavascriptDatabindingExpression|undefined;
+}
+;
+
 export interface Options {
   tagName?: string;
   className?: string;
@@ -64,10 +72,7 @@ export interface Options {
   properties?: ScannedProperty[];
   methods?: ScannedMethod[];
   attributes?: ScannedAttribute[];
-  observers?: {
-    javascriptNode: estree.Expression | estree.SpreadElement,
-    expression: LiteralValue
-  }[];
+  observers?: Observer[];
   listeners?: {event: string, handler: string}[];
   behaviors?: ScannedBehaviorAssignment[];
 
@@ -83,10 +88,7 @@ export interface Options {
 export interface ScannedPolymerExtension extends ScannedElementBase {
   properties: ScannedPolymerProperty[];
   methods: ScannedMethod[];
-  observers: {
-    javascriptNode: estree.Expression | estree.SpreadElement,
-    expression: LiteralValue
-  }[];
+  observers: Observer[];
   listeners: {event: string, handler: string}[];
   behaviorAssignments: ScannedBehaviorAssignment[];
   // FIXME(rictic): domModule and scriptElement aren't known at a file local
@@ -142,10 +144,7 @@ export class ScannedPolymerElement extends ScannedElement implements
   ScannedPolymerExtension {
   properties: ScannedPolymerProperty[] = [];
   methods: ScannedMethod[] = [];
-  observers: {
-    javascriptNode: estree.Expression | estree.SpreadElement,
-    expression: LiteralValue
-  }[] = [];
+  observers: Observer[] = [];
   listeners: {event: string, handler: string}[] = [];
   behaviorAssignments: ScannedBehaviorAssignment[] = [];
   // FIXME(rictic): domModule and scriptElement aren't known at a file local
@@ -191,7 +190,8 @@ export interface PolymerExtension extends ElementBase {
 
   observers: {
     javascriptNode: estree.Expression | estree.SpreadElement,
-    expression: LiteralValue
+    expression: LiteralValue,
+    parsedExpression: JavascriptDatabindingExpression|undefined;
   }[];
   listeners: {event: string, handler: string}[];
   behaviorAssignments: ScannedBehaviorAssignment[];
@@ -208,10 +208,7 @@ export class PolymerElement extends Element implements PolymerExtension {
   properties: PolymerProperty[] = [];
   methods: Method[] = [];
 
-  observers: {
-    javascriptNode: estree.Expression | estree.SpreadElement,
-    expression: LiteralValue
-  }[] = [];
+  observers: Observer[] = [];
   listeners: {event: string, handler: string}[] = [];
   behaviorAssignments: ScannedBehaviorAssignment[] = [];
   domModule?: dom5.Node;

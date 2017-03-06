@@ -25,6 +25,7 @@ import {Severity, WarningCarryingException} from '../model/model';
 import {getBehaviorAssignmentOrWarning} from './declaration-property-handlers';
 import {declarationPropertyHandlers, PropertyHandlers} from './declaration-property-handlers';
 import * as docs from './docs';
+import {parseExpressionInJsStringLiteral} from './expression-scanner';
 import {getOrInferPrivacy, toScannedMethod, toScannedPolymerProperty} from './js-utils';
 import {ScannedPolymerElement, ScannedPolymerProperty} from './polymer-element';
 
@@ -139,9 +140,19 @@ class ElementVisitor implements Visitor {
       }
 
       if (propDesc.name === 'observers') {
-        argument.elements.forEach((elementObject: estree.Literal) => {
-          element.observers.push(
-              {javascriptNode: elementObject, expression: elementObject.raw});
+        argument.elements.forEach((elementObject) => {
+          const parseResult = parseExpressionInJsStringLiteral(
+              this.document, elementObject, 'callExpression');
+          element.warnings = element.warnings.concat(parseResult.warnings);
+          let expressionText = undefined;
+          if (elementObject.type === 'Literal') {
+            expressionText = elementObject.raw;
+          }
+          element.observers.push({
+            javascriptNode: elementObject,
+            expression: expressionText,
+            parsedExpression: parseResult.databinding
+          });
         });
         return;
       }
