@@ -20,6 +20,7 @@ import {Document, Element, ElementBase, LiteralValue, Method, Privacy, Property,
 import {ScannedReference} from '../model/reference';
 
 import {Behavior, ScannedBehaviorAssignment} from './behavior';
+import {JavascriptDatabindingExpression} from './expression-scanner';
 import {getOrInferPrivacy} from './js-utils';
 import {PolymerElementMixin} from './polymer-element-mixin';
 
@@ -28,6 +29,7 @@ export interface BasePolymerProperty {
   notify?: boolean;
   observer?: string;
   observerNode?: estree.Expression|estree.Pattern;
+  observerExpression?: JavascriptDatabindingExpression|undefined;
   reflectToAttribute?: boolean;
   /**
    * True if the property is part of Polymer's element configuration syntax.
