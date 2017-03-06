@@ -79,6 +79,9 @@ export function correctPosition(
 /**
  * If the position is inside the range, returns 0. If it comes before the range,
  * it returns -1. If it comes after the range, it returns 1.
+ *
+ * TODO(rictic): test this method directly (currently most of its tests are
+ *   indirectly, through ast-from-source-position).
  */
 export function comparePositionAndRange(
     position: SourcePosition, range: SourceRange, includeEdges?: boolean) {
