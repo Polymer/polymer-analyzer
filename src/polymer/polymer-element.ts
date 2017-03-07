@@ -59,7 +59,6 @@ export interface Observer {
   expression: LiteralValue;
   parsedExpression: JavascriptDatabindingExpression|undefined;
 }
-;
 
 export interface Options {
   tagName?: string;
