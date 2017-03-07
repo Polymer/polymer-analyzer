@@ -40,7 +40,7 @@ export function analyzeProperties(
     // toScannedPolymerProperty will give Object because it infers based on the
     // property declaration.
     prop.type = undefined;
-    let typeTag = jsdoc.getTag(prop.jsdoc, 'type');
+    const typeTag = jsdoc.getTag(prop.jsdoc, 'type');
     if (typeTag) {
       prop.type = typeTag.type || undefined;
     }

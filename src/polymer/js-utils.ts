@@ -43,7 +43,7 @@ export function toScannedPolymerProperty(
     });
   }
   let type = closureType(node.value, sourceRange);
-  let typeTag = jsdoc.getTag(parsedJsdoc, 'type');
+  const typeTag = jsdoc.getTag(parsedJsdoc, 'type');
   if (typeTag) {
     type = typeTag.type || type;
   }
