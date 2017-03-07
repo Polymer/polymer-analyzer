@@ -15,6 +15,15 @@
 import {UrlLoader} from './url-loader';
 
 
+class FailUrlLoader implements UrlLoader {
+  canLoad(_url: string): boolean {
+    return true;
+  }
+  load(url: string): Promise<string> {
+    throw new Error(`${url} not known in InMemoryOverlayLoader`);
+  }
+}
+
 /**
  * Resolves requests first from an in-memory map of file contents, and if a
  * file isn't found there, defers to another url loader.
@@ -31,8 +40,8 @@ export class InMemoryOverlayLoader implements UrlLoader {
   private readonly _fallbackLoader: UrlLoader;
   private readonly _memoryMap = new Map<string, string>();
 
-  constructor(fallbackLoader: UrlLoader) {
-    this._fallbackLoader = fallbackLoader;
+  constructor(fallbackLoader?: UrlLoader) {
+    this._fallbackLoader = fallbackLoader || new FailUrlLoader();
     if (this._fallbackLoader.readDirectory) {
       this.readDirectory =
           this._fallbackLoader.readDirectory.bind(this._fallbackLoader);

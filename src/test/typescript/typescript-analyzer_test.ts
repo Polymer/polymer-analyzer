@@ -17,11 +17,14 @@ import * as ts from 'typescript';
 
 import {AnalysisContext} from '../../core/analysis-context';
 import {TypeScriptAnalyzer} from '../../typescript/typescript-analyzer';
+import {InMemoryOverlayLoader} from '../../url-loader/in-memory-overlay-loader';
 import {PackageUrlResolver} from '../../url-loader/package-url-resolver';
-import {TestUrlLoader} from '../test-utils';
 
 async function getTypeScriptAnalyzer(files: {[url: string]: string}) {
-  const urlLoader = new TestUrlLoader(files);
+  const urlLoader = new InMemoryOverlayLoader();
+  for (const url of Object.keys(files)) {
+    urlLoader.mapFile(url, files[url]!);
+  }
   const urlResolver = new PackageUrlResolver();
   const analysisContext = new AnalysisContext({urlLoader, urlResolver});
   // This puts documents into the scanned document cache
