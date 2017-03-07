@@ -15,7 +15,8 @@ class TestElement extends Polymer.Element {
   static get observers() {
     return [
       'let let let parseError',
-      'foo'
+      'foo',
+      'foo(bar)',
     ];
   }
 }

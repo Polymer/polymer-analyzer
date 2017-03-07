@@ -25,7 +25,7 @@ import {CodeUnderliner} from '../test-utils';
 
 chaiUse(require('chai-subset'));
 
-suite('Polymer2ElementScanner', () => {
+suite.only('Polymer2ElementScanner', () => {
   const testFilesDir = path.resolve(__dirname, '../static/polymer2/');
   const urlLoader = new FSUrlLoader(testFilesDir);
   const underliner = new CodeUnderliner(urlLoader);
@@ -80,7 +80,15 @@ suite('Polymer2ElementScanner', () => {
                                        })),
 
           warningUnderlines: await underliner.underline(element.warnings),
+
         };
+        if (element.observers.length > 0) {
+          props.observers = element.observers.map((o) => o.expression);
+          props.observerProperties =
+              element.observers.filter((o) => o.parsedExpression)
+                  .map(
+                      (o) => o.parsedExpression!.properties.map((p) => p.name));
+        }
         if (element.mixins.length > 0) {
           props.mixins = element.mixins.map((m) => m.identifier);
         }
@@ -426,7 +434,56 @@ namespaced name.`,
   test('warns for bad observers and computed properties', async() => {
     const elements = await getElements('test-element-12.js');
     const elementData = await Promise.all(elements.map(getTestProps));
-    assert.deepEqual(elementData, []);
+    assert.deepEqual(
+        elementData, [{
+          attributes: [{name: 'parse-error'}, {name: 'bad-kind-of-expression'}],
+          className: 'TestElement',
+          description: '',
+          methods: [],
+          properties: [
+            {
+              name: 'parseError',
+              warningUnderlines: [
+                `
+        computed: 'let let let',
+                       ~`,
+                `
+        observer: 'let let let',
+                       ~`,
+              ]
+            },
+            {
+              name: 'badKindOfExpression',
+              propertiesInComputed: ['foo'],
+              propertiesInObserver: ['foo', 'bar', 'baz'],
+              warningUnderlines: [
+                `
+        computed: 'foo',
+                   ~~~`,
+                `
+        observer: 'foo(bar, baz)'
+                   ~~~~~~~~~~~~~`,
+              ]
+            }
+          ],
+          summary: '',
+          superClass: 'Polymer.Element',
+          tagName: 'test-element',
+          warningUnderlines: [
+            `
+      'let let let parseError',
+           ~`,
+            `
+      'foo',
+       ~~~`
+          ],
+          observers: [
+            'let let let parseError',
+            'foo',
+            'foo(bar)',
+          ],
+          observerProperties: [['foo'], ['foo', 'bar']],
+        }]);
 
   });
 });
