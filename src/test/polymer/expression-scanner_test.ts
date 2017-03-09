@@ -42,6 +42,9 @@ suite('ExpressionScanner', () => {
         </dom-module>
 
         <div id="{{nope}}"></div>
+        <template>
+          <div id="{{notHereEither}}"></div>
+        </template>
 
         <template is="dom-bind">
           <div id="{{baz}}"></div>
@@ -105,6 +108,12 @@ suite('ExpressionScanner', () => {
           <div id="bar {{val}} baz">
           <div id=" [[x]]{{y}}"></div>
         </template>
+
+        <div id=" {{nope}}"></div>
+        <template>
+          <div id="{{notHereEither}}"></div>
+        </template>
+
       `;
       const underliner = CodeUnderliner.withMapping('test.html', contents);
       const document = new HtmlParser().parse(contents, 'test.html');
@@ -166,6 +175,11 @@ suite('ExpressionScanner', () => {
               )
             }}
           </div>
+        </template>
+
+        {{nope}}
+        <template>
+          <div id="{{notHereEither}}"></div>
         </template>
       `;
 
