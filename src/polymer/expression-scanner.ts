@@ -59,9 +59,11 @@ export function getAllDataBindingTemplates(node: parse5.ASTNode) {
 export type HtmlDatabindingExpression =
     TextNodeDatabindingExpression | AttributeDatabindingExpression;
 
-// Some expressions are limited. For example, in a property declaration,
-// `observer` must be the identifier of a method, and `computed` must be a
-// function call expression.
+/**
+ * Some expressions are limited. For example, in a property declaration,
+ * `observer` must be the identifier of a method, and `computed` must be a
+ * function call expression.
+ */
 export type ExpressionLimitation = 'full' | 'identifierOnly' | 'callExpression';
 export abstract class DatabindingExpression {
   readonly sourceRange: SourceRange;
