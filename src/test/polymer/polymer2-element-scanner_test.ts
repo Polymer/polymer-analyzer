@@ -443,6 +443,8 @@ namespaced name.`,
           properties: [
             {
               name: 'parseError',
+              type: 'string',
+              description: '',
               warningUnderlines: [
                 `
         computed: 'let let let',
@@ -454,6 +456,8 @@ namespaced name.`,
             },
             {
               name: 'badKindOfExpression',
+              type: 'string',
+              description: '',
               propertiesInComputed: ['foo'],
               propertiesInObserver: ['foo', 'bar', 'baz'],
               warningUnderlines: [

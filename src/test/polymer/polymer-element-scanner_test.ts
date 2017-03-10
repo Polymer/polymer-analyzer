@@ -220,10 +220,12 @@ suite('PolymerElementScanner', () => {
         is: 'x-foo',
         properties: {
           parseError: {
+            type: String,
             computed: 'let let let',
             observer: 'let let let',
           },
           badKindOfExpression: {
+            type: String,
             computed: 'foo',
             observer: 'foo(bar, baz)'
           }
