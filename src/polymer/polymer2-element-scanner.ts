@@ -327,7 +327,7 @@ class ElementVisitor implements Visitor {
 
   private _getReturnValueOfStaticGetter(
       node: estree.ClassDeclaration|estree.ClassExpression,
-      methodName: string) {
+      methodName: string): estree.Node|undefined {
     const observedAttributesDefn: estree.MethodDefinition|undefined =
         node.body.body.find((m) => {
           if (m.type !== 'MethodDefinition' || !m.static) {
