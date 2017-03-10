@@ -125,17 +125,8 @@ export abstract class DatabindingExpression {
       return;
     }
     let expression = expressionStatement.expression;
-    if (limitation === 'identifierOnly') {
-      if (expression.type !== 'Identifier') {
-        this.warnings.push(this._validationWarning(
-            `Expected just a name here, not an expression`, expression));
-      }
-    } else if (limitation === 'callExpression') {
-      if (expression.type !== 'CallExpression') {
-        this.warnings.push(this._validationWarning(
-            `Expected a function call here.`, expression));
-      }
-    }
+
+    this._validateLimitation(expression, limitation);
     if (expression.type === 'UnaryExpression') {
       if (expression.operator !== '!') {
         this.warnings.push(this._validationWarning(
@@ -145,6 +136,29 @@ export abstract class DatabindingExpression {
       expression = expression.argument;
     }
     this._extractAndValidateSubExpression(expression, true);
+  }
+
+  private _validateLimitation(
+      expression: estree.Expression, limitation: ExpressionLimitation) {
+    switch (limitation) {
+      case 'identifierOnly':
+        if (expression.type !== 'Identifier') {
+          this.warnings.push(this._validationWarning(
+              `Expected just a name here, not an expression`, expression));
+        }
+        break;
+      case 'callExpression':
+        if (expression.type !== 'CallExpression') {
+          this.warnings.push(this._validationWarning(
+              `Expected a function call here.`, expression));
+        }
+        break;
+      case 'full':
+        break;  // no checks needed
+      default:
+        const never: never = limitation;
+        throw new Error(`Got unknown limitation: ${never}`);
+    }
   }
 
   private _extractAndValidateSubExpression(
