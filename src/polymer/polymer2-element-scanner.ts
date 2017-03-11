@@ -43,16 +43,6 @@ export class Polymer2ElementScanner implements JavaScriptScanner {
   }
 }
 
-type TagNameExpression = {
-  type: 'is',
-  className: string,
-  classNameSourceRange: SourceRange,
-}|{
-  type: 'string-literal',
-  value: string,
-  sourceRange: SourceRange,
-};
-
 class ElementVisitor implements Visitor {
   private _possibleElements = new Map<string, ScannedElement>();
   private _registeredButNotFound = new Map<string, TagNameExpression>();
@@ -242,8 +232,9 @@ class ElementVisitor implements Visitor {
 
     const className = node.id && node.id.name;
     const element = new ScannedPolymerElement({
+      className,
       astNode: node,
-      tagName: isValue, className,
+      tagName: isValue,
       description: (docs.description || '').trim(),
       events: esutil.getEventComments(node),
       sourceRange: this._document.sourceRangeForNode(node),
@@ -251,11 +242,12 @@ class ElementVisitor implements Visitor {
       methods: getMethods(node, this._document),
       superClass: this._getExtends(node, docs, warnings),
       mixins: jsdoc.getMixins(this._document, node, docs, warnings),
-      privacy: getOrInferPrivacy(className || '', docs, false), observers
+      privacy: getOrInferPrivacy(className || '', docs, false),  //
+      observers,
     });
 
-    // If a class defines observedAttributes, it overrides what the base classes
-    // defined.
+    // If a class defines observedAttributes, it overrides what the base
+    // classes defined.
     // TODO(justinfagnani): define and handle composition patterns.
     const observedAttributes = this._getObservedAttributes(node);
 
@@ -278,21 +270,32 @@ class ElementVisitor implements Visitor {
       return;
     }
 
-    const tagName =
+    const tagNameExpressionResult =
         node.arguments[0] && this.getTagNameExpression(node.arguments[0]);
-    if (tagName == null) {
+    if (tagNameExpressionResult.kind === 'failure') {
+      this._warnings.push(tagNameExpressionResult.warning);
+      return;
+    }
+    const tagNameExpression = tagNameExpressionResult.value;
+    if (tagNameExpression == null) {
       return;
     }
     const elementDefn = node.arguments[1];
     if (elementDefn == null) {
       return;
     }
-    const element: ScannedElement|null = this._getElement(tagName, elementDefn);
+    const element: ScannedElement|null =
+        this._getElement(tagNameExpression, elementDefn);
     if (!element) {
       return;
     }
     this._elements.add(element);
-    element.tagName = this.getTagNameFromExpression(tagName);
+    const tagNameResult = this.getTagNameFromExpression(tagNameExpression);
+    if (tagNameResult.kind === 'success') {
+      element.tagName = tagNameResult.value;
+    } else {
+      this._warnings.push(tagNameResult.warning);
+    }
   }
 
   private _getElement(tagName: TagNameExpression, elementDefn: estree.Node):
@@ -363,9 +366,9 @@ class ElementVisitor implements Visitor {
    * e.g.
    *     static get observedAttributes() {
    *       return [
-   *         /** @type {boolean} When given the element is totally inactive \*\/
+   *         /** @type {boolean} When given the element is totally inactive *\/
    *         'disabled',
-   *         /** @type {boolean} When given the element is expanded \*\/
+   *         /** @type {boolean} When given the element is expanded *\/
    *         'open'
    *       ];
    *     }
@@ -413,45 +416,55 @@ class ElementVisitor implements Visitor {
   getRegisteredElements(): ScannedElement[] {
     for (const classAndTag of this._registeredButNotFound.entries()) {
       const className = classAndTag[0];
-      const tagName = classAndTag[1];
+      const tagNameExpression = classAndTag[1];
       const element = this._possibleElements.get(className);
       if (element) {
         element.className = className;
-        element.tagName = this.getTagNameFromExpression(tagName);
+        const tagNameResult = this.getTagNameFromExpression(tagNameExpression);
+        if (tagNameResult.kind === 'success') {
+          element.tagName = tagNameResult.value;
+        } else {
+          this._warnings.push(tagNameResult.warning);
+        }
         this._elements.add(element);
       }
     }
     return Array.from(this._elements);
   }
 
-  getTagNameFromExpression(expression: TagNameExpression): string|undefined {
+  getTagNameFromExpression(expression: TagNameExpression):
+      OrWarning<string|undefined> {
     if (expression.type === 'string-literal') {
-      return expression.value;
+      return {kind: 'success', value: expression.value};
     }
     const element = this._possibleElements.get(expression.className) ||
         Array.from(this._elements)
             .find((e) => e.className === expression.className);
     if (!element) {
-      this._warnings.push({
-        code: 'cant-determine-element-tagname',
-        message:
-            `Couldn't dereference the class name ${expression.className} here.`,
-        severity: Severity.WARNING,
-        sourceRange: expression.classNameSourceRange
-      });
-      return;
+      return {kind: 'failure', warning: {
+                code: 'cant-determine-element-tagname',
+                message:
+                    `Couldn't dereference the class name ${expression.className
+          } here.`,
+          severity: Severity.WARNING,
+          sourceRange: expression.classNameSourceRange
+        }
+      };
     }
-    return element.tagName;
+    return {kind: 'success', value: element.tagName};
   }
 
-  getTagNameExpression(expression: estree.Node): TagNameExpression|undefined {
+  getTagNameExpression(expression: estree.Node): OrWarning<TagNameExpression> {
     const tryForLiteralString = astValue.expressionToValue(expression);
     if (tryForLiteralString != null &&
         typeof tryForLiteralString === 'string') {
       return {
-        type: 'string-literal',
-        value: tryForLiteralString,
-        sourceRange: this._document.sourceRangeForNode(expression)!
+        kind: 'success',
+        value: {
+          type: 'string-literal',
+          value: tryForLiteralString,
+          sourceRange: this._document.sourceRangeForNode(expression)!
+        }
       };
     }
     if (expression.type === 'MemberExpression') {
@@ -462,20 +475,48 @@ class ElementVisitor implements Visitor {
       const className = astValue.getIdentifierName(expression.object);
       if (isPropertyNameIs && className) {
         return {
-          type: 'is',
-          className,
-          classNameSourceRange:
-              this._document.sourceRangeForNode(expression.object)!
+          kind: 'success',
+          value: {
+            type: 'is',
+            className,
+            classNameSourceRange:
+                this._document.sourceRangeForNode(expression.object)!
+          }
         };
       }
     }
-    this._warnings.push({
-      code: 'cant-determine-element-tagname',
-      message:
-          `Unable to evaluate this expression down to a definitive string tagname.`,
-      severity: Severity.WARNING,
-      sourceRange: this._document.sourceRangeForNode(expression)!
-    });
-    return;
+    return {
+      kind: 'failure',
+      warning: {
+        code: 'cant-determine-element-tagname',
+        message:
+            `Unable to evaluate this expression down to a definitive string tagname.`,
+        severity: Severity.WARNING,
+        sourceRange: this._document.sourceRangeForNode(expression)!
+      }
+    };
   }
+}
+
+type OrWarning<V> = {
+  kind: 'success',
+  value: V
+}|{kind: 'failure', warning: Warning};
+
+/**
+ * Represents the first argument of a call to customElements.define.
+ */
+type TagNameExpression = ClassDotIsExpression|StringLiteralExpression;
+
+/** The tagname was the `is` property on an class, like `MyElem.is` */
+interface ClassDotIsExpression {
+  type: 'is';
+  className: string;
+  classNameSourceRange: SourceRange;
+}
+/** The tag name was just a string literal. */
+interface StringLiteralExpression {
+  type: 'string-literal';
+  value: string;
+  sourceRange: SourceRange;
 }
