@@ -28,6 +28,34 @@ import {getOrInferPrivacy} from './js-utils';
 import {Observer, ScannedPolymerElement} from './polymer-element';
 import {getIsValue, getMethods, getProperties} from './polymer2-config';
 
+
+/** Represents the value of an operation that may fail. */
+type Result<V, E> = {
+  successful: true; value: V;
+}|{
+  successful: false;
+  value: E;
+};
+
+/**
+ * Represents the first argument of a call to customElements.define.
+ */
+type TagNameExpression = ClassDotIsExpression|StringLiteralExpression;
+
+/** The tagname was the `is` property on an class, like `MyElem.is` */
+interface ClassDotIsExpression {
+  type: 'is';
+  className: string;
+  classNameSourceRange: SourceRange;
+}
+/** The tag name was just a string literal. */
+interface StringLiteralExpression {
+  type: 'string-literal';
+  value: string;
+  sourceRange: SourceRange;
+}
+
+
 export interface ScannedAttribute extends ScannedFeature {
   name: string;
   type?: string;
@@ -272,8 +300,8 @@ class ElementVisitor implements Visitor {
 
     const tagNameExpressionResult =
         node.arguments[0] && this.getTagNameExpression(node.arguments[0]);
-    if (tagNameExpressionResult.kind === 'failure') {
-      this._warnings.push(tagNameExpressionResult.warning);
+    if (!tagNameExpressionResult.successful) {
+      this._warnings.push(tagNameExpressionResult.value);
       return;
     }
     const tagNameExpression = tagNameExpressionResult.value;
@@ -291,10 +319,10 @@ class ElementVisitor implements Visitor {
     }
     this._elements.add(element);
     const tagNameResult = this.getTagNameFromExpression(tagNameExpression);
-    if (tagNameResult.kind === 'success') {
+    if (tagNameResult.successful) {
       element.tagName = tagNameResult.value;
     } else {
-      this._warnings.push(tagNameResult.warning);
+      this._warnings.push(tagNameResult.value);
     }
   }
 
@@ -421,10 +449,10 @@ class ElementVisitor implements Visitor {
       if (element) {
         element.className = className;
         const tagNameResult = this.getTagNameFromExpression(tagNameExpression);
-        if (tagNameResult.kind === 'success') {
+        if (tagNameResult.successful) {
           element.tagName = tagNameResult.value;
         } else {
-          this._warnings.push(tagNameResult.warning);
+          this._warnings.push(tagNameResult.value);
         }
         this._elements.add(element);
       }
@@ -433,15 +461,15 @@ class ElementVisitor implements Visitor {
   }
 
   getTagNameFromExpression(expression: TagNameExpression):
-      OrWarning<string|undefined> {
+      Result<string|undefined, Warning> {
     if (expression.type === 'string-literal') {
-      return {kind: 'success', value: expression.value};
+      return {successful: true, value: expression.value};
     }
     const element = this._possibleElements.get(expression.className) ||
         Array.from(this._elements)
             .find((e) => e.className === expression.className);
     if (!element) {
-      return {kind: 'failure', warning: {
+      return {successful: false, value: {
                 code: 'cant-determine-element-tagname',
                 message:
                     `Couldn't dereference the class name ${expression.className
@@ -451,15 +479,16 @@ class ElementVisitor implements Visitor {
         }
       };
     }
-    return {kind: 'success', value: element.tagName};
+    return {successful: true, value: element.tagName};
   }
 
-  getTagNameExpression(expression: estree.Node): OrWarning<TagNameExpression> {
+  getTagNameExpression(expression: estree.Node):
+      Result<TagNameExpression, Warning> {
     const tryForLiteralString = astValue.expressionToValue(expression);
     if (tryForLiteralString != null &&
         typeof tryForLiteralString === 'string') {
       return {
-        kind: 'success',
+        successful: true,
         value: {
           type: 'string-literal',
           value: tryForLiteralString,
@@ -475,7 +504,7 @@ class ElementVisitor implements Visitor {
       const className = astValue.getIdentifierName(expression.object);
       if (isPropertyNameIs && className) {
         return {
-          kind: 'success',
+          successful: true,
           value: {
             type: 'is',
             className,
@@ -486,37 +515,15 @@ class ElementVisitor implements Visitor {
       }
     }
     return {
-      kind: 'failure',
-      warning: {
+      successful: false,
+      value: {
         code: 'cant-determine-element-tagname',
         message:
-            `Unable to evaluate this expression down to a definitive string tagname.`,
+            `Unable to evaluate this expression down to a definitive string ` +
+            `tagname.`,
         severity: Severity.WARNING,
         sourceRange: this._document.sourceRangeForNode(expression)!
       }
     };
   }
-}
-
-type OrWarning<V> = {
-  kind: 'success',
-  value: V
-}|{kind: 'failure', warning: Warning};
-
-/**
- * Represents the first argument of a call to customElements.define.
- */
-type TagNameExpression = ClassDotIsExpression|StringLiteralExpression;
-
-/** The tagname was the `is` property on an class, like `MyElem.is` */
-interface ClassDotIsExpression {
-  type: 'is';
-  className: string;
-  classNameSourceRange: SourceRange;
-}
-/** The tag name was just a string literal. */
-interface StringLiteralExpression {
-  type: 'string-literal';
-  value: string;
-  sourceRange: SourceRange;
 }
