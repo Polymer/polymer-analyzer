@@ -44,7 +44,7 @@ export {UrlResolver} from './url-loader/url-resolver';
 export {PolymerElement} from './polymer/polymer-element';
 export {Behavior as PolymerBehavior} from './polymer/behavior';
 export {PolymerElementMixin} from './polymer/polymer-element-mixin';
-export {DatabindingExpression as PolymerDatabindingExpression} from './polymer/expression-scanner';
+export {DatabindingExpression as PolymerDatabindingExpression, AttributeDatabindingExpression, HtmlDatabindingExpression, JavascriptDatabindingExpression} from './polymer/expression-scanner';
 export {DomModule} from './polymer/dom-module-scanner';
 
 // ParsedDocuments
