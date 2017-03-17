@@ -166,7 +166,7 @@ export interface StringifyOptions {
  * The variant of binary search that returns the number of elements in the
  * array that is strictly less than the target.
  */
-export function binarySearch(target: number, arr: number[]) {
+function binarySearch(target: number, arr: number[]) {
   let lower = 0;
   let upper = arr.length - 1;
   while (true) {
