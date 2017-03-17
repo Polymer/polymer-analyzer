@@ -91,28 +91,23 @@ export abstract class ParsedDocument<AstNode, Visitor> {
   abstract stringify(options: StringifyOptions): string;
 
   offsetToSourcePosition(offset: number): SourcePosition {
-    let line = 0;
-    let lineOffset = -1;
-    // TODO(rictic): binary search lol.
-    for (; line < this.newlineIndexes.length; line++) {
-      const nextLineOffset = this.newlineIndexes[line];
-      if (offset <= nextLineOffset) {
-        break;
-      }
-      lineOffset = nextLineOffset;
+    const linesLess = binarySearch(offset, this.newlineIndexes);
+    let colOffset = this.newlineIndexes[linesLess - 1];
+    if (colOffset == null) {
+      colOffset = 0;
+    } else {
+      colOffset = colOffset + 1;
     }
-    const column = offset - (lineOffset + 1);
-    return {line, column};
+    return {line: linesLess, column: offset - colOffset};
   }
 
   offsetsToSourceRange(start: number, end: number): SourceRange {
-    return correctSourceRange(
-        {
-          file: this.url,
-          start: this.offsetToSourcePosition(start),
-          end: this.offsetToSourcePosition(end)
-        },
-        this._locationOffset)!;
+    const sourceRange = {
+      file: this.url,
+      start: this.offsetToSourcePosition(start),
+      end: this.offsetToSourcePosition(end)
+    };
+    return correctSourceRange(sourceRange, this._locationOffset)!;
   }
 
   sourcePositionToOffset(position: SourcePosition): number {
@@ -165,4 +160,27 @@ export interface StringifyOptions {
    * whose stringified contents should be used instead of what is in `ast`.
    */
   inlineDocuments?: ParsedDocument<any, any>[];
+}
+
+/**
+ * The variant of binary search that returns the number of elements in the
+ * array that is strictly less than the target.
+ */
+export function binarySearch(target: number, arr: number[]) {
+  let lower = 0;
+  let upper = arr.length - 1;
+  while (true) {
+    if (lower > upper) {
+      return lower;
+    }
+    const m = Math.floor((upper + lower) / 2);
+    if (target === arr[m]) {
+      return m;
+    }
+    if (target > arr[m]) {
+      lower = m + 1;
+    } else {
+      upper = m - 1;
+    }
+  }
 }
