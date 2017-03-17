@@ -11,7 +11,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
    Unreleased section, uncommenting the header as necessary.
 -->
 
-<!--## Unreleased-->
+## Unreleased
+
+* All Documents, ParsedDocuments, and ScannedDocuments now have correct SourceRanges.
 
 ## [2.0.0-alpha.33] - 2017-03-14
 
