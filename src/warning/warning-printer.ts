@@ -52,6 +52,13 @@ export class WarningPrinter {
   async printWarning(warning: Warning) {
     const severity = this._severityToString(warning.severity);
     const range = warning.sourceRange;
+    if (!range) {
+      this._outStream.write(
+          `INTERNAL ERROR: Tried to print a '${warning.code}' ` +
+          `warning without a source range. Please report this!\n` +
+          `     https://github.com/Polymer/polymer-analyzer/issues/new\n`);
+      return;
+    }
 
     if (this._options.verbosity === 'full') {
       this._outStream.write('\n\n');
