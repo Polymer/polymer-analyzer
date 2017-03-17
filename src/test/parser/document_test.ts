@@ -51,19 +51,29 @@ suite('ParsedDocument', () => {
    * another.
    */
   const testName =
-      'offsetsToSourceRange is the inverse of sourceRangeToOffsets';
+      'offsetsToSourceRange is the inverse of sourceRangeToOffsets for ' +
+      'in-bounds ranges';
   test(testName, async() => {
     const contents = [``, `asdf`, `a\na`, `asdf\n\nasdf`, `\nasdf\n`];
     for (const content of contents) {
       const document = new TestDocument(content);
-      for (let start = 0; start < contents.length; start++) {
-        for (let end = start; end < contents.length; end++) {
+      for (let start = 0; start < content.length; start++) {
+        for (let end = start; end < content.length; end++) {
           const range = document.offsetsToSourceRange(start, end);
           const offsets = document.sourceRangeToOffsets(range);
           assert.deepEqual(offsets, [start, end]);
         }
       }
     }
+  });
+
+  test('sourcePositionToOffsets clamps out of bounds values', async() => {
+    const document = new TestDocument(`abc\ndef`);
+    assert.deepEqual(document.sourcePositionToOffset({line: 0, column: -1}), 0);
+    assert.deepEqual(
+        document.sourcePositionToOffset({line: 1, column: -10}), 0);
+    assert.deepEqual(document.sourcePositionToOffset({line: 5, column: 0}), 7);
+    assert.deepEqual(document.sourcePositionToOffset({line: 1, column: 12}), 7);
   });
 
   test('sourceRangeToOffsets works for simple cases', async() => {
@@ -82,5 +92,18 @@ suite('ParsedDocument', () => {
     assert.deepEqual(document.offsetToSourcePosition(3), {line: 1, column: 1});
     assert.deepEqual(document.offsetToSourcePosition(4), {line: 2, column: 0});
     assert.deepEqual(document.offsetToSourcePosition(5), {line: 2, column: 1});
+  });
+
+  test('sourceRangeToOffsets fails gracefully', async() => {
+    let document = new TestDocument('ab');
+    assert.deepEqual(
+        document.offsetToSourcePosition(-1), {line: 0, column: -1});
+    assert.deepEqual(document.offsetToSourcePosition(3), {line: 0, column: 3});
+    assert.deepEqual(document.offsetToSourcePosition(4), {line: 0, column: 4});
+    document = new TestDocument('\n\n');
+    assert.deepEqual(
+        document.offsetToSourcePosition(-1), {line: 0, column: -1});
+    assert.deepEqual(document.offsetToSourcePosition(3), {line: 2, column: 1});
+    assert.deepEqual(document.offsetToSourcePosition(4), {line: 2, column: 2});
   });
 });

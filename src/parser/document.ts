@@ -111,18 +111,18 @@ export abstract class ParsedDocument<AstNode, Visitor> {
   }
 
   sourcePositionToOffset(position: SourcePosition): number {
+    const line = Math.max(0, position.line);
     let lineOffset;
-    if (position.line === 0) {
+    if (line === 0) {
       lineOffset = -1;
+    } else if (line > this.newlineIndexes.length) {
+      lineOffset = this.contents.length - 1;
     } else {
-      lineOffset = this.newlineIndexes[position.line - 1];
+      lineOffset = this.newlineIndexes[line - 1];
     }
-    if (lineOffset == null) {
-      throw new Error(
-          `Asked for line ${position.line} of ` +
-          `${this.newlineIndexes.length} line ${this.toString()}`);
-    }
-    return position.column + lineOffset + 1;
+    const result = position.column + lineOffset + 1;
+    // Clamp within bounds.
+    return Math.min(Math.max(0, result), this.contents.length);
   }
 
   sourceRangeToOffsets(range: SourceRange): [number, number] {
