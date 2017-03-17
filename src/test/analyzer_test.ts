@@ -698,6 +698,7 @@ var DuplicateNamespace = {};
           ['cyclic-a.html', 'root.html', 'subdir/root-in-subdir.html']
               .sort(), );
 
+      // Note that this does not contain the bower_components/ files
       assert.deepEqual(
           Array.from(pckage.getByKind('document'))
               .filter((d) => !d.isInline)
@@ -712,6 +713,7 @@ var DuplicateNamespace = {};
             'subdir/root-in-subdir.html'
           ].sort());
 
+      // And this does contain the one imported file in bower_components/
       assert.deepEqual(
           Array.from(pckage.getByKind('document', {externalPackages: true}))
               .filter((d) => !d.isInline)

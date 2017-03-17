@@ -54,13 +54,13 @@ export abstract class ParsedDocument<AstNode, Visitor> {
     this.astNode = from.astNode;
     this.isInline = from.isInline;
 
-    let lastSeen = -1;
+    let lastSeenLine = -1;
     while (true) {
-      lastSeen = from.contents.indexOf('\n', lastSeen + 1);
-      if (lastSeen === -1) {
+      lastSeenLine = from.contents.indexOf('\n', lastSeenLine + 1);
+      if (lastSeenLine === -1) {
         break;
       }
-      this.newlineIndexes.push(lastSeen);
+      this.newlineIndexes.push(lastSeenLine);
     }
     const indexOfFinalNewline =
         (this.newlineIndexes[this.newlineIndexes.length - 1] || -1);
