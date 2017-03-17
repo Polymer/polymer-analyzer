@@ -90,11 +90,11 @@ suite('Analyzer', () => {
       assert.equal(jsDocument.astNode!.tagName, 'script');
       assert.deepEqual(await underliner.underline(jsDocument.sourceRange), `
   <script>
-  ~~~~~~~~
-    console.log(\'hi\');
+           ~
+    console.log('hi');
 ~~~~~~~~~~~~~~~~~~~~~~
   </script>
-~~~~~~~~~~~`);
+~~`);
     });
 
     test('analyzes inline styles correctly', async() => {
@@ -107,7 +107,7 @@ suite('Analyzer', () => {
       assert.equal(cssDocument.astNode!.tagName, 'style');
       assert.deepEqual(await underliner.underline(cssDocument.sourceRange), `
   <style>
-  ~~~~~~~
+          ~
     body {
 ~~~~~~~~~~
       color: red;
@@ -115,7 +115,7 @@ suite('Analyzer', () => {
     }
 ~~~~~
   </style>
-~~~~~~~~~~`);
+~~`);
     });
 
     test('analyzes a document with an import', async() => {
