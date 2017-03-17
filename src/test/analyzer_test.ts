@@ -90,7 +90,7 @@ suite('Analyzer', () => {
       assert.equal(jsDocument.astNode!.tagName, 'script');
       assert.deepEqual(await underliner.underline(jsDocument.sourceRange), `
   <script>
-           ~
+          ~
     console.log('hi');
 ~~~~~~~~~~~~~~~~~~~~~~
   </script>
@@ -107,7 +107,7 @@ suite('Analyzer', () => {
       assert.equal(cssDocument.astNode!.tagName, 'style');
       assert.deepEqual(await underliner.underline(cssDocument.sourceRange), `
   <style>
-          ~
+         ~
     body {
 ~~~~~~~~~~
       color: red;

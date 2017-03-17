@@ -136,8 +136,10 @@ function getSquiggleUnderline(
         sourceRange.end.column :
         lineText.length;
     const prefix = ' '.repeat(startColumn);
-    // always draw at least one squiggle
-    return prefix + '~'.repeat(Math.max(1, endColumn - startColumn));
+    if (startColumn === endColumn) {
+      return prefix + '~';  // always draw at least one squiggle
+    }
+    return prefix + '~'.repeat(endColumn - startColumn);
   }
 
   // We're on the end line of a multiline range. Just squiggle up to the end
