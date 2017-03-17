@@ -698,6 +698,35 @@ var DuplicateNamespace = {};
           ['cyclic-a.html', 'root.html', 'subdir/root-in-subdir.html']
               .sort(), );
 
+      assert.deepEqual(
+          Array.from(pckage.getByKind('document'))
+              .filter((d) => !d.isInline)
+              .map((d) => d.url)
+              .sort(),
+          [
+            'cyclic-a.html',
+            'cyclic-b.html',
+            'root.html',
+            'leaf.html',
+            'subdir/subdir-leaf.html',
+            'subdir/root-in-subdir.html'
+          ].sort());
+
+      assert.deepEqual(
+          Array.from(pckage.getByKind('document', {externalPackages: true}))
+              .filter((d) => !d.isInline)
+              .map((d) => d.url)
+              .sort(),
+          [
+            'cyclic-a.html',
+            'cyclic-b.html',
+            'root.html',
+            'leaf.html',
+            'subdir/subdir-leaf.html',
+            'subdir/root-in-subdir.html',
+            'bower_components/imported.html',
+          ].sort());
+
       const packageElements = [
         'root-root',
         'leaf-leaf',
