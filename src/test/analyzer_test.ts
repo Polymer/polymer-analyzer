@@ -80,6 +80,21 @@ suite('Analyzer', () => {
           assert.deepEqual(elements.map((e) => e.tagName), ['my-element']);
         });
 
+    test('gets source ranges of documents correct', async() => {
+      const document = await analyzer.analyze('static/dependencies/root.html');
+      assert.deepEqual(await underliner.underline(document.sourceRange), `
+<link rel="import" href="inline-only.html">
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<link rel="import" href="leaf.html">
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<link rel="import" href="inline-and-imports.html">
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<link rel="import" href="subfolder/in-folder.html">
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+`);
+    });
+
     test('analyzes inline scripts correctly', async() => {
       const document = await analyzer.analyze(
           'static/inline-documents/inline-documents.html');
