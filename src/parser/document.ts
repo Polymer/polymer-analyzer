@@ -12,7 +12,7 @@
  * http://polymer.github.io/PATENTS.txt
  */
 
-import {correctSourceRange, LocationOffset, SourceRange} from '../model/source-range';
+import {correctSourceRange, LocationOffset, SourcePosition, SourceRange} from '../model/source-range';
 
 /**
  * A parsed Document.
@@ -62,17 +62,7 @@ export abstract class ParsedDocument<AstNode, Visitor> {
       }
       this.newlineIndexes.push(lastSeenLine);
     }
-    const indexOfFinalNewline =
-        (this.newlineIndexes[this.newlineIndexes.length - 1] || -1);
-    const sourceRange: SourceRange = {
-      file: this.url,
-      start: {line: 0, column: 0},
-      end: {
-        line: this.newlineIndexes.length,
-        column: from.contents.length - (indexOfFinalNewline + 1)
-      }
-    };
-    this.sourceRange = correctSourceRange(sourceRange, this._locationOffset)!;
+    this.sourceRange = this.offsetsToSourceRange(0, this.contents.length);
   }
 
   /**
@@ -99,6 +89,61 @@ export abstract class ParsedDocument<AstNode, Visitor> {
    * Convert `this.ast` back into a string document.
    */
   abstract stringify(options: StringifyOptions): string;
+
+  offsetToSourcePosition(offset: number): SourcePosition {
+    let line = 0;
+    let lineOffset = -1;
+    // TODO(rictic): binary search lol.
+    for (; line < this.newlineIndexes.length; line++) {
+      const nextLineOffset = this.newlineIndexes[line];
+      if (offset <= nextLineOffset) {
+        break;
+      }
+      lineOffset = nextLineOffset;
+    }
+    const column = offset - (lineOffset + 1);
+    return {line, column};
+  }
+
+  offsetsToSourceRange(start: number, end: number): SourceRange {
+    return correctSourceRange(
+        {
+          file: this.url,
+          start: this.offsetToSourcePosition(start),
+          end: this.offsetToSourcePosition(end)
+        },
+        this._locationOffset)!;
+  }
+
+  sourcePositionToOffset(position: SourcePosition): number {
+    let lineOffset;
+    if (position.line === 0) {
+      lineOffset = -1;
+    } else {
+      lineOffset = this.newlineIndexes[position.line - 1];
+    }
+    if (lineOffset == null) {
+      throw new Error(
+          `Asked for line ${position.line} of ` +
+          `${this.newlineIndexes.length} line ${this.toString()}`);
+    }
+    return position.column + lineOffset + 1;
+  }
+
+  sourceRangeToOffsets(range: SourceRange): [number, number] {
+    return [
+      this.sourcePositionToOffset(range.start),
+      this.sourcePositionToOffset(range.end)
+    ];
+  }
+
+  toString() {
+    if (this.isInline) {
+      return `Inline ${this.constructor.name} on line ` +
+          `${this.sourceRange.start.line} of ${this.url}`;
+    }
+    return `${this.constructor.name} at ${this.url}`;
+  }
 }
 
 export interface Options<A> {
