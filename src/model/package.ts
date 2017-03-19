@@ -21,7 +21,7 @@ export type QueryOptions = object & BaseQueryOptions;
 
 // A regexp that matches paths to external code.
 // TODO(rictic): Make this extensible (polymer.json?).
-const MATCHES_EXTERNAL = /(^|\/)(bower_components|node_modules)/;
+const MATCHES_EXTERNAL = /(^|\/)(bower_components|node_modules|build($|\/))/;
 
 /**
  * Represents a queryable interface over all documents in a package/project.
