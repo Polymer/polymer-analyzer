@@ -507,4 +507,35 @@ namespaced name.`,
         }]);
 
   });
+
+  test.only(`can identify elements from issue #574`, async() => {
+    const elements = await getElements('issue-574.js');
+    const elementData = await Promise.all(elements.map(getTestProps));
+    assert.deepEqual(elementData, [{
+                       tagName: 'bannoweb-dashboard',
+                       attributes: [],
+                       className: 'window.BannowebDashboardElement',
+                       description: '',
+                       summary: '',
+                       superClass: 'RoutedElement',
+                       warningUnderlines: [],
+                       methods: [
+                         {
+                           description: '',
+                           name: 'routeEnter',
+                           params: [
+                             {
+                               'name': 'currentNode',
+                             },
+                             {'name': 'nextNodeIfExists'},
+                             {'name': 'routeId'},
+                             {'name': 'context'},
+                             {'name': 'next'}
+                           ],
+                           return: undefined,
+                         },
+                       ],
+                       properties: [],
+                     }]);
+  });
 });
