@@ -21,6 +21,9 @@ export type QueryOptions = object & BaseQueryOptions;
 
 // A regexp that matches paths to external code.
 // TODO(rictic): Make this extensible (polymer.json?).
+// Note that we match directories named exactly `build`, but will match any
+// directory name prefixed by `bower_components` or `node_modules`, in order to
+// ignore `polymer install`'s variants, which look like bower_components-foo
 const MATCHES_EXTERNAL = /(^|\/)(bower_components|node_modules|build($|\/))/;
 
 /**
