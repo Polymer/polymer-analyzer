@@ -128,3 +128,53 @@ export class Failure<V, E> {
   * [Symbol.iterator](): Iterable<V> {
   }
 }
+
+function resultLiteral() {
+  if (Math.random() < 0.5) {
+    return {successful: false, value: 'sad'};
+  }
+  return {successful: true, value: 10};
+}
+
+function resultInstance() {
+  if (Math.random() < 0.5) {
+    return Result.fail('sad');
+  }
+  return Result.succeed(10);
+}
+
+const N = 1000 * 1000 * 10;
+
+function instanceTest() {
+  const start = +new Date;
+  const arr = [];
+  for (let i = 0; i < N; i++) {
+    arr.push(resultInstance());
+  }
+  console.log(`${MiB()} memory used`);
+  console.log(`${((+new Date) - start)
+                  .toFixed(0)}ms to create ${arr.length} instances.`);
+}
+
+function literalTest() {
+  const start = +new Date;
+  const arr = [];
+  for (let i = 0; i < N; i++) {
+    arr.push(resultLiteral());
+  }
+  console.log(`${MiB()} memory used`);
+  console.log(`${((+new Date) - start)
+                  .toFixed(0)}ms to create ${arr.length} literals.`);
+}
+
+function MiB() {
+  const usage = process.memoryUsage().rss;
+  return `${(usage / (1024 * 1024)).toFixed(1)}MiB`;
+}
+
+
+if (process.argv[2] === 'literal') {
+  literalTest();
+} else if (process.argv[2] === 'instance') {
+  instanceTest();
+}
