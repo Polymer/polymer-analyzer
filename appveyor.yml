@@ -16,6 +16,7 @@ test_script:
   - npm --version
   # run tests
   - npm run test
+  - npm run benchmark
 
 # Don't actually build.
 build: off
