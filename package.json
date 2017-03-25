@@ -18,7 +18,7 @@
     "bin/"
   ],
   "scripts": {
-    "clean": "mkdir -p lib/ && rm -rf lib/",
+    "clean": "mkdir -p lib/ && rm -R lib/",
     "build": "gulp build",
     "release": "npm run compile",
     "lint": "gulp lint",
