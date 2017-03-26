@@ -75,7 +75,7 @@ suite('DependencyGraph', () => {
     }
 
     test('works with a basic document with no dependencies', async() => {
-      await analyzer.analyze('dependencies/leaf.html');
+      await analyzer.analyze(['dependencies/leaf.html']);
       assertImportersOf('dependencies/leaf.html', []);
       const graph = analyzer['_context']['_cache'].dependencyGraph;
       assertGraphIsSettled(graph);
@@ -83,7 +83,7 @@ suite('DependencyGraph', () => {
     });
 
     test('works with a simple tree of dependencies', async() => {
-      await analyzer.analyze('dependencies/root.html');
+      await analyzer.analyze(['dependencies/root.html']);
       assertImportersOf('dependencies/root.html', []);
 
       assertImportersOf('dependencies/leaf.html', ['dependencies/root.html']);

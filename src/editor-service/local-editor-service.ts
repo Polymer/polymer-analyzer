@@ -14,11 +14,11 @@
 
 import {Analyzer, Options as AnalyzerOptions} from '../analyzer';
 import {ParsedHtmlDocument} from '../html/html-document';
-import {Attribute, Document, Element, Property, ScannedProperty, SourcePosition, SourceRange, Warning, WarningCarryingException} from '../model/model';
+import {Attribute, Document, Element, Property, ScannedProperty, SourcePosition, SourceRange, Warning} from '../model/model';
 import {InMemoryOverlayUrlLoader} from '../url-loader/overlay-loader';
 
 import {getLocationInfoForPosition} from './ast-from-source-position';
-import {AttributeCompletion, EditorService, TypeaheadCompletion} from './editor-service';
+import { AttributeCompletion, EditorService, TypeaheadCompletion } from './editor-service';
 
 export class LocalEditorService extends EditorService {
   private readonly _analyzer: Analyzer;
@@ -36,7 +36,7 @@ export class LocalEditorService extends EditorService {
     } else {
       this._inMemoryOverlay.urlContentsMap.set(localPath, contents);
     }
-    this._analyzer.filesChanged([localPath]);
+    await this._analyzer.filesChanged([localPath]);
   }
 
   async getDocumentationAtPosition(localPath: string, position: SourcePosition):
@@ -66,17 +66,18 @@ export class LocalEditorService extends EditorService {
   async getTypeaheadCompletionsAtPosition(
       localPath: string,
       position: SourcePosition): Promise<TypeaheadCompletion|undefined> {
-    const document = await this._analyzer.analyze(localPath);
+    const documentOrWarning = (await this._analyzer.analyze([localPath]))[0];
+    if (!(documentOrWarning instanceof Document)) {
+      return;
+    }
+    const document = documentOrWarning;
     const location = await this._getLocationResult(document, position);
     if (!location) {
       return;
     }
     if (location.kind === 'tagName' || location.kind === 'text') {
       const elements =
-          Array
-              .from(document.getByKind(
-                  'element', {imported: true, externalPackages: true}))
-              .filter((e) => e.tagName);
+          Array.from(document.getByKind('element')).filter((e) => e.tagName);
       return {
         kind: 'element-tags',
         elements: elements.map((e) => {
@@ -91,10 +92,7 @@ export class LocalEditorService extends EditorService {
         })
       };
     } else if (location.kind === 'attribute') {
-      const elements = document.getById(
-          'element',
-          location.element.nodeName,
-          {imported: true, externalPackages: true});
+      const elements = document.getById('element', location.element.nodeName);
       let attributes: AttributeCompletion[] = [];
       for (const element of elements) {
         // A map from the inheritedFrom to a sort prefix. Note that
@@ -139,42 +137,32 @@ export class LocalEditorService extends EditorService {
   }
 
   async getWarningsForFile(localPath: string): Promise<Warning[]> {
-    try {
-      const doc = await this._analyzer.analyze(localPath);
-      return doc.getWarnings({imported: false});
-    } catch (e) {
-      // This might happen if, e.g. `localPath` has a parse error. In that case
-      // we can't construct a valid Document, but we might still be able to give
-      // a reasonable warning.
-      if (e instanceof WarningCarryingException) {
-        const warnException: WarningCarryingException = e;
-        return [warnException.warning];
-      }
-      throw e;
+    const documentOrWarning = (await this._analyzer.analyze([localPath]))[0];
+    if (!(documentOrWarning instanceof Document)) {
+      return [documentOrWarning];
     }
+    return documentOrWarning.getWarnings();
   }
 
   async _clearCaches() {
-    this._analyzer.clearCaches();
+    await this._analyzer.clearCaches();
   }
 
   private async _getFeatureAt(localPath: string, position: SourcePosition):
       Promise<Element|Property|Attribute|undefined> {
-    const document = await this._analyzer.analyze(localPath);
+    const documentOrWarning = (await this._analyzer.analyze([localPath]));
+    if (!(documentOrWarning instanceof Document)) {
+      return;
+    }
+    const document = documentOrWarning;
     const location = await this._getLocationResult(document, position);
     if (!location) {
       return;
     }
     if (location.kind === 'tagName') {
-      return document.getOnlyAtId(
-          'element',
-          location.element.nodeName,
-          {imported: true, externalPackages: true});
+      return document.getOnlyAtId('element', location.element.nodeName);
     } else if (location.kind === 'attribute') {
-      const elements = document.getById(
-          'element',
-          location.element.nodeName,
-          {imported: true, externalPackages: true});
+      const elements = document.getById('element', location.element.nodeName);
       if (elements.size === 0) {
         return;
       }

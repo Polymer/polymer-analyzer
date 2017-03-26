@@ -68,8 +68,8 @@ export class ScannedImport implements Resolvable {
     if (!document.analyzer.canResolveUrl(this.url)) {
       return;
     }
-    const importedDocument = document.analyzer._getDocument(this.url);
-    if (!importedDocument) {
+    const importedDocumentOrWarning = document.analyzer.getDocument(this.url);
+    if (!(importedDocumentOrWarning instanceof Document)) {
       const error = this.error ? (this.error.message || this.error) : '';
       document.warnings.push({
         code: 'could-not-load',
@@ -82,7 +82,7 @@ export class ScannedImport implements Resolvable {
     return new Import(
         this.url,
         this.type,
-        importedDocument,
+        importedDocumentOrWarning,
         this.sourceRange,
         this.urlSourceRange,
         this.astNode,

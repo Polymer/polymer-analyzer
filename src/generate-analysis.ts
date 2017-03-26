@@ -22,7 +22,7 @@ import {Namespace as ResolvedNamespace} from './javascript/namespace';
 import {Document} from './model/document';
 import {Feature} from './model/feature';
 import {Attribute as ResolvedAttribute, Element as ResolvedElement, ElementMixin as ResolvedMixin, Event as ResolvedEvent, Method as ResolvedMethod, Property as ResolvedProperty, SourceRange as ResolvedSourceRange} from './model/model';
-import {Package} from './model/package';
+import {AnalysisResult} from './model/analysis-result';
 import {Behavior as ResolvedPolymerBehavior} from './polymer/behavior';
 
 export type ElementOrMixin = ResolvedElement | ResolvedMixin;
@@ -38,7 +38,7 @@ interface Members {
 }
 
 export function generateAnalysis(
-    input: Package|Document[], packagePath: string, filter?: Filter): Analysis {
+    input: AnalysisResult|Document[], packagePath: string, filter?: Filter): Analysis {
   const _filter = filter || ((_: Feature) => true);
 
   let members: Members;

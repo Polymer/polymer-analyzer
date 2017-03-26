@@ -18,9 +18,9 @@ import * as path from 'path';
 
 import {Analyzer} from '../analyzer';
 import {generateAnalysis, validateAnalysis, ValidationError} from '../generate-analysis';
-import {Document} from '../model/document';
 import {FSUrlLoader} from '../url-loader/fs-url-loader';
-import {PackageUrlResolver} from '../url-loader/package-url-resolver';
+import { PackageUrlResolver } from '../url-loader/package-url-resolver';
+import { AnalysisResult } from "../model/analysis-result";
 
 const onlyTests = new Set<string>([]);  // Should be empty when not debugging.
 
@@ -194,7 +194,7 @@ function* walkRecursively(dir: string): Iterable<string> {
   }
 }
 
-async function analyzeDir(baseDir: string): Promise<Document[]> {
+async function analyzeDir(baseDir: string): Promise<AnalysisResult> {
   const analyzer = new Analyzer({
     urlLoader: new FSUrlLoader(baseDir),
     urlResolver: new PackageUrlResolver(),
@@ -202,6 +202,7 @@ async function analyzeDir(baseDir: string): Promise<Document[]> {
   const allFilenames = Array.from(walkRecursively(baseDir));
   const htmlOrJsFilenames =
       allFilenames.filter((f) => f.endsWith('.html') || f.endsWith('.js'));
-  return Promise.all(htmlOrJsFilenames.map(
-      (filename) => analyzer.analyze(path.relative(baseDir, filename))));
+  const filePaths = htmlOrJsFilenames.map(
+      (filename) => path.relative(baseDir, filename));
+  return analyzer.analyze(filePaths);
 }
