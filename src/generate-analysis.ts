@@ -126,7 +126,7 @@ function buildAnalysis(members: Members, packagePath: string): Analysis {
   }
 
   for (const behavior of members.polymerBehaviors) {
-    const namespaceName = getNamespaceName(behavior.name);
+    const namespaceName = getNamespaceName(behavior.className);
     const namespace = namespaces.get(namespaceName) || analysis;
     namespace.mixins = namespace.mixins || [];
     namespace.mixins.push(
