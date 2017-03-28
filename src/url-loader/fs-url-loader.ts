@@ -12,6 +12,7 @@
  * http://polymer.github.io/PATENTS.txt
  */
 
+import * as eol from 'eol';
 import * as fs from 'fs';
 import * as pathlib from 'path';
 import {Url} from 'url';
@@ -51,7 +52,7 @@ export class FSUrlLoader implements UrlLoader {
         if (error) {
           reject(error);
         } else {
-          resolve(contents);
+          resolve(eol.lf(contents));
         }
       });
     });
