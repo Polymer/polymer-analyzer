@@ -22,7 +22,7 @@
     "build": "gulp build",
     "release": "npm run compile",
     "lint": "gulp lint",
-    "test": "npm run clean && npm run build && npm run lint && mocha",
+    "test": "sh -c \"npm run clean && npm run build && npm run lint && mocha\"",
     "quicktest": "export QUICK_TESTS=true; npm run build && mocha",
     "initBench": "sh -c \"if [ -d bower_components ]; then echo; else bower install -s -f PolymerElements/app-elements PolymerElements/iron-elements PolymerElements/gold-elements PolymerElements/paper-elements PolymerElements/neon-elements GoogleWebComponents/google-web-components ; fi\"",
     "benchmark": "sh -c \"npm run build && npm run initBench && node --expose-gc lib/perf/parse-all-benchmark.js\"",
