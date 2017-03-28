@@ -238,15 +238,14 @@ export class Document implements Feature, Queryable {
   getByKind(kind: string, options?: QueryOptions): Set<Feature>;
   getByKind(kind: string, options?: QueryOptions): Set<Feature> {
     options = options || {};
-    if (this._featuresByKind && options.imported && !options.strictImports) {
+    if (this._featuresByKind && this._isCachable(options)) {
       // We have a fast index! Use that.
       const features = this._featuresByKind.get(kind) || new Set();
       if (!options.externalPackages) {
         return this._filterOutExternal(features);
       }
       return features;
-    } else if (
-        this._doneResolving && options.imported && !options.strictImports) {
+    } else if (this._doneResolving && this._isCachable(options)) {
       // We're done discovering features in this document and its children so
       // we can safely build up the indexes.
       this._buildIndexes();
@@ -263,8 +262,7 @@ export class Document implements Feature, Queryable {
   getById(kind: string, identifier: string, options?: QueryOptions):
       Set<Feature> {
     options = options || {};
-    if (this._featuresByKindAndId && options.imported &&
-        !options.strictImports) {
+    if (this._featuresByKindAndId && this._isCachable(options)) {
       // We have a fast index! Use that.
       const idMap = this._featuresByKindAndId.get(kind);
       const features = (idMap && idMap.get(identifier)) || new Set();
@@ -272,8 +270,7 @@ export class Document implements Feature, Queryable {
         return this._filterOutExternal(features);
       }
       return features;
-    } else if (
-        this._doneResolving && options.imported && !options.strictImports) {
+    } else if (this._doneResolving && this._isCachable(options)) {
       // We're done discovering features in this document and its children so
       // we can safely build up the indexes.
       this._buildIndexes();
@@ -309,6 +306,11 @@ export class Document implements Feature, Queryable {
     const result = new Set<Feature>();
     this._getFeatures(result, new Set<Document>(), options);
     return result;
+  }
+
+  private _isCachable(options?: QueryOptions): boolean {
+    options = options || {};
+    return !!options.imported && !options.strictImports;
   }
 
   private _getByKind(kind: string, options: QueryOptions): Set<Feature> {
