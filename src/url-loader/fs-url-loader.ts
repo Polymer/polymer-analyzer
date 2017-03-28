@@ -12,12 +12,11 @@
  * http://polymer.github.io/PATENTS.txt
  */
 
-import * as eol from 'eol';
 import * as fs from 'fs';
 import * as pathlib from 'path';
 import {Url} from 'url';
 
-import {parseUrl} from '../utils';
+import {lfify, parseUrl} from '../utils';
 
 import {UrlLoader} from './url-loader';
 
@@ -52,7 +51,7 @@ export class FSUrlLoader implements UrlLoader {
         if (error) {
           reject(error);
         } else {
-          resolve(eol.lf(contents));
+          resolve(lfify(contents));
         }
       });
     });

@@ -17,6 +17,7 @@ import * as estree from 'estree';
 
 import {correctSourceRange, InlineDocInfo, LocationOffset, Severity, Warning, WarningCarryingException} from '../model/model';
 import {Parser} from '../parser/parser';
+import {EOL} from '../utils';
 
 import {JavaScriptDocument} from './javascript-document';
 
@@ -98,7 +99,7 @@ export function parseJs(
         return {
           type: 'failure',
           warning: {
-            message: err.message.split('\n')[0],
+            message: err.message.split(EOL)[0],
             severity: Severity.ERROR,
             code: warningCode,
             sourceRange: correctSourceRange(

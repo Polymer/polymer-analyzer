@@ -16,6 +16,7 @@ import * as shady from 'shady-css-parser';
 
 import {SourceRange} from '../model/model';
 import {Options, ParsedDocument, StringifyOptions} from '../parser/document';
+import {EOL} from '../utils';
 
 import cssbeautify = require('cssbeautify');
 
@@ -97,8 +98,8 @@ export class ParsedCssDocument extends ParsedDocument<shady.Node, Visitor> {
 
     const indent = '  '.repeat(options.indent || 0);
 
-    return beautifulResults.split('\n')
-               .map((line) => line === '' ? '' : indent + line)
+    return beautifulResults.split(EOL)
+               .map((line: string) => line === '' ? '' : indent + line)
                .join('\n') +
         '\n';
   }

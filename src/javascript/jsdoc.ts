@@ -18,6 +18,7 @@ import * as estree from 'estree';
 import {JavaScriptDocument} from '../javascript/javascript-document';
 import {Privacy} from '../model/model';
 import {ScannedReference, Severity, Warning} from '../model/model';
+import {EOL} from '../utils';
 
 /**
  * An annotated JSDoc block tag, all fields are optionally processed except for
@@ -199,7 +200,7 @@ export function getTag(
 export function unindent(text: string): string {
   if (!text)
     return text;
-  const lines = text.replace(/\t/g, '  ').split('\n');
+  const lines = text.replace(/\t/g, '  ').split(EOL);
   const indent = lines.reduce<number>(function(prev, line) {
     if (/^\s*$/.test(line))
       return prev;  // Completely ignore blank lines.

@@ -15,6 +15,16 @@ import {parse as parseUrl_, Url} from 'url';
 
 const unspecifiedProtocol = '-:';
 
+export const EOL = /\r\n|\r|\n/g;
+export const LF = '\n';
+
+export function lfify(text: string|string[]): string {
+  if (Array.isArray(text)) {
+    return text.map(lfify).join(LF);
+  }
+  return text.replace(EOL, LF);
+}
+
 export function parseUrl(url: string): Url {
   if (!url.startsWith('//')) {
     return parseUrl_(url);
