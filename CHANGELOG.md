@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 * `generateAnalysis()` now includes PolymerBehavior information in its `mixins` collection.  Identified by `metadata.polymer.isBehavior`.
 * Running AppVeyor now for continuous-integration for Windows platform support.
+* Analyzer now supports Windows-based development.
 
 ## [2.0.0-alpha.34] - 2017-03-20
 
