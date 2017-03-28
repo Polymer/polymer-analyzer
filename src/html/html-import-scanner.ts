@@ -54,6 +54,7 @@ export class HtmlImportScanner implements HtmlScanner {
       Promise<ScannedImport[]> {
     const imports: ScannedImport[] = [];
 
+    const type = 'html-import';
     await visit((node) => {
       let lazy: boolean;
       if (isHtmlImportNode(node)) {
@@ -63,7 +64,6 @@ export class HtmlImportScanner implements HtmlScanner {
       } else {
         return;
       }
-      const type = 'html-import';
       const href = dom5.getAttribute(node, 'href')!;
       const importUrl = resolveUrl(document.baseUrl, href);
       imports.push(new ScannedImport(
@@ -78,8 +78,8 @@ export class HtmlImportScanner implements HtmlScanner {
       const edges = this._lazyEdges.get(document.url);
       if (edges) {
         for (const edge of edges) {
-          imports.push(new ScannedImport(
-              'html-import', edge, undefined, undefined, null, true));
+          imports.push(
+              new ScannedImport(type, edge, undefined, undefined, null, true));
         }
       }
     }
