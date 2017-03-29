@@ -252,10 +252,12 @@
           },
           "params": [
             {
-              "name": "a"
+              "name": "a",
+              "type": "Number"
             },
             {
-              "name": "b"
+              "name": "b",
+              "type": "Number"
             }
           ],
           "metadata": {}
@@ -276,10 +278,12 @@
           },
           "params": [
             {
-              "name": "a"
+              "name": "a",
+              "type": "Number"
             },
             {
-              "name": "b"
+              "name": "b",
+              "type": "Number"
             }
           ],
           "metadata": {}
@@ -300,10 +304,12 @@
           },
           "params": [
             {
-              "name": "a"
+              "name": "a",
+              "type": "Number"
             },
             {
-              "name": "b"
+              "name": "b",
+              "type": "Number"
             }
           ],
           "metadata": {}
