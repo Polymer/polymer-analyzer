@@ -11,6 +11,7 @@
  * subject to an additional IP rights grant found at
  * http://polymer.github.io/PATENTS.txt
  */
+import * as path from 'path';
 import {parse as parseUrl_, Url} from 'url';
 
 const unspecifiedProtocol = '-:';
@@ -33,6 +34,14 @@ export function parseUrl(url: string): Url {
   urlObject.protocol = undefined;
   urlObject.href = urlObject.href!.replace(/^-:/, '');
   return urlObject;
+}
+
+export function posixify(pathname: string): string {
+  return pathname.replace(/\\/g, '/');
+}
+
+export function usePathSep(pathname: string): string {
+  return pathname.replace(/\\\//g, path.sep);
 }
 
 export function trimLeft(str: string, char: string): string {

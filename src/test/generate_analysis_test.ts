@@ -21,6 +21,7 @@ import {generateAnalysis, validateAnalysis, ValidationError} from '../generate-a
 import {Document} from '../model/document';
 import {FSUrlLoader} from '../url-loader/fs-url-loader';
 import {PackageUrlResolver} from '../url-loader/package-url-resolver';
+import {usePathSep} from '../utils';
 
 const onlyTests = new Set<string>([]);  // Should be empty when not debugging.
 
@@ -38,19 +39,19 @@ suite('generate-elements', () => {
       // Utility function to convert 'file' and 'path' values to use
       // the current platform separator when comparing golden file to
       // actual file.
-      function usePlatformSep(target: any): any {
+      function transformPathsDeep(target: any): any {
         if (Array.isArray(target)) {
           for (let i = 0; i < target.length; ++i) {
-            usePlatformSep(target[i]);
+            transformPathsDeep(target[i]);
           }
         } else if (typeof target === 'object') {
           for (const key in target) {
             if (target.hasOwnProperty(key)) {
               const value = target[key];
               if (['file', 'path'].indexOf(key) > -1) {
-                target[key] = value.replace(/\/|\\/g, path.sep);
+                target[key] = usePathSep(value);
               } else {
-                usePlatformSep(value);
+                transformPathsDeep(value);
               }
             }
           }
@@ -97,7 +98,7 @@ suite('generate-elements', () => {
 
             const goldenAnalysis =
                 JSON.parse(fs.readFileSync(pathToGolden, 'utf-8'));
-            usePlatformSep(goldenAnalysis);
+            transformPathsDeep(goldenAnalysis);
 
             try {
               assert.deepEqual(

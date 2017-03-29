@@ -16,7 +16,7 @@ import * as fs from 'fs';
 import * as pathlib from 'path';
 import {Url} from 'url';
 
-import {lfify, parseUrl} from '../utils';
+import {parseUrl, usePathSep} from '../utils';
 
 import {UrlLoader} from './url-loader';
 
@@ -35,7 +35,7 @@ export class FSUrlLoader implements UrlLoader {
   canLoad(url: string): boolean {
     const urlObject = parseUrl(url);
     const pathname =
-        pathlib.normalize(decodeURIComponent(urlObject.pathname || ''));
+        pathlib.posix.normalize(decodeURIComponent(urlObject.pathname || ''));
     return this._isValid(urlObject, pathname);
   }
 
@@ -51,7 +51,7 @@ export class FSUrlLoader implements UrlLoader {
         if (error) {
           reject(error);
         } else {
-          resolve(lfify(contents));
+          resolve(contents);
         }
       });
     });
@@ -60,7 +60,7 @@ export class FSUrlLoader implements UrlLoader {
   getFilePath(url: string): string {
     const urlObject = parseUrl(url);
     const pathname =
-        pathlib.normalize(decodeURIComponent(urlObject.pathname || ''));
+        pathlib.posix.normalize(decodeURIComponent(urlObject.pathname || ''));
     if (!this._isValid(urlObject, pathname)) {
       throw new Error(`Invalid URL ${url}`);
     }
@@ -70,13 +70,13 @@ export class FSUrlLoader implements UrlLoader {
   async readDirectory(pathFromRoot: string, deep?: boolean): Promise<string[]> {
     const files = await new Promise<string[]>((resolve, reject) => {
       fs.readdir(
-          pathlib.join(this.root, pathFromRoot),
+          pathlib.join(this.root, usePathSep(pathFromRoot)),
           (err, files) => err ? reject(err) : resolve(files));
     });
     const results = [];
     const subDirResultPromises = [];
     for (const basename of files) {
-      const file = pathlib.join(pathFromRoot, basename);
+      const file = pathlib.join(usePathSep(pathFromRoot), basename);
       const stat = await new Promise<fs.Stats>(
           (resolve, reject) => fs.stat(
               pathlib.join(this.root, file),
