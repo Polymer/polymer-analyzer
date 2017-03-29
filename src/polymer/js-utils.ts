@@ -108,18 +108,21 @@ export function toScannedMethod(
         if (tag.tag === 'param' && tag.name) {
           paramTags[tag.name] = tag;
 
-        } else if (tag.tag === 'returns') {
-          scannedMethod.return = {
-            type: tag.type || undefined,
-            desc: tag.description || undefined,
-          };
+        } else if (tag.tag === 'return' || tag.tag === 'returns') {
+          scannedMethod.return = {};
+          if (tag.type) {
+            scannedMethod.return.type = tag.type;
+          }
+          if (tag.description) {
+            scannedMethod.return.desc = tag.description;
+          }
         }
       }
     }
 
     scannedMethod.params = (value.params || []).map((nodeParam) => {
       const param: MethodParam = {
-        // With ES6 we can have a lot of param patterns.Best to leave the
+        // With ES6 we can have a lot of param patterns. Best to leave the
         // formatting to escodegen.
         name: escodegen.generate(nodeParam),
       };

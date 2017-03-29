@@ -260,6 +260,9 @@
               "type": "Number"
             }
           ],
+          "return": {
+            "type": "boolean"
+          },
           "metadata": {}
         },
         {
@@ -286,6 +289,9 @@
               "type": "Number"
             }
           ],
+          "return": {
+            "type": "boolean"
+          },
           "metadata": {}
         },
         {
@@ -312,6 +318,9 @@
               "type": "Number"
             }
           ],
+          "return": {
+            "type": "boolean"
+          },
           "metadata": {}
         }
       ],
