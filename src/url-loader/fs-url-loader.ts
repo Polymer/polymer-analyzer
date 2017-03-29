@@ -29,7 +29,7 @@ export class FSUrlLoader implements UrlLoader {
   root: string;
 
   constructor(root?: string) {
-    this.root = root || '';
+    this.root = usePathSep(root) || '';
   }
 
   canLoad(url: string): boolean {
@@ -59,8 +59,8 @@ export class FSUrlLoader implements UrlLoader {
 
   getFilePath(url: string): string {
     const urlObject = parseUrl(url);
-    const pathname =
-        pathlib.posix.normalize(decodeURIComponent(urlObject.pathname || ''));
+    const pathname = usePathSep(
+        pathlib.posix.normalize(decodeURIComponent(urlObject.pathname || '')));
     if (!this._isValid(urlObject, pathname)) {
       throw new Error(`Invalid URL ${url}`);
     }
