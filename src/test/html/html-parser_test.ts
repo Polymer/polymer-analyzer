@@ -17,6 +17,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 import {HtmlParser} from '../../html/html-parser';
+import {lfify} from '../../utils';
 
 suite('HtmlParser', () => {
 
@@ -39,7 +40,7 @@ suite('HtmlParser', () => {
 
       test('can stringify back a well-formed document', () => {
         const document = parser.parse(file, '/static/html-parse-target.html');
-        assert.deepEqual(document.stringify(), file);
+        assert.deepEqual(document.stringify(), lfify(file));
       });
     });
 
