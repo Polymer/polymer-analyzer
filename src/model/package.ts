@@ -24,7 +24,8 @@ export type QueryOptions = object & BaseQueryOptions;
 // Note that we match directories named exactly `build`, but will match any
 // directory name prefixed by `bower_components` or `node_modules`, in order to
 // ignore `polymer install`'s variants, which look like bower_components-foo
-const MATCHES_EXTERNAL = /(^|\/)(bower_components|node_modules|build($|\/))/;
+const MATCHES_EXTERNAL =
+    /(^|\/|\\)(bower_components|node_modules|build($|\/|\\))/;
 
 /**
  * Represents a queryable interface over all documents in a package/project.
