@@ -59,12 +59,13 @@ export class FSUrlLoader implements UrlLoader {
 
   getFilePath(url: string): string {
     const urlObject = parseUrl(url);
-    const pathname = usePathSep(
-        pathlib.posix.normalize(decodeURIComponent(urlObject.pathname || '')));
+    const pathname =
+        pathlib.posix.normalize(decodeURIComponent(urlObject.pathname || ''));
     if (!this._isValid(urlObject, pathname)) {
       throw new Error(`Invalid URL ${url}`);
     }
-    return this.root ? pathlib.join(this.root, pathname) : pathname;
+    return this.root ? pathlib.join(this.root, usePathSep(pathname)) :
+                       usePathSep(pathname);
   }
 
   async readDirectory(pathFromRoot: string, deep?: boolean): Promise<string[]> {
