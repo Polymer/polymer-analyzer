@@ -29,7 +29,7 @@ export class FSUrlLoader implements UrlLoader {
   root: string;
 
   constructor(root?: string) {
-    this.root = usePathSep(root) || '';
+    this.root = usePathSep(root || '');
   }
 
   canLoad(url: string): boolean {
