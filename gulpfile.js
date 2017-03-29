@@ -32,62 +32,62 @@ const typescript_lib = require('typescript');
 function task(name, deps, impl) {
   if (gulp.hasTask(name)) {
     throw new Error(
-      `A task with the name ${JSON.stringify(name)} already exists!`);
+        `A task with the name ${JSON.stringify(name)} already exists!`);
   }
   gulp.task(name, deps, impl);
 }
 
 task('init');
 
-task('depcheck', function () {
+task('depcheck', function() {
   return new Promise((resolve, reject) => {
-    depcheck_lib(
-      __dirname,
-      { ignoreDirs: [], ignoreMatches: ['@types/*'] },
-      resolve);
-  })
-    .then((result) => {
-      const invalidFiles = Object.keys(result.invalidFiles) || [];
-      const invalidJsFiles = invalidFiles.filter((f) => f.endsWith('.js'));
+           depcheck_lib(
+               __dirname,
+               {ignoreDirs: [], ignoreMatches: ['@types/*']},
+               resolve);
+         })
+      .then((result) => {
+        const invalidFiles = Object.keys(result.invalidFiles) || [];
+        const invalidJsFiles = invalidFiles.filter((f) => f.endsWith('.js'));
 
-      const unused = new Set(result.dependencies);
-      if (unused.size > 0) {
-        console.log('Unused dependencies:', unused);
-        throw new Error('Unused dependencies');
-      }
-    });
+        const unused = new Set(result.dependencies);
+        if (unused.size > 0) {
+          console.log('Unused dependencies:', unused);
+          throw new Error('Unused dependencies');
+        }
+      });
 });
 
 task('lint', ['tslint', 'depcheck']);
 
-task('tslint', function () {
+task('tslint', function() {
   return gulp.src('src/**/*.ts')
-    .pipe(tslint_lib({
-      configuration: 'tslint.json',
-      formatter: 'verbose',
-    }))
-    .pipe(tslint_lib.report());
+      .pipe(tslint_lib({
+        configuration: 'tslint.json',
+        formatter: 'verbose',
+      }))
+      .pipe(tslint_lib.report());
 });
 
 const tsProject =
-  typescript.createProject('tsconfig.json', { typescript: typescript_lib });
+    typescript.createProject('tsconfig.json', {typescript: typescript_lib});
 
 task('build', ['compile', 'json-schema']);
 
-task('compile', function () {
+task('compile', function() {
   const srcs =
-    gulp.src('src/**/*.ts');  //.pipe(newer({dest: 'lib', ext: '.js'}));
+      gulp.src('src/**/*.ts');  //.pipe(newer({dest: 'lib', ext: '.js'}));
   const tsResult =
-    srcs.pipe(sourcemaps.init())
-      .pipe(typescript(tsProject, [], typescript.reporter.fullReporter()));
+      srcs.pipe(sourcemaps.init())
+          .pipe(typescript(tsProject, [], typescript.reporter.fullReporter()));
 
   // Use this once typescript-gulp supports `include` in tsconfig:
   // const srcs = tsProject.src();
   return mergeStream(
-    tsResult.js.pipe(sourcemaps.write('../lib')),
-    tsResult.dts,
-    gulp.src(['src/**/*', '!src/**/*.ts']))
-    .pipe(gulp.dest('lib'));
+             tsResult.js.pipe(sourcemaps.write('../lib')),
+             tsResult.dts,
+             gulp.src(['src/**/*', '!src/**/*.ts']))
+      .pipe(gulp.dest('lib'));
 });
 
 task('clean', () => {
@@ -101,13 +101,13 @@ task('build-all', (done) => {
 });
 
 task('test', ['build'], () => {
-  return gulp.src('test/**/*_test.js', { read: false }).pipe(mocha({
+  return gulp.src('test/**/*_test.js', {read: false}).pipe(mocha({
     ui: 'tdd',
     reporter: 'spec',
   }));
 });
 
-task('json-schema', function () {
+task('json-schema', function() {
   const inPath = 'src/analysis-format.ts';
   const outPath = 'lib/analysis.schema.json';
   return gulp.src(inPath).pipe(newer(outPath)).pipe(shell([
