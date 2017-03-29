@@ -41,7 +41,7 @@ export function posixify(pathname: string): string {
 }
 
 export function usePathSep(pathname: string): string {
-  return pathname.replace(/\\\//g, path.sep);
+  return pathname.replace(/\\|\//g, path.sep);
 }
 
 export function trimLeft(str: string, char: string): string {
