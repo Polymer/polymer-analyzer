@@ -40,14 +40,18 @@ suite('generate-elements', () => {
       // actual file.
       function usePlatformSep(target: any): any {
         if (Array.isArray(target)) {
-          for (const i = 0; i < target.length; ++i) {
+          for (let i = 0; i < target.length; ++i) {
             usePlatformSep(target[i]);
           }
         } else if (typeof target === 'object') {
           for (const key in target) {
-            if (target.hasOwnProperty(key) &&
-                ['file', 'path'].indexOf(key) > -1) {
-              target[key] = target[key].replace(/\/|\\/g, path.sep);
+            if (target.hasOwnProperty(key)) {
+              const value = target[key];
+              if (['file', 'path'].indexOf(key) > -1) {
+                target[key] = value.replace(/\/|\\/g, path.sep);
+              } else {
+                usePlatformSep(value);
+              }
             }
           }
         }
