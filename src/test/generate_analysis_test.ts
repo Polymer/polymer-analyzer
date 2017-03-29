@@ -34,6 +34,24 @@ suite('generate-elements', () => {
   suite('generateAnalysisMetadata', () => {
 
     suite('generates for Document array from fixtures', () => {
+
+      // Utility function to convert 'file' and 'path' values to use
+      // the current platform separator when comparing golden file to
+      // actual file.
+      function usePlatformSep(target: any): any {
+        if (Array.isArray(target)) {
+          for (const i = 0; i < target.length; ++i) {
+            usePlatformSep(target[i]);
+          }
+        } else if (typeof target === 'object') {
+          for (const key in target) {
+            if (target.hasOwnProperty(key) && ['file', 'path'].includes(key)) {
+              target[key] = target[key].replace(/\/|\\/g, path.sep);
+            }
+          }
+        }
+      }
+
       const basedir = path.join(__dirname, 'static', 'analysis');
       const analysisFixtureDirs =
           fs.readdirSync(basedir)
@@ -72,12 +90,16 @@ suite('generate-elements', () => {
                 generateAnalysis(documents, renormedPackagePath);
             validateAnalysis(analyzedPackages);
 
+            const goldenAnalysis =
+                JSON.parse(fs.readFileSync(pathToGolden, 'utf-8'));
+            usePlatformSep(goldenAnalysis);
+
             try {
               assert.deepEqual(
                   analyzedPackages,
-                  JSON.parse(fs.readFileSync(pathToGolden, 'utf-8')),
+                  goldenAnalysis,
                   `Generated form of ${
-                                       path.relative(__dirname, pathToGolden)
+              path.relative(__dirname, pathToGolden)
                                      } ` +
                       `differs from the golden at that path`);
             } catch (e) {
