@@ -45,7 +45,8 @@ suite('generate-elements', () => {
           }
         } else if (typeof target === 'object') {
           for (const key in target) {
-            if (target.hasOwnProperty(key) && ['file', 'path'].includes(key)) {
+            if (target.hasOwnProperty(key) &&
+                ['file', 'path'].indexOf(key) > -1) {
               target[key] = target[key].replace(/\/|\\/g, path.sep);
             }
           }
