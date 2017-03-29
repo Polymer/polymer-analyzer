@@ -138,7 +138,7 @@ export function removeLeadingAsterisks(description: string): string {
   if ((typeof description) !== 'string')
     return description;
 
-  return description.split('\n')
+  return description.split(EOL)
       .map(function(line) {
         // remove leading '\s*' from each line
         const match = line.match(/^[\s]*\*\s?(.*)$/);
