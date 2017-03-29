@@ -159,7 +159,8 @@ export function parseJsdoc(docs: string): Annotation {
   // description of multiline comments for readibility.
   // TODO(rictic): figure out if we can trim() here or not. Something something
   //     markdown?
-  const description = d.description && d.description.replace(/^\n+|\n+$/g, '');
+  const description =
+      d.description && d.description.replace(/^[\r\n]+|[\r\n]+$/g, '');
   return {description: description, tags: _tagsToHydroTags(d.tags)};
 }
 
