@@ -179,6 +179,7 @@ export class ScannedPolymerElement extends ScannedElement implements
   }
 
   resolve(document: Document): PolymerElement {
+    this.applyJsdocDemoTags(document.url);
     return resolveElement(this, document);
   }
 }
@@ -413,9 +414,7 @@ function applySuperClass(
         element.warnings.push({
           message:
               `A Polymer element can\'t extend from a non-Polymer element: ${
-                                                                             scannedElement
-                                                                                 .superClass
-                                                                                 .identifier
+        scannedElement.superClass.identifier
                                                                            }`,
           severity: Severity.ERROR,
           code: 'unknown-superclass',
@@ -428,8 +427,7 @@ function applySuperClass(
       if (superElements.size === 0) {
         element.warnings.push({
           message: `Unable to resolve superclass ${
-                                                   scannedElement.superClass
-                                                       .identifier
+        scannedElement.superClass.identifier
                                                  }`,
           severity: Severity.ERROR,
           code: 'unknown-superclass',
@@ -438,8 +436,7 @@ function applySuperClass(
       } else {
         element.warnings.push({
           message: `Multiple superclasses found for ${
-                                                      scannedElement.superClass
-                                                          .identifier
+        scannedElement.superClass.identifier
                                                     }`,
           severity: Severity.ERROR,
           code: 'unknown-superclass',
