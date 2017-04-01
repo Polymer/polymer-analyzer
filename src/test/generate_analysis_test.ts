@@ -21,7 +21,6 @@ import {generateAnalysis, validateAnalysis, ValidationError} from '../generate-a
 import {Document} from '../model/document';
 import {FSUrlLoader} from '../url-loader/fs-url-loader';
 import {PackageUrlResolver} from '../url-loader/package-url-resolver';
-import {normalizePathSeparators} from '../utils';
 
 const onlyTests = new Set<string>([]);  // Should be empty when not debugging.
 
