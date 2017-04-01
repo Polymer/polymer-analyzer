@@ -16,14 +16,33 @@ import {parse as parseUrl_, Url} from 'url';
 
 const unspecifiedProtocol = '-:';
 
-export const EOL = /\r\n|\r|\n/g;
+export const EOL = /\r\n|\n/g;
 export const LF = '\n';
 
-export function lfify(text: string|string[]): string {
+/**
+ * Replace all line-terminator sequences with newline `\n`.
+ *
+ * @param text - String to convert.
+ */
+export function normalizeNewlines(text: string|string[]): string {
   if (Array.isArray(text)) {
-    return text.map(lfify).join(LF);
+    return text.map(normalizeNewlines).join(LF);
   }
   return text.replace(EOL, LF);
+}
+
+/**
+ * Ensure path separators used match the platform's separator.
+ * Backslash *is* a valid filename character in a posix
+ * environment, so this function is a no-op there.
+ *
+ * @param pathname - file path to transform.
+ */
+export function normalizePathSeparators(pathname: string): string {
+  if (path.sep === '\\') {
+    return pathname.replace(/\\|\//g, path.sep);
+  }
+  return pathname;
 }
 
 export function parseUrl(url: string): Url {
@@ -36,12 +55,19 @@ export function parseUrl(url: string): Url {
   return urlObject;
 }
 
+/**
+ * Ensure path separators of the posix forward-slash form when
+ * running on environment (Windows) where path separator is a
+ * backslash.  Backslash *is* a valid filename character in a
+ * posix environment, so this function is a no-op there.
+ *
+ * @param pathname - file path to transform.
+ */
 export function posixify(pathname: string): string {
-  return pathname.replace(/\\/g, '/');
-}
-
-export function usePathSep(pathname: string): string {
-  return pathname.replace(/\\|\//g, path.sep);
+  if (path.sep === '\\') {
+    return pathname.replace(/\\/g, '/');
+  }
+  return pathname;
 }
 
 export function trimLeft(str: string, char: string): string {

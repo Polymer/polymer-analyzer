@@ -21,7 +21,7 @@ import {generateAnalysis, validateAnalysis, ValidationError} from '../generate-a
 import {Document} from '../model/document';
 import {FSUrlLoader} from '../url-loader/fs-url-loader';
 import {PackageUrlResolver} from '../url-loader/package-url-resolver';
-import {usePathSep} from '../utils';
+import {normalizePathSeparators} from '../utils';
 
 const onlyTests = new Set<string>([]);  // Should be empty when not debugging.
 
@@ -49,7 +49,7 @@ suite('generate-elements', () => {
             if (target.hasOwnProperty(key)) {
               const value = target[key];
               if (['file', 'path'].indexOf(key) > -1) {
-                target[key] = usePathSep(value);
+                target[key] = normalizePathSeparators(value);
               } else {
                 transformPathsDeep(value);
               }

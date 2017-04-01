@@ -18,7 +18,7 @@ import * as path from 'path';
 
 import {ParsedCssDocument} from '../../css/css-document';
 import {CssParser} from '../../css/css-parser';
-import {lfify} from '../../utils';
+import {normalizeNewlines} from '../../utils';
 
 suite('CssParser', () => {
 
@@ -41,7 +41,7 @@ suite('CssParser', () => {
 
     test('stringifies css', () => {
       const document = parser.parse(fileContents, '/static/stylesheet.css');
-      assert.deepEqual(document.stringify(), lfify(fileContents));
+      assert.deepEqual(document.stringify(), normalizeNewlines(fileContents));
     });
   });
 

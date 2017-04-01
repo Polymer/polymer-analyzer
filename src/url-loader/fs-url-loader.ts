@@ -16,7 +16,7 @@ import * as fs from 'fs';
 import * as pathlib from 'path';
 import {Url} from 'url';
 
-import {parseUrl, usePathSep} from '../utils';
+import {normalizePathSeparators, parseUrl} from '../utils';
 
 import {UrlLoader} from './url-loader';
 
@@ -29,7 +29,7 @@ export class FSUrlLoader implements UrlLoader {
   root: string;
 
   constructor(root?: string) {
-    this.root = usePathSep(root || '');
+    this.root = normalizePathSeparators(root || '');
   }
 
   canLoad(url: string): boolean {
@@ -64,20 +64,22 @@ export class FSUrlLoader implements UrlLoader {
     if (!this._isValid(urlObject, pathname)) {
       throw new Error(`Invalid URL ${url}`);
     }
-    return this.root ? pathlib.join(this.root, usePathSep(pathname)) :
-                       usePathSep(pathname);
+    return this.root ?
+        pathlib.join(this.root, normalizePathSeparators(pathname)) :
+        normalizePathSeparators(pathname);
   }
 
   async readDirectory(pathFromRoot: string, deep?: boolean): Promise<string[]> {
     const files = await new Promise<string[]>((resolve, reject) => {
       fs.readdir(
-          pathlib.join(this.root, usePathSep(pathFromRoot)),
+          pathlib.join(this.root, normalizePathSeparators(pathFromRoot)),
           (err, files) => err ? reject(err) : resolve(files));
     });
     const results = [];
     const subDirResultPromises = [];
     for (const basename of files) {
-      const file = pathlib.join(usePathSep(pathFromRoot), basename);
+      const file =
+          pathlib.join(normalizePathSeparators(pathFromRoot), basename);
       const stat = await new Promise<fs.Stats>(
           (resolve, reject) => fs.stat(
               pathlib.join(this.root, file),
