@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## Unreleased
 
 * `generateAnalysis()` now includes PolymerBehavior information in `metadata.polymer.behaviors` collection.
+* Types and descriptions are now extracted from method @param and @returns jsdoc annotations.
 * Running AppVeyor now for continuous-integration for Windows platform support.
 * Analyzer now supports Windows-based development.
 
