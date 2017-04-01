@@ -36,28 +36,6 @@ suite('generate-elements', () => {
 
     suite('generates for Document array from fixtures', () => {
 
-      // Utility function to convert 'file' and 'path' values to use
-      // the current platform separator when comparing golden file to
-      // actual file.
-      function transformPathsDeep(target: any): any {
-        if (Array.isArray(target)) {
-          for (let i = 0; i < target.length; ++i) {
-            transformPathsDeep(target[i]);
-          }
-        } else if (typeof target === 'object') {
-          for (const key in target) {
-            if (target.hasOwnProperty(key)) {
-              const value = target[key];
-              if (['file', 'path'].indexOf(key) > -1) {
-                target[key] = normalizePathSeparators(value);
-              } else {
-                transformPathsDeep(value);
-              }
-            }
-          }
-        }
-      }
-
       const basedir = path.join(__dirname, 'static', 'analysis');
       const analysisFixtureDirs =
           fs.readdirSync(basedir)
@@ -98,7 +76,6 @@ suite('generate-elements', () => {
 
             const goldenAnalysis =
                 JSON.parse(fs.readFileSync(pathToGolden, 'utf-8'));
-            transformPathsDeep(goldenAnalysis);
 
             try {
               assert.deepEqual(
