@@ -469,12 +469,10 @@ class ElementVisitor implements Visitor {
         Array.from(this._elements)
             .find((e) => e.className === expression.className);
     if (!element) {
-      return {
-        successful: false,
-        value: {
-          code: 'cant-determine-element-tagname',
-          message: `Couldn't dereference the class name ${
-                                                          expression.className
+      return {successful: false,
+              value: {code: 'cant-determine-element-tagname',
+                      message: `Couldn't dereference the class name ${
+      expression.className
                                                         } here.`,
           severity: Severity.WARNING,
           sourceRange: expression.classNameSourceRange

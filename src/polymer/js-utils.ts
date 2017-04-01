@@ -37,8 +37,7 @@ export function toScannedPolymerProperty(
       code: 'unknown-prop-name',
       message:
           `Could not determine name of property from expression of type: ${
-                                                                           node.key
-                                                                               .type
+    node.key.type
                                                                          }`,
       sourceRange: sourceRange,
       severity: Severity.WARNING

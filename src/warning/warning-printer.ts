@@ -79,7 +79,7 @@ export class WarningPrinter {
         const never: never = severity;
         throw new Error(
             `Unknown severity value - ${
-                                        never
+        never
                                       } - encountered while printing warning.`);
     }
   }
