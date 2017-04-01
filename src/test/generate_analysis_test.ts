@@ -105,7 +105,7 @@ suite('generate-elements', () => {
                   analyzedPackages,
                   goldenAnalysis,
                   `Generated form of ${
-              path.relative(__dirname, pathToGolden)
+                                       path.relative(__dirname, pathToGolden)
                                      } ` +
                       `differs from the golden at that path`);
             } catch (e) {
