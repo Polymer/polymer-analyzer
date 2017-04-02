@@ -77,7 +77,7 @@ suite('generate-elements', () => {
                   analyzedPackages,
                   JSON.parse(fs.readFileSync(pathToGolden, 'utf-8')),
                   `Generated form of ${
-              path.relative(__dirname, pathToGolden)
+                                       path.relative(__dirname, pathToGolden)
                                      } ` +
                       `differs from the golden at that path`);
             } catch (e) {
