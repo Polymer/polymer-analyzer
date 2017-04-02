@@ -49,7 +49,7 @@ export abstract class ScannedElementBase implements Resolvable {
         .forEach((tag) => {
           this.demos.push({
             desc: tag.description || undefined,
-            path: tag.name ? url.resolve(baseUrl, tag.name) : ''
+            path: url.resolve(baseUrl, tag.name!)
           });
         });
   }
