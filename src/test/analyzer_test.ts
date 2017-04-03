@@ -779,6 +779,40 @@ var DuplicateNamespace = {};
     });
   });
 
+  test.only('caches warnings correctly', async() => {
+    const v1Doc = await analyzer.analyze('vanilla.js', `
+class VanillaElement extends HTMLElement {}
+
+customElements.define('vanilla-elem', VanillaElement);
+`);
+    assert.deepEqual(v1Doc.getWarnings(), []);
+    const b1Doc = await analyzer.analyze('banilla.html', `
+<script src="./vanilla.js"></script>
+
+<script>
+  class Banilla extends VanillaElement {
+
+  }
+  customElements.define('banilla-elem', Banilla);
+</script>
+`);
+    assert.deepEqual(b1Doc.getWarnings(), []);
+
+    const v2Doc = await analyzer.analyze('vanilla.js', `
+class VanEl extends HTMLElement {}
+
+customElements.define('vanilla-elem', VanEl);
+`);
+    assert.deepEqual(v2Doc.getWarnings(), []);
+    const cache = analyzer['_context']['_cache'];
+    console.log(cache.toString());
+    const b2Doc = await analyzer.analyze('banilla.html');
+    console.log('after re-analyzing b2');
+    console.log(cache.toString());
+    assert.notEqual(b1Doc, b2Doc);
+    assert.equal(b2Doc.getWarnings().length, 1);
+  });
+
   suite('_fork', () => {
     test('returns an independent copy of Analyzer', async() => {
       await analyzer.analyze('a.html', 'a is shared');
@@ -887,15 +921,13 @@ var DuplicateNamespace = {};
         assert.deepEqual(document.url, 'base.html');
         const localFeatures = document.getFeatures({imported: false});
         const kinds = Array.from(localFeatures).map((f) => Array.from(f.kinds));
-        const message =
-            `localFeatures: ${
-                              JSON.stringify(
-                                  Array.from(localFeatures)
-                                      .map((f) => ({
-                                             kinds: Array.from(f.kinds),
-                                             ids: Array.from(f.identifiers)
-                                           })))
-                            }`;
+        const message = `localFeatures: ${
+        JSON.stringify(
+            Array.from(localFeatures).map((f) => ({
+                                            kinds: Array.from(f.kinds),
+                                            ids: Array.from(f.identifiers)
+                                          })))
+        }`;
         assert.deepEqual(
             kinds,
             [
