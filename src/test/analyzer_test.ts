@@ -319,7 +319,7 @@ suite('Analyzer', () => {
       assert.deepEqual(
           Array
               .from(root.getByKind(
-                  'document', {imported: true, strictImports: true}))
+                  'document', {imported: true, noLazyImports: true}))
               .map((d) => [d.url, d.parsedDocument.type, d.isInline]),
           strictlyReachableDocuments);
       assert.deepEqual(

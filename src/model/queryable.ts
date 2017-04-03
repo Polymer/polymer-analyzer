@@ -30,7 +30,7 @@ export interface BaseQueryOptions {
    * Do not include any features that are only reachable via paths that include
    * lazy import edges.
    */
-  strictImports?: boolean;
+  noLazyImports?: boolean;
 }
 
 export type QueryOptions = BaseQueryOptions & object;

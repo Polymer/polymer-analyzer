@@ -310,7 +310,7 @@ export class Document implements Feature, Queryable {
 
   private _isCachable(options?: QueryOptions): boolean {
     options = options || {};
-    return !!options.imported && !options.strictImports;
+    return !!options.imported && !options.noLazyImports;
   }
 
   private _getByKind(kind: string, options: QueryOptions): Set<Feature> {
@@ -343,7 +343,7 @@ export class Document implements Feature, Queryable {
         const isPackageInternal =
             imprt.document && !Package.isExternal(imprt.document.url);
         const externalityOk = options.externalPackages || isPackageInternal;
-        const lazinessOk = !options.strictImports || !imprt.lazy;
+        const lazinessOk = !options.noLazyImports || !imprt.lazy;
         if (externalityOk && lazinessOk) {
           imprt.document._getFeatures(result, visited, options);
         }

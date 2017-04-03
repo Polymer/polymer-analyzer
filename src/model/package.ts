@@ -134,7 +134,7 @@ export class Package implements Queryable {
     return {
       imported: true,
       externalPackages: options.externalPackages,
-      strictImports: options.strictImports
+      noLazyImports: options.noLazyImports
     };
   }
 }
