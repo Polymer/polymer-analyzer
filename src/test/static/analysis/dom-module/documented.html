@@ -7,6 +7,10 @@ This is a big comment on the element!
     <slot name="slot1"></slot>
     <slot name="slot2"></slot>
     <slot></slot>
+    <iron-lazy-pages attr-for-selected="data-route">
+      <custom-element data-route="custom-element" data-path="my-custom-element.html"></custome-element>
+      <span data-route="404">404!</span>
+    </iron-lazy-pages>
   </template>
 
   <script>

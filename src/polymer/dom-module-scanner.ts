@@ -14,10 +14,11 @@
 
 import * as dom5 from 'dom5';
 import {ASTNode, treeAdapters} from 'parse5';
+import {resolve as resolveUrl} from 'url';
 
 import {HtmlVisitor, ParsedHtmlDocument} from '../html/html-document';
 import {HtmlScanner} from '../html/html-scanner';
-import {Feature, getAttachedCommentText, Resolvable, Slot, SourceRange, Warning} from '../model/model';
+import {Feature, getAttachedCommentText, Resolvable, ScannedImport, Slot, SourceRange, Warning} from '../model/model';
 
 import {HtmlDatabindingExpression, scanDatabindingTemplateForExpressions, Template} from './expression-scanner';
 import {LocalId} from './polymer-element';
@@ -37,11 +38,13 @@ export class ScannedDomModule implements Resolvable {
   localIds: LocalId[];
   template: Template|undefined;
   databindings: HtmlDatabindingExpression[];
+  imports: ScannedImport[];
 
   constructor(
       id: string|null, node: ASTNode, sourceRange: SourceRange, ast: dom5.Node,
       warnings: Warning[], template: Template|undefined, slots: Slot[],
-      localIds: LocalId[], databindings: HtmlDatabindingExpression[]) {
+      localIds: LocalId[], databindings: HtmlDatabindingExpression[],
+      imports: ScannedImport[]) {
     this.id = id;
     this.node = node;
     this.comment = getAttachedCommentText(node);
@@ -52,6 +55,7 @@ export class ScannedDomModule implements Resolvable {
     this.warnings = warnings;
     this.template = template;
     this.databindings = databindings;
+    this.imports = imports;
   }
 
   resolve() {
@@ -104,7 +108,53 @@ export class DomModule implements Feature {
   }
 }
 
+function maybeScanIronLazyPagesImports(
+    document: ParsedHtmlDocument,
+    lazyEdges: Map<string, string[]>|undefined,
+    templateContent: ASTNode): ScannedImport[] {
+  const imports: ScannedImport[] = [];
+  const lazyPages = dom5.queryAll(
+      templateContent, dom5.predicates.hasTagName('iron-lazy-pages'));
+  for (const lazyPage of lazyPages) {
+    const attrForSelected = dom5.getAttribute(lazyPage, 'attr-for-selected');
+    if (!lazyPage.childNodes || !attrForSelected) {
+      continue;
+    }
+    for (const child of lazyPage.childNodes) {
+      const path = dom5.getAttribute(child, 'data-path');
+      if (!path) {
+        continue;
+      }
+      imports.push(new ScannedImport(
+          'html-import',
+          resolveUrl(document.baseUrl, path),
+          document.sourceRangeForNode(child),
+          undefined,
+          null,
+          true));
+      if (lazyEdges) {
+        const edges = lazyEdges.get(document.url);
+        if (edges) {
+          for (const edge of edges) {
+            imports.push(new ScannedImport(
+                'html-import',
+                edge,
+                document.sourceRangeForNode(child),
+                undefined,
+                null,
+                true));
+          }
+        }
+      }
+    }
+  }
+
+  return imports;
+}
+
 export class DomModuleScanner implements HtmlScanner {
+  constructor(private _lazyEdges?: Map<string, string[]>) {
+  }
   async scan(
       document: ParsedHtmlDocument,
       visit: (visitor: HtmlVisitor) => Promise<void>):
@@ -120,6 +170,7 @@ export class DomModuleScanner implements HtmlScanner {
         let localIds: LocalId[] = [];
         let databindings: HtmlDatabindingExpression[] = [];
         let warnings: Warning[] = [];
+        let imports: ScannedImport[] = [];
         if (template) {
           const templateContent =
               treeAdapters.default.getTemplateContent(template);
@@ -135,6 +186,8 @@ export class DomModuleScanner implements HtmlScanner {
                       (e) => new LocalId(
                           dom5.getAttribute(e, 'id')!,
                           document.sourceRangeForNode(e)!));
+          imports = maybeScanIronLazyPagesImports(
+              document, this._lazyEdges, templateContent);
           const results =
               scanDatabindingTemplateForExpressions(document, template);
           warnings = results.warnings;
@@ -149,7 +202,8 @@ export class DomModuleScanner implements HtmlScanner {
             template,
             slots,
             localIds,
-            databindings));
+            databindings,
+            imports));
       }
     });
     return domModules;

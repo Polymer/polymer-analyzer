@@ -86,6 +86,31 @@ suite('DomModuleScanner', () => {
               <other-elem prop="{{foo bar}}"></other-elem>
                                       ~`]);
     });
+
+    test('retrieves iron-lazy-pages imports', async() => {
+      const contents = `<html><head></head>
+        <body>
+          <dom-module>
+            <template>
+              <iron-lazy-pages attr-for-selected="data-route">
+                <div data-route="foo" data-path="foo.html"></div>
+                <section data-route="baz" data-path="bar/baz.html"></section>
+                <custom-element data-route="custom-element" data-path="my/custom/element.html"></custome-element>
+                <span data-route="404">404!</span>
+              </iron-lazy-pages>
+            </template>
+          </dom-module>
+        </body>
+        </html>`;
+
+      const document = new HtmlParser().parse(contents, 'test.html');
+      const visit = async(visitor: HtmlVisitor) => document.visit([visitor]);
+
+      const domModules = await scanner.scan(document, visit);
+      assert.equal(domModules.length, 1);
+      assert.deepEqual(
+          domModules[0].imports.map((i) => i.url), ['foo.html', 'bar/baz.html', 'my/custom/element.html']);
+    });
   });
 
 });

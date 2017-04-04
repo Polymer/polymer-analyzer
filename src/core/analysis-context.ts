@@ -30,7 +30,7 @@ import {ParsedDocument} from '../parser/document';
 import {Parser} from '../parser/parser';
 import {BehaviorScanner} from '../polymer/behavior-scanner';
 import {CssImportScanner} from '../polymer/css-import-scanner';
-import {DomModuleScanner} from '../polymer/dom-module-scanner';
+import {DomModuleScanner, ScannedDomModule} from '../polymer/dom-module-scanner';
 import {PolymerElementScanner} from '../polymer/polymer-element-scanner';
 import {Polymer2ElementScanner} from '../polymer/polymer2-element-scanner';
 import {Polymer2MixinScanner} from '../polymer/polymer2-mixin-scanner';
@@ -92,7 +92,7 @@ export class AnalysisContext {
           new HtmlImportScanner(lazyEdges),
           new HtmlScriptScanner(),
           new HtmlStyleScanner(),
-          new DomModuleScanner(),
+          new DomModuleScanner(lazyEdges),
           new CssImportScanner(),
           new HtmlCustomElementReferenceScanner(),
           new PseudoElementScanner(),
@@ -289,8 +289,15 @@ export class AnalysisContext {
             const parsedDoc = await this._parse(resolvedUrl, contents);
             const scannedDocument = await this._scanDocument(parsedDoc);
 
-            const imports = scannedDocument.getNestedFeatures().filter(
-                (e) => e instanceof ScannedImport) as ScannedImport[];
+            const imports = [].concat.apply([], scannedDocument.getNestedFeatures()
+                  .map((e) => {
+                    if (e instanceof ScannedImport) {
+                      return [e];
+                    } else if (e instanceof ScannedDomModule) {
+                      return e.imports;
+                    }
+                    return [];
+                  })) as ScannedImport[];
 
             // Update dependency graph
             const importUrls = imports.map((i) => this.resolveUrl(i.url));
