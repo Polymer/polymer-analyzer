@@ -67,14 +67,43 @@
       "metadata": {},
       "sourceRange": {
         "start": {
-          "line": 12,
+          "line": 16,
           "column": 12
         },
         "end": {
-          "line": 14,
+          "line": 18,
           "column": 5
         }
       }
+    },
+    {
+      "attributes": [],
+      "demos": [],
+      "description": "",
+      "events": [],
+      "metadata": {},
+      "methods": [],
+      "path": "my-custom-element.html",
+      "privacy": "public",
+      "properties": [],
+      "slots": [],
+      "sourceRange": {
+        "end": {
+          "column": 5,
+          "line": 4
+        },
+        "start": {
+          "column": 12,
+          "line": 2
+        }
+      },
+      "styling": {
+        "cssVariables": [],
+        "selectors": []
+      },
+      "summary": "",
+      "superclass": "HTMLElement",
+      "tagname": "my-custom-element"
     }
   ]
 }
