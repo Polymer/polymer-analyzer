@@ -193,7 +193,7 @@ function assertIsValidGraph(graph: DependencyGraph) {
     for (const dependency of record.dependencies) {
       const dependencyRecord = graph['_documents'].get(dependency);
       assert.isTrue(
-          dependencyRecord != undefined,
+          dependencyRecord !== undefined,
           `dependency record for ${dependency} should exist,` +
               ` as it is referenced by ${record.url}.`);
       assert.isTrue(
@@ -203,7 +203,7 @@ function assertIsValidGraph(graph: DependencyGraph) {
     for (const dependant of record.dependants) {
       const dependantRecord = graph['_documents'].get(dependant);
       assert.isTrue(
-          dependantRecord != undefined,
+          dependantRecord !== undefined,
           `dependant record for ${dependant} should exist,` +
               ` as it is referenced by ${record.url}.`);
       assert.isTrue(

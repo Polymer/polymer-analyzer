@@ -195,7 +195,7 @@ export class DependencyGraph {
 
   toString() {
     return Array.from(this._documents.values())
-        .map(dr => dr.toString())
+        .map((dr) => dr.toString())
         .join('\n');
   }
 }
