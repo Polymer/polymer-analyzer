@@ -779,38 +779,39 @@ var DuplicateNamespace = {};
     });
   });
 
-  test.only('caches warnings correctly', async() => {
-    const v1Doc = await analyzer.analyze('vanilla.js', `
-class VanillaElement extends HTMLElement {}
-
-customElements.define('vanilla-elem', VanillaElement);
-`);
-    assert.deepEqual(v1Doc.getWarnings(), []);
-    const b1Doc = await analyzer.analyze('banilla.html', `
-<script src="./vanilla.js"></script>
-
-<script>
-  class Banilla extends VanillaElement {
-
-  }
-  customElements.define('banilla-elem', Banilla);
-</script>
-`);
+  test('maintain caches across multiple edits', async() => {
+    const b1Doc = await analyzer.analyze('base.js', `
+        class BaseElement extends HTMLElement {}
+        customElements.define('base-elem', BaseElement);
+    `);
     assert.deepEqual(b1Doc.getWarnings(), []);
+    const u1Doc = await analyzer.analyze('user.html', `
+        <script src="./base.js"></script>
+        <script>
+          class UserElem extends BaseElement {}
+          customElements.define('user-elem', UserElem);
+        </script>
+    `);
+    assert.deepEqual(u1Doc.getWarnings(), []);
 
-    const v2Doc = await analyzer.analyze('vanilla.js', `
-class VanEl extends HTMLElement {}
+    const b2Doc = await analyzer.analyze('base.js', `
+        class VanEl extends HTMLElement {}
+        customElements.define('base-elem', VanEl);
+    `);
+    assert.deepEqual(b2Doc.getWarnings(), []);
+    const u2Doc = await analyzer.analyze('user.html');
+    assert.notEqual(u1Doc, u2Doc);
+    assert.equal(
+        u2Doc.getWarnings()[0].message,
+        'Unable to resolve superclass BaseElement');
 
-customElements.define('vanilla-elem', VanEl);
-`);
-    assert.deepEqual(v2Doc.getWarnings(), []);
-    const cache = analyzer['_context']['_cache'];
-    console.log(cache.toString());
-    const b2Doc = await analyzer.analyze('banilla.html');
-    console.log('after re-analyzing b2');
-    console.log(cache.toString());
-    assert.notEqual(b1Doc, b2Doc);
-    assert.equal(b2Doc.getWarnings().length, 1);
+    const b3Doc = await analyzer.analyze('base.js', `
+        class BaseElement extends HTMLElement {}
+        customElements.define('base-elem', BaseElement);
+    `);
+    assert.deepEqual(b3Doc.getWarnings(), []);
+    const u3Doc = await analyzer.analyze('user.html');
+    assert.equal(u3Doc.getWarnings().length, 0);
   });
 
   suite('_fork', () => {
@@ -921,13 +922,15 @@ customElements.define('vanilla-elem', VanEl);
         assert.deepEqual(document.url, 'base.html');
         const localFeatures = document.getFeatures({imported: false});
         const kinds = Array.from(localFeatures).map((f) => Array.from(f.kinds));
-        const message = `localFeatures: ${
-        JSON.stringify(
-            Array.from(localFeatures).map((f) => ({
-                                            kinds: Array.from(f.kinds),
-                                            ids: Array.from(f.identifiers)
-                                          })))
-        }`;
+        const message =
+            `localFeatures: ${
+                              JSON.stringify(
+                                  Array.from(localFeatures)
+                                      .map((f) => ({
+                                             kinds: Array.from(f.kinds),
+                                             ids: Array.from(f.identifiers)
+                                           })))
+                            }`;
         assert.deepEqual(
             kinds,
             [
