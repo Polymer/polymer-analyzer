@@ -174,6 +174,10 @@ suite('DependencyGraph', () => {
 
 });
 
+/**
+ * Asserts that all records in the graph have had all of their dependencies
+ * resolved or rejected.
+ */
 function assertGraphIsSettled(graph: DependencyGraph) {
   for (const record of graph['_documents'].values()) {
     if (!(record.dependenciesDeferred.resolved ||
@@ -188,6 +192,14 @@ function assertGraphIsSettled(graph: DependencyGraph) {
   }
 }
 
+/**
+ * Asserts that for every record in the graph, each outgoing link is matched
+ * by an incoming link on the other side, and vice versa.
+ *
+ * Since DependencyGraph tracks both incoming and outgoing links (dependencies
+ * and dependants), when there is a dependency A -> B, both A and B should be
+ * aware of that dependency link.
+ */
 function assertIsValidGraph(graph: DependencyGraph) {
   for (const record of graph['_documents'].values()) {
     for (const dependency of record.dependencies) {

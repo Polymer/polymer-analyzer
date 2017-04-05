@@ -153,7 +153,9 @@ export class DependencyGraph {
         }
       }
       fork._documents.delete(path);
-      // We won't be told again about our dependants again later
+      // If there are dependents on this record, we must preserve them,
+      // as they're only added with an addDocument() call, and there are
+      // never repeated addDocument() calls for the same path.
       if (record.dependants.size > 0) {
         const newRecord = fork._getRecordFor(record.url);
         for (const dependant of record.dependants) {
