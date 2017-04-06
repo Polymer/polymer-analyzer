@@ -21,11 +21,13 @@ import {HtmlImportScanner} from '../html/html-import-scanner';
 import {HtmlParser} from '../html/html-parser';
 import {HtmlScriptScanner} from '../html/html-script-scanner';
 import {HtmlStyleScanner} from '../html/html-style-scanner';
+// import { LanguageAnalyzer } from './language-analyzer';
+import {Severity} from '../index';
 import {FunctionScanner} from '../javascript/function-scanner';
 import {JavaScriptParser} from '../javascript/javascript-parser';
 import {NamespaceScanner} from '../javascript/namespace-scanner';
 import {JsonParser} from '../json/json-parser';
-import { Document, InlineDocInfo, LocationOffset, ScannedDocument, ScannedElement, ScannedFeature, ScannedImport, ScannedInlineDocument, Warning, WarningCarryingException } from '../model/model';
+import {Document, InlineDocInfo, LocationOffset, ScannedDocument, ScannedElement, ScannedFeature, ScannedImport, ScannedInlineDocument, Warning, WarningCarryingException} from '../model/model';
 import {ParsedDocument} from '../parser/document';
 import {Parser} from '../parser/parser';
 import {BehaviorScanner} from '../polymer/behavior-scanner';
@@ -37,6 +39,7 @@ import {Polymer2MixinScanner} from '../polymer/polymer2-mixin-scanner';
 import {PseudoElementScanner} from '../polymer/pseudo-element-scanner';
 import {scan} from '../scanning/scan';
 import {Scanner} from '../scanning/scanner';
+import {TypeScriptAnalyzer} from '../typescript/typescript-analyzer';
 // import {TypeScriptAnalyzer} from '../typescript/typescript-analyzer';
 import {TypeScriptPreparser} from '../typescript/typescript-preparser';
 import {PackageUrlResolver} from '../url-loader/package-url-resolver';
@@ -44,10 +47,7 @@ import {UrlLoader} from '../url-loader/url-loader';
 import {UrlResolver} from '../url-loader/url-resolver';
 
 import {AnalysisCache} from './analysis-cache';
-// import { LanguageAnalyzer } from './language-analyzer';
-import { Severity } from '../index';
-import { LanguageAnalyzer } from './language-analyzer';
-import { TypeScriptAnalyzer } from '../typescript/typescript-analyzer';
+import {LanguageAnalyzer} from './language-analyzer';
 
 // export type AnalysisResult = Document | Warning;
 
@@ -169,20 +169,28 @@ export class AnalysisContext {
     // console.log('_analyze', resolvedUrls);
     const analysisComplete = (async() => {
       // 1. Load and scan all root documents
-      const scannedDocumentsOrWarnings = await Promise.all(resolvedUrls.map(async (url) => {
-        try {
-          return await this.scan(url);
-        } catch (e) {
-          // do nothing, warning will be produced in getDocument()
-          // TODO(justinfagnani): save warnings alongside documents
-        }
-      }));
-      const scannedDocuments = scannedDocumentsOrWarnings.filter((d) => d != null) as ScannedDocument[];
+      const scannedDocumentsOrWarnings =
+          await Promise.all(resolvedUrls.map(async(url) => {
+            try {
+              const scannedResult = await this.scan(url);
+              this._cache.failedDocuments.delete(url);
+              return scannedResult;
+            } catch (e) {
+              if (e instanceof WarningCarryingException) {
+                this._cache.failedDocuments.set(url, e.warning);
+              }
+              // No need for fallback warning, one will be produced in
+              // getDocument
+            }
+          }));
+      const scannedDocuments = scannedDocumentsOrWarnings.filter(
+          (d) => d != null) as ScannedDocument[];
       // 2. Run per-document resolution
       const documents = scannedDocuments.map((d) => this.getDocument(d.url));
       // TODO(justinfagnani): instead of the above steps, do:
       // 1. Load and run prescanners
-      // 2. Run global analyzers (_languageAnalyzers now, but it doesn't need to be
+      // 2. Run global analyzers (_languageAnalyzers now, but it doesn't need to
+      // be
       //    separated by file type)
       // 3. Run per-document scanners and resolvers
       return documents;
@@ -194,52 +202,6 @@ export class AnalysisContext {
     return this;
   }
 
-  // private async _analyzeOrWarning(url: string): Promise<Document|Warning> {
-  //   try {
-  //     return await this.analyze(url);
-  //   } catch (e) {
-  //     if (e instanceof WarningCarryingException) {
-  //       return e.warning;
-  //     }
-  //     return {
-  //       sourceRange: {
-  //         file: this.resolveUrl(url),
-  //         start: {line: 0, column: 0},
-  //         end: {line: 0, column: 0}
-  //       },
-  //       code: 'unable-to-analyze',
-  //       message: `Unable to analyze file: ${e && e.message || e}`,
-  //       severity: Severity.ERROR
-  //     };
-  //   }
-  // }
-
-  // async analyzePackage(): Promise<Package> {
-  //   if (!this._loader.readDirectory) {
-  //     throw new Error(
-  //         `This analyzer doesn't support analyzerPackage, ` +
-  //         `its urlLoader can't list the files in a directory.`);
-  //   }
-  //   const allFiles = await this._loader.readDirectory('', true);
-  //   const filesInPackage = allFiles.filter((file) => !Package.isExternal(file));
-
-  //   const extensions = new Set(this._parsers.keys());
-  //   const filesWithParsers = filesInPackage.filter(
-  //       (fn) => extensions.has(path.extname(fn).substring(1)));
-  //   const documentsOrWarnings = await Promise.all(
-  //       filesWithParsers.map((f) => this._analyzeOrWarning(f)));
-  //   const documents = [];
-  //   const warnings = [];
-  //   for (const docOrWarning of documentsOrWarnings) {
-  //     if (docOrWarning instanceof Document) {
-  //       documents.push(docOrWarning);
-  //     } else {
-  //       warnings.push(docOrWarning);
-  //     }
-  //   }
-  //   return new Package(documents, warnings);
-  // }
-
   /**
    * Gets an analyzed Document from the document cache. This is only useful for
    * Analyzer plugins. You almost certainly want to use `analyze()` instead.
@@ -248,8 +210,12 @@ export class AnalysisContext {
    * the scanned document cache is used and a new analyzed Document is returned.
    * If a file is in neither cache, it returns `undefined`.
    */
-  getDocument(url: string): Document | Warning {
+  getDocument(url: string): Document|Warning {
     const resolvedUrl = this.resolveUrl(url);
+    const cachedWarning = this._cache.failedDocuments.get(resolvedUrl);
+    if (cachedWarning) {
+      return cachedWarning;
+    }
     const cachedResult = this._cache.analyzedDocuments.get(resolvedUrl);
     if (cachedResult) {
       return cachedResult;
@@ -485,8 +451,7 @@ export class AnalysisContext {
   /**
    * Caching + loading wrapper around _parseContents.
    */
-  private async _parse(resolvedUrl: string):
-      Promise<ParsedDocument<any, any>> {
+  private async _parse(resolvedUrl: string): Promise<ParsedDocument<any, any>> {
     return this._cache.parsedDocumentPromises.getOrCompute(
         resolvedUrl, async() => {
           const content = await this.load(resolvedUrl);
