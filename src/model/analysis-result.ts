@@ -42,16 +42,17 @@ const MATCHES_EXTERNAL = /(^|\/)(bower_components|node_modules|build($|\/))/;
  * documents in the package.
  */
 export class AnalysisResult implements Queryable {
-  private _results: Map<string, Document | Warning>;
+  private _results: Map<string, Document|Warning>;
   private _searchRoots: Set<Document>;
 
   static isExternal(path: string) {
     return MATCHES_EXTERNAL.test(path);
   }
 
-  constructor(results: Map<string, Document | Warning>) {
+  constructor(results: Map<string, Document|Warning>) {
     this._results = results;
-    const documents = Array.from(results.values()).filter((r) => r instanceof Document) as Document[];
+    const documents = Array.from(results.values())
+                          .filter((r) => r instanceof Document) as Document[];
     const potentialRoots = new Set(documents);
 
     // We trim down the set of documents as a performance optimization. We only
@@ -70,7 +71,7 @@ export class AnalysisResult implements Queryable {
     this._searchRoots = potentialRoots;
   }
 
-  getDocument(url: string): Document | Warning | undefined {
+  getDocument(url: string): Document|Warning|undefined {
     return this._results.get(url);
   }
 
@@ -133,7 +134,8 @@ export class AnalysisResult implements Queryable {
    * Get all warnings in the project.
    */
   getWarnings(options?: QueryOptions): Warning[] {
-    const warnings = Array.from(this._results.values()).filter((r) => !(r instanceof Document)) as Warning[];
+    const warnings = Array.from(this._results.values())
+                         .filter((r) => !(r instanceof Document)) as Warning[];
     const result = new Set(warnings);
     const docQueryOptions = this._getDocumentQueryOptions(options);
     for (const doc of this._searchRoots) {

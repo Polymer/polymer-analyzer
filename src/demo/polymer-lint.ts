@@ -12,7 +12,7 @@
  * http://polymer.github.io/PATENTS.txt
  */
 
-import { Analyzer, FSUrlLoader, PackageUrlResolver, Severity, Warning, WarningPrinter, Document } from '../index';
+import {Analyzer, Document, FSUrlLoader, PackageUrlResolver, Severity, Warning, WarningPrinter} from '../index';
 
 /**
  * A basic demo of a linter CLI using the Analyzer API.

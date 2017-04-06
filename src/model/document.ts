@@ -22,12 +22,12 @@ import {DomModule} from '../polymer/dom-module-scanner';
 import {PolymerElement} from '../polymer/polymer-element';
 import {PolymerElementMixin} from '../polymer/polymer-element-mixin';
 
+import {AnalysisResult} from './analysis-result';
 import {Element} from './element';
 import {ElementMixin} from './element-mixin';
 import {ElementReference} from './element-reference';
 import {Feature, ScannedFeature} from './feature';
 import {Import} from './import';
-import {AnalysisResult} from './analysis-result';
 import {BaseQueryOptions, Queryable} from './queryable';
 import {isResolvable} from './resolvable';
 import {SourceRange} from './source-range';
@@ -354,7 +354,8 @@ export class Document implements Feature, Queryable {
   private _filterOutExternal(features: Set<Feature>): Set<Feature> {
     const result = new Set();
     for (const feature of features) {
-      if (feature.sourceRange && AnalysisResult.isExternal(feature.sourceRange.file)) {
+      if (feature.sourceRange &&
+          AnalysisResult.isExternal(feature.sourceRange.file)) {
         continue;
       }
       result.add(feature);
