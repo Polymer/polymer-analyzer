@@ -18,7 +18,7 @@ import {Attribute, Document, Element, Property, ScannedProperty, SourcePosition,
 import {InMemoryOverlayUrlLoader} from '../url-loader/overlay-loader';
 
 import {getLocationInfoForPosition} from './ast-from-source-position';
-import { AttributeCompletion, EditorService, TypeaheadCompletion } from './editor-service';
+import {AttributeCompletion, EditorService, TypeaheadCompletion} from './editor-service';
 
 export class LocalEditorService extends EditorService {
   private readonly _analyzer: Analyzer;
@@ -66,7 +66,8 @@ export class LocalEditorService extends EditorService {
   async getTypeaheadCompletionsAtPosition(
       localPath: string,
       position: SourcePosition): Promise<TypeaheadCompletion|undefined> {
-    const documentOrWarning = (await this._analyzer.analyze([localPath]))[0];
+    const documentOrWarning =
+        (await this._analyzer.analyze([localPath])).getDocument(localPath);
     if (!(documentOrWarning instanceof Document)) {
       return;
     }
@@ -77,7 +78,10 @@ export class LocalEditorService extends EditorService {
     }
     if (location.kind === 'tagName' || location.kind === 'text') {
       const elements =
-          Array.from(document.getByKind('element')).filter((e) => e.tagName);
+          Array
+              .from(document.getByKind(
+                  'element', {imported: true, externalPackages: true}))
+              .filter((e) => e.tagName);
       return {
         kind: 'element-tags',
         elements: elements.map((e) => {
@@ -92,7 +96,10 @@ export class LocalEditorService extends EditorService {
         })
       };
     } else if (location.kind === 'attribute') {
-      const elements = document.getById('element', location.element.nodeName);
+      const elements = document.getById(
+          'element',
+          location.element.nodeName,
+          {imported: true, externalPackages: true});
       let attributes: AttributeCompletion[] = [];
       for (const element of elements) {
         // A map from the inheritedFrom to a sort prefix. Note that
@@ -137,7 +144,11 @@ export class LocalEditorService extends EditorService {
   }
 
   async getWarningsForFile(localPath: string): Promise<Warning[]> {
-    const documentOrWarning = (await this._analyzer.analyze([localPath]))[0];
+    const documentOrWarning =
+        (await this._analyzer.analyze([localPath])).getDocument(localPath);
+    if (!documentOrWarning) {
+      return [];
+    }
     if (!(documentOrWarning instanceof Document)) {
       return [documentOrWarning];
     }
@@ -150,7 +161,8 @@ export class LocalEditorService extends EditorService {
 
   private async _getFeatureAt(localPath: string, position: SourcePosition):
       Promise<Element|Property|Attribute|undefined> {
-    const documentOrWarning = (await this._analyzer.analyze([localPath]));
+    const documentOrWarning =
+        (await this._analyzer.analyze([localPath])).getDocument(localPath);
     if (!(documentOrWarning instanceof Document)) {
       return;
     }
@@ -160,9 +172,15 @@ export class LocalEditorService extends EditorService {
       return;
     }
     if (location.kind === 'tagName') {
-      return document.getOnlyAtId('element', location.element.nodeName);
+      return document.getOnlyAtId(
+          'element',
+          location.element.nodeName,
+          {imported: true, externalPackages: true});
     } else if (location.kind === 'attribute') {
-      const elements = document.getById('element', location.element.nodeName);
+      const elements = document.getById(
+          'element',
+          location.element.nodeName,
+          {imported: true, externalPackages: true});
       if (elements.size === 0) {
         return;
       }

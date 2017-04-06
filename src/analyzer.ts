@@ -98,13 +98,8 @@ export class Analyzer {
       }
       const allFiles = await previousContext._loader.readDirectory('', true);
       // TODO(rictic): parameterize this, perhaps with polymer.json.
-      const dependencyDirPrefixes: string[] =
-          ['bower_components', 'node_modules'];
-      const filesInPackage = allFiles.filter((file) => {
-        const dirname = path.dirname(file);
-        return !dependencyDirPrefixes.some(
-            (prefix) => dirname.startsWith(prefix));
-      });
+      const filesInPackage =
+          allFiles.filter((file) => !AnalysisResult.isExternal(file));
       const extensions = new Set(previousContext._parsers.keys());
       const filesWithParsers = filesInPackage.filter(
           (fn) => extensions.has(path.extname(fn).substring(1)));

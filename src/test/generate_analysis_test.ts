@@ -16,11 +16,12 @@ import {assert} from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
 
+import {Analysis} from '../analysis-format';
 import {Analyzer} from '../analyzer';
 import {generateAnalysis, validateAnalysis, ValidationError} from '../generate-analysis';
+import {AnalysisResult} from '../model/analysis-result';
 import {FSUrlLoader} from '../url-loader/fs-url-loader';
-import { PackageUrlResolver } from '../url-loader/package-url-resolver';
-import { AnalysisResult } from "../model/analysis-result";
+import {PackageUrlResolver} from '../url-loader/package-url-resolver';
 
 const onlyTests = new Set<string>([]);  // Should be empty when not debugging.
 
@@ -29,7 +30,7 @@ const onlyTests = new Set<string>([]);  // Should be empty when not debugging.
 const skipTests = new Set<string>(['bower_packages', 'nested-packages']);
 
 
-suite('generate-elements', () => {
+suite('generate-analysis', () => {
 
   suite('generateAnalysisMetadata', () => {
 
@@ -72,13 +73,37 @@ suite('generate-elements', () => {
                 generateAnalysis(documents, renormedPackagePath);
             validateAnalysis(analyzedPackages);
 
+            const golden: Analysis =
+                JSON.parse(fs.readFileSync(pathToGolden, 'utf-8'));
+
+            // // we don't care about the order of properties or attributes
+            // for (const analysis of [analyzedPackages, golden]) {
+            //   for (const type
+            //            of ['elements', 'mixins'] as ['elements', 'mixins']) {
+            //     const vals = analysis[type];
+            //     if (!vals) {
+            //       continue;
+            //     }
+            //     for (const val of vals) {
+            //       if (val.properties) {
+            //         val.properties.sort(
+            //             (p1, p2) => p1.name.localeCompare(p2.name));
+            //       }
+            //       if (val.attributes) {
+            //         val.attributes.sort(
+            //             (a1, a2) => a1.name.localeCompare(a2.name));
+            //       }
+            //     }
+            //   }
+            // }
+
+
             try {
+              const shortPath = path.relative(__dirname, pathToGolden);
               assert.deepEqual(
                   analyzedPackages,
-                  JSON.parse(fs.readFileSync(pathToGolden, 'utf-8')),
-                  `Generated form of ${
-                                       path.relative(__dirname, pathToGolden)
-                                     } ` +
+                  golden,
+                  `Generated form of ${shortPath} ` +
                       `differs from the golden at that path`);
             } catch (e) {
               console.log(
@@ -202,7 +227,7 @@ async function analyzeDir(baseDir: string): Promise<AnalysisResult> {
   const allFilenames = Array.from(walkRecursively(baseDir));
   const htmlOrJsFilenames =
       allFilenames.filter((f) => f.endsWith('.html') || f.endsWith('.js'));
-  const filePaths = htmlOrJsFilenames.map(
-      (filename) => path.relative(baseDir, filename));
+  const filePaths =
+      htmlOrJsFilenames.map((filename) => path.relative(baseDir, filename));
   return analyzer.analyze(filePaths);
 }

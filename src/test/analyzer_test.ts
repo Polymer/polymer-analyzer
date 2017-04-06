@@ -519,21 +519,22 @@ suite('Analyzer', () => {
   suite('_parse()', () => {
 
     test('loads and parses an HTML document', async() => {
-      const context = await analyzer['_analysisComplete'];
+      const context = await getContext(analyzer);
       const doc = await context['_parse']('static/html-parse-target.html');
       assert.instanceOf(doc, ParsedHtmlDocument);
       assert.equal(doc.url, 'static/html-parse-target.html');
     });
 
     test('loads and parses a JavaScript document', async() => {
-      const doc = await analyzer['_context']['_parse']('static/js-elements.js');
+      const context = await getContext(analyzer);
+      const doc = await context['_parse']('static/js-elements.js');
       assert.instanceOf(doc, JavaScriptDocument);
       assert.equal(doc.url, 'static/js-elements.js');
     });
 
     test('returns a Promise that rejects for non-existant files', async() => {
-      await assert.isRejected(
-          analyzer['_context']['_parse']('static/not-found'));
+      const context = await getContext(analyzer);
+      await assert.isRejected(context['_parse']('static/not-found'));
     });
   });
 
@@ -545,8 +546,9 @@ suite('Analyzer', () => {
           <link rel="stylesheet" href="foo.css"></link>
         </head></html>`;
       const document = new HtmlParser().parse(contents, 'test.html');
-      const features = <ScannedImport[]>(
-          await analyzer['_context']['_getScannedFeatures'](document));
+      const context = await getContext(analyzer);
+      const features =
+          (await context['_getScannedFeatures'](document)) as ScannedImport[];
       assert.deepEqual(
           features.map((e) => e.type),
           ['html-import', 'html-script', 'html-style']);
@@ -565,7 +567,7 @@ suite('Analyzer', () => {
           </dom-module>
         </body></html>`;
       const document = new HtmlParser().parse(contents, 'test.html');
-      const context = await analyzer['_analysisComplete'];
+      const context = await getContext(analyzer);
       const features =
           <ScannedImport[]>(await context['_getScannedFeatures'](document))
               .filter((e) => e instanceof ScannedImport);
@@ -579,7 +581,7 @@ suite('Analyzer', () => {
           <script>console.log('hi')</script>
           <style>body { color: red; }</style>
         </head></html>`;
-      const context = await analyzer['_analysisComplete'];
+      const context = await getContext(analyzer);
       const document = new HtmlParser().parse(contents, 'test.html');
       const features = <ScannedInlineDocument[]>(
           await context['_getScannedFeatures'](document));
@@ -738,10 +740,9 @@ var DuplicateNamespace = {};
 
       // The root documents of the package are a minimal set of documents whose
       // imports touch every document in the package.
-      //   assert.deepEqual(
-      //       Array.from(pckage['_documents']).map((d) => d.url).sort(),
-      //       ['cyclic-a.html', 'root.html', 'subdir/root-in-subdir.html']
-      //           .sort(), );
+      assert.deepEqual(
+          Array.from(pckage['_searchRoots']).map((d) => d.url).sort(),
+          ['cyclic-a.html', 'root.html', 'subdir/root-in-subdir.html'].sort());
 
       // Note that this does not contain the bower_components/ files
       assert.deepEqual(
@@ -963,7 +964,7 @@ var DuplicateNamespace = {};
             if (Math.random() > 0.5) {
               analyzer.filesChanged([path]);
               const p = analyzer.analyze([path]);
-              const cacheContext = await analyzer['_analysisComplete'];
+              const cacheContext = await getContext(analyzer);
               intermediatePromises.push((async() => {
                 await p;
                 const docs = Array.from(
@@ -1242,3 +1243,7 @@ var DuplicateNamespace = {};
     });
   });
 });
+
+async function getContext(analyzer: Analyzer) {
+  return await analyzer['_analysisComplete'];
+};
