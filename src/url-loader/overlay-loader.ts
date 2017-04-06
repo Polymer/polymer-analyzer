@@ -36,9 +36,9 @@ class FailUrlLoader implements UrlLoader {
  *
  * TODO(rictic): make this a mixin that mixes another loader.
  */
-export class InMemoryOverlayLoader implements UrlLoader {
+export class InMemoryOverlayUrlLoader implements UrlLoader {
   private readonly _fallbackLoader: UrlLoader;
-  private readonly _memoryMap = new Map<string, string>();
+  urlContentsMap = new Map<string, string>();
 
   constructor(fallbackLoader?: UrlLoader) {
     this._fallbackLoader = fallbackLoader || new FailUrlLoader();
@@ -49,14 +49,11 @@ export class InMemoryOverlayLoader implements UrlLoader {
   }
 
   canLoad(url: string): boolean {
-    if (this._memoryMap.has(url)) {
-      return true;
-    }
-    return this._fallbackLoader.canLoad(url);
+    return this.urlContentsMap.has(url) || this._fallbackLoader.canLoad(url);
   }
 
   async load(url: string): Promise<string> {
-    const contents = this._memoryMap.get(url);
+    const contents = this.urlContentsMap.get(url);
     if (typeof contents === 'string') {
       return contents;
     }
@@ -65,12 +62,4 @@ export class InMemoryOverlayLoader implements UrlLoader {
 
   // We have this method if our underlying loader has it.
   readDirectory?: (pathFromRoot: string, deep?: boolean) => Promise<string[]>;
-
-  mapFile(url: string, contents: string) {
-    this._memoryMap.set(url, contents);
-  }
-
-  unmapFile(url: string) {
-    this._memoryMap.delete(url);
-  }
 }

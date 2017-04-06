@@ -17,13 +17,13 @@ import * as ts from 'typescript';
 
 import {AnalysisContext} from '../../core/analysis-context';
 import {TypeScriptAnalyzer} from '../../typescript/typescript-analyzer';
-import {InMemoryOverlayLoader} from '../../url-loader/in-memory-overlay-loader';
+import {InMemoryOverlayUrlLoader} from '../../url-loader/overlay-loader';
 import {PackageUrlResolver} from '../../url-loader/package-url-resolver';
 
 async function getTypeScriptAnalyzer(files: {[url: string]: string}) {
-  const urlLoader = new InMemoryOverlayLoader();
+  const urlLoader = new InMemoryOverlayUrlLoader();
   for (const url of Object.keys(files)) {
-    urlLoader.mapFile(url, files[url]!);
+    urlLoader.urlContentsMap.set(url, files[url]!);
   }
   const urlResolver = new PackageUrlResolver();
   const analysisContext = new AnalysisContext({urlLoader, urlResolver});

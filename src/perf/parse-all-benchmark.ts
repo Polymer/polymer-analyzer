@@ -17,12 +17,12 @@ import * as path from 'path';
 
 import {Analyzer} from '../analyzer';
 import {FSUrlLoader} from '../url-loader/fs-url-loader';
-import {InMemoryOverlayLoader} from '../url-loader/in-memory-overlay-loader';
+import {InMemoryOverlayUrlLoader} from '../url-loader/overlay-loader';
 
 import now = require('performance-now');
 
 const bowerDir = path.resolve(__dirname, `../../bower_components`);
-const inMemoryOverlay = new InMemoryOverlayLoader(new FSUrlLoader(bowerDir));
+const inMemoryOverlay = new InMemoryOverlayUrlLoader(new FSUrlLoader(bowerDir));
 const analyzer = new Analyzer({urlLoader: inMemoryOverlay});
 
 const filesToAnalyze: string[] = [];
@@ -57,7 +57,7 @@ function existsSync(fn: string): boolean {
 const fakeFileContents =
     filesToAnalyze.map((fn) => `<link rel="import" href="${fn}">`).join('\n');
 
-inMemoryOverlay.mapFile('ephemral.html', fakeFileContents);
+inMemoryOverlay.urlContentsMap.set('ephemral.html', fakeFileContents);
 
 function padLeft(str: string, num: number): string {
   if (str.length < num) {

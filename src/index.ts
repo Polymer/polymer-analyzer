@@ -34,7 +34,7 @@ export {Analysis} from './analysis-format';
 // URL Loaders and Resolvers
 export {FetchUrlLoader} from './url-loader/fetch-url-loader';
 export {FSUrlLoader} from './url-loader/fs-url-loader';
-export {InMemoryOverlayLoader} from './url-loader/in-memory-overlay-loader';
+export {InMemoryOverlayUrlLoader} from './url-loader/overlay-loader';
 export {MultiUrlResolver} from './url-loader/multi-url-resolver';
 export {PackageUrlResolver} from './url-loader/package-url-resolver';
 export {RedirectResolver} from './url-loader/redirect-resolver';

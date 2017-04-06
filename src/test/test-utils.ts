@@ -14,7 +14,7 @@
 
 import {Analyzer} from '../analyzer';
 import {SourceRange, Warning} from '../model/model';
-import {InMemoryOverlayLoader} from '../url-loader/in-memory-overlay-loader';
+import {InMemoryOverlayUrlLoader} from '../url-loader/overlay-loader';
 import {UrlLoader} from '../url-loader/url-loader';
 import {WarningPrinter} from '../warning/warning-printer';
 
@@ -53,8 +53,8 @@ export class CodeUnderliner {
   }
 
   static withMapping(url: string, contents: string) {
-    const urlLoader = new InMemoryOverlayLoader();
-    urlLoader.mapFile(url, contents);
+    const urlLoader = new InMemoryOverlayUrlLoader();
+    urlLoader.urlContentsMap.set(url, contents);
     return new CodeUnderliner(urlLoader);
   }
 
