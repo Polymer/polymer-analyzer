@@ -21,7 +21,6 @@ import {HtmlImportScanner} from '../html/html-import-scanner';
 import {HtmlParser} from '../html/html-parser';
 import {HtmlScriptScanner} from '../html/html-script-scanner';
 import {HtmlStyleScanner} from '../html/html-style-scanner';
-// import { LanguageAnalyzer } from './language-analyzer';
 import {Severity} from '../index';
 import {FunctionScanner} from '../javascript/function-scanner';
 import {JavaScriptParser} from '../javascript/javascript-parser';
@@ -40,7 +39,6 @@ import {PseudoElementScanner} from '../polymer/pseudo-element-scanner';
 import {scan} from '../scanning/scan';
 import {Scanner} from '../scanning/scanner';
 import {TypeScriptAnalyzer} from '../typescript/typescript-analyzer';
-// import {TypeScriptAnalyzer} from '../typescript/typescript-analyzer';
 import {TypeScriptPreparser} from '../typescript/typescript-preparser';
 import {PackageUrlResolver} from '../url-loader/package-url-resolver';
 import {UrlLoader} from '../url-loader/url-loader';
@@ -48,8 +46,6 @@ import {UrlResolver} from '../url-loader/url-resolver';
 
 import {AnalysisCache} from './analysis-cache';
 import {LanguageAnalyzer} from './language-analyzer';
-
-// export type AnalysisResult = Document | Warning;
 
 /**
  * An analysis of a set of files at a specific point-in-time with respect to
@@ -65,7 +61,7 @@ import {LanguageAnalyzer} from './language-analyzer';
  * appear to be statefull with respect to file updates.
  */
 export class AnalysisContext {
-  _parsers = new Map<string, Parser<ParsedDocument<any, any>>>([
+  readonly parsers = new Map<string, Parser<ParsedDocument<any, any>>>([
     ['html', new HtmlParser()],
     ['js', new JavaScriptParser()],
     ['ts', new TypeScriptPreparser()],
@@ -73,23 +69,29 @@ export class AnalysisContext {
     ['json', new JsonParser()],
   ]);
 
-  private _languageAnalyzers = new Map<string, LanguageAnalyzer<any>>([
+  private readonly _languageAnalyzers = new Map<string, LanguageAnalyzer<any>>([
     ['ts', new TypeScriptAnalyzer(this)],
   ]);
 
   /** A map from import url to urls that document lazily depends on. */
-  private _lazyEdges: LazyEdgeMap|undefined;
+  private readonly _lazyEdges: LazyEdgeMap|undefined;
 
-  private _scanners: ScannerTable;
+  private readonly _scanners: ScannerTable;
 
-  _loader: UrlLoader;
-  _resolver: UrlResolver;
+  readonly loader: UrlLoader;
+  readonly resolver: UrlResolver;
 
-  private _cache = new AnalysisCache();
+  private readonly _cache: AnalysisCache;
 
-  private _generation = 0;
+  /** Incremented each time we fork. Useful for debugging. */
+  private readonly _generation: number;
 
-  /** Resolves when analysis is complete */
+  /**
+   * Resolves when the previous analysis has completed.
+   *
+   * Used to serialize analysis requests, not for correctness surprisingly
+   * enough, but for performance, so that we can reuse AnalysisResults.
+   */
   private _analysisComplete: Promise<void>;
 
   private static _getDefaultScanners(lazyEdges: LazyEdgeMap|undefined) {
@@ -120,13 +122,15 @@ export class AnalysisContext {
     ]);
   }
 
-  constructor(options: Options) {
-    this._loader = options.urlLoader;
-    this._resolver = options.urlResolver || new PackageUrlResolver();
-    this._parsers = options.parsers || this._parsers;
+  constructor(options: Options, cache?: AnalysisCache, generation?: number) {
+    this.loader = options.urlLoader;
+    this.resolver = options.urlResolver || new PackageUrlResolver();
+    this.parsers = options.parsers || this.parsers;
     this._lazyEdges = options.lazyEdges;
     this._scanners = options.scanners ||
         AnalysisContext._getDefaultScanners(this._lazyEdges);
+    this._cache = cache || new AnalysisCache();
+    this._generation = generation || 0;
   }
 
   /**
@@ -166,7 +170,6 @@ export class AnalysisContext {
    * Internal analysis method called when we know we need to fork.
    */
   private async _analyze(resolvedUrls: string[]): Promise<AnalysisContext> {
-    // console.log('_analyze', resolvedUrls);
     const analysisComplete = (async() => {
       // 1. Load and scan all root documents
       const scannedDocumentsOrWarnings =
@@ -196,9 +199,7 @@ export class AnalysisContext {
       return documents;
     })();
     this._analysisComplete = analysisComplete.then((_) => {});
-    // console.log('before _analysisComplete');
     await this._analysisComplete;
-    // console.log('after _analysisComplete');
     return this;
   }
 
@@ -280,20 +281,19 @@ export class AnalysisContext {
   _fork(cache?: AnalysisCache, options?: ForkOptions): AnalysisContext {
     const contextOptions: Options = {
       lazyEdges: this._lazyEdges,
-      parsers: this._parsers,
+      parsers: this.parsers,
       scanners: this._scanners,
-      urlLoader: this._loader,
-      urlResolver: this._resolver,
+      urlLoader: this.loader,
+      urlResolver: this.resolver,
     };
     if (options && options.urlLoader) {
       contextOptions.urlLoader = options.urlLoader;
     }
-    const copy = new AnalysisContext(contextOptions);
     if (!cache) {
       cache = this._cache.invalidate([]);
     }
-    copy._cache = cache;
-    copy._generation = this._generation + 1;
+    const copy =
+        new AnalysisContext(contextOptions, cache, this._generation + 1);
     return copy;
   }
 
@@ -429,7 +429,7 @@ export class AnalysisContext {
    * resolved URLs.
    */
   canLoad(resolvedUrl: string): boolean {
-    return this._loader.canLoad(resolvedUrl);
+    return this.loader.canLoad(resolvedUrl);
   }
 
   /**
@@ -445,7 +445,7 @@ export class AnalysisContext {
     if (!this.canLoad(resolvedUrl)) {
       throw new Error(`Can't load URL: ${resolvedUrl}`);
     }
-    return await this._loader.load(resolvedUrl);
+    return await this.loader.load(resolvedUrl);
   }
 
   /**
@@ -467,7 +467,7 @@ export class AnalysisContext {
   private _parseContents(
       type: string, contents: string, url: string,
       inlineInfo?: InlineDocInfo<any>): ParsedDocument<any, any> {
-    const parser = this._parsers.get(type);
+    const parser = this.parsers.get(type);
     if (parser == null) {
       throw new NoKnownParserError(`No parser for for file type ${type}`);
     }
@@ -485,7 +485,7 @@ export class AnalysisContext {
    * Returns true if the url given is resovable by the Analyzer's `UrlResolver`.
    */
   canResolveUrl(url: string): boolean {
-    return this._resolver.canResolve(url);
+    return this.resolver.canResolve(url);
   }
 
   /**
@@ -493,6 +493,6 @@ export class AnalysisContext {
    * URL if it can not be resolved.
    */
   resolveUrl(url: string): string {
-    return this._resolver.canResolve(url) ? this._resolver.resolve(url) : url;
+    return this.resolver.canResolve(url) ? this.resolver.resolve(url) : url;
   }
 }

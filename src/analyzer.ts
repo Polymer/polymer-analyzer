@@ -64,8 +64,8 @@ export class Analyzer {
     const context = (options instanceof AnalysisContext) ?
         options :
         new AnalysisContext(options);
-    this._urlResolver = context._resolver;
-    this._urlLoader = context._loader;
+    this._urlResolver = context.resolver;
+    this._urlLoader = context.loader;
     this._analysisComplete = Promise.resolve(context);
   }
 
@@ -91,16 +91,16 @@ export class Analyzer {
     let _package: AnalysisResult|null = null;
     this._analysisComplete = (async() => {
       const previousContext = await previousAnalysisComplete;
-      if (!previousContext._loader.readDirectory) {
+      if (!previousContext.loader.readDirectory) {
         throw new Error(
             `This analyzer doesn't support analyzerPackage, ` +
             `the urlLoader can't list the files in a directory.`);
       }
-      const allFiles = await previousContext._loader.readDirectory('', true);
+      const allFiles = await previousContext.loader.readDirectory('', true);
       // TODO(rictic): parameterize this, perhaps with polymer.json.
       const filesInPackage =
           allFiles.filter((file) => !AnalysisResult.isExternal(file));
-      const extensions = new Set(previousContext._parsers.keys());
+      const extensions = new Set(previousContext.parsers.keys());
       const filesWithParsers = filesInPackage.filter(
           (fn) => extensions.has(path.extname(fn).substring(1)));
 
