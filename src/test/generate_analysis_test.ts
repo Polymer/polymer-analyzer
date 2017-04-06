@@ -76,28 +76,6 @@ suite('generate-analysis', () => {
             const golden: Analysis =
                 JSON.parse(fs.readFileSync(pathToGolden, 'utf-8'));
 
-            // // we don't care about the order of properties or attributes
-            // for (const analysis of [analyzedPackages, golden]) {
-            //   for (const type
-            //            of ['elements', 'mixins'] as ['elements', 'mixins']) {
-            //     const vals = analysis[type];
-            //     if (!vals) {
-            //       continue;
-            //     }
-            //     for (const val of vals) {
-            //       if (val.properties) {
-            //         val.properties.sort(
-            //             (p1, p2) => p1.name.localeCompare(p2.name));
-            //       }
-            //       if (val.attributes) {
-            //         val.attributes.sort(
-            //             (a1, a2) => a1.name.localeCompare(a2.name));
-            //       }
-            //     }
-            //   }
-            // }
-
-
             try {
               const shortPath = path.relative(__dirname, pathToGolden);
               assert.deepEqual(
