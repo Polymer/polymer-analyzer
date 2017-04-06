@@ -46,13 +46,14 @@ suite('Analyzer', () => {
   let inMemoryOverlay: InMemoryOverlayUrlLoader;
   let underliner: CodeUnderliner;
 
-  async function analyzeDocument(url: string):
-      Promise<Document> {
-        const document =
-            (await analyzer.analyze([url])).getDocument(url) as Document;
-        assert.instanceOf(document, Document);
-        return document;
-      }
+  async function analyzeDocument(
+      url: string, localAnalyzer?: Analyzer): Promise<Document> {
+    localAnalyzer = localAnalyzer || analyzer;
+    const document =
+        (await localAnalyzer.analyze([url])).getDocument(url) as Document;
+    assert.instanceOf(document, Document);
+    return document;
+  };
 
   setup(() => {
     const underlyingUrlLoader = new FSUrlLoader(__dirname);
@@ -619,11 +620,7 @@ suite('Analyzer', () => {
         </div>
       `).trim();
       inMemoryOverlay.urlContentsMap.set('test-doc.html', contents);
-      const origDocument = (await analyzer.analyze(['test-doc.html']))
-                               .getDocument('test-doc.html');
-      if (!(origDocument instanceof Document)) {
-        throw new Error(`Expected Document, got ${origDocument}`);
-      }
+      const origDocument = await analyzeDocument('test-doc.html');
       const document = clone(origDocument);
 
       // In document, we'll change `foo` to `bar` in the js and `blue` to
@@ -657,15 +654,13 @@ suite('Analyzer', () => {
   });
 
   test('analyzes a document with a namespace', async() => {
-    const document = (await analyzer.analyze([
-                       'static/namespaces/import-all.html'
-                     ])).getDocument('static/namespaces/import-all.html');
+    const document = await analyzeDocument('static/namespaces/import-all.html');
     if (!(document instanceof Document)) {
       throw new Error(`Expected Document, got ${document}`);
     }
 
-    const namespaces = Array.from(document.getByKind(
-        'namespace', {imported: true, externalPackages: true}));
+    const namespaces =
+        Array.from(document.getByKind('namespace', {imported: true}));
     assert.deepEqual(namespaces.map((b) => b.name), [
       'ExplicitlyNamedNamespace',
       'ExplicitlyNamedNamespace.NestedNamespace',
@@ -704,36 +699,6 @@ suite('Analyzer', () => {
 var DuplicateNamespace = {};
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~`]);
       });
-
-  suite('legacy tests', () => {
-
-    // ported from old js-parser_test.js
-    // FIXME(rictic): I've temporarily disabled most recognition of Polymer ES6
-    //     classes because the scanner is buggy and triggers when it shouldn't.
-    test.skip('parses classes', async() => {
-      const document = (await analyzer.analyze(['static/es6-support.js']))
-                           .getDocument('static/es6-support.js');
-      if (!(document instanceof Document)) {
-        throw new Error(`Expected Document, got ${document}`);
-      }
-
-      const elements =
-          Array.from(document.getByKind('polymer-element', {imported: false}));
-      assert.deepEqual(
-          elements.map((e) => e.tagName), ['test-seed', 'test-element']);
-      const testSeed = elements[0];
-
-      assert.deepEqual(
-          testSeed.behaviorAssignments, ['Behavior1', 'Behavior2']);
-      assert.equal(testSeed.tagName, 'test-seed');
-
-      assert.equal(testSeed.observers.length, 2);
-      assert.equal(testSeed.properties.length, 4);
-
-      assert.deepEqual(
-          testSeed.events.map((e) => e.name), ['fired-event', 'data-changed']);
-    });
-  });
 
   suite('analyzePackage', () => {
 
@@ -810,9 +775,8 @@ var DuplicateNamespace = {};
             path.join(__dirname, 'static', 'project-with-errors'))
       });
       const pckage = await analyzer.analyzePackage();
-      //   assert.deepEqual(
-      //       Array.from(pckage['_documents']).map((d) => d.url),
-      //       ['index.html']);
+      assert.deepEqual(
+          Array.from(pckage['_searchRoots']).map((d) => d.url), ['index.html']);
       assert.deepEqual(
           pckage.getWarnings().map((w) => w.sourceRange.file), ['index.html']);
       assert.deepEqual(
@@ -838,14 +802,10 @@ var DuplicateNamespace = {};
       await analyzer2.analyze(['b.html']);
       inMemoryOverlay.urlContentsMap.delete('b.html');
 
-      const a1 = (await analyzer.analyze(['a.html']))
-                     .getDocument('a.html') as Document;
-      const a2 = (await analyzer2.analyze(['a.html']))
-                     .getDocument('a.html') as Document;
-      const b1 = (await analyzer.analyze(['b.html']))
-                     .getDocument('b.html') as Document;
-      const b2 = (await analyzer2.analyze(['b.html']))
-                     .getDocument('b.html') as Document;
+      const a1 = await analyzeDocument('a.html', analyzer);
+      const a2 = await analyzeDocument('a.html', analyzer2);
+      const b1 = await analyzeDocument('b.html', analyzer);
+      const b2 = await analyzeDocument('b.html', analyzer2);
 
       assert.equal(a1.parsedDocument.contents, 'a is shared');
       assert.equal(a2.parsedDocument.contents, 'a is shared');
@@ -857,15 +817,11 @@ var DuplicateNamespace = {};
       const loader1 = {canLoad: () => true, load: async(u: string) => `${u} 1`};
       const loader2 = {canLoad: () => true, load: async(u: string) => `${u} 2`};
       const analyzer1 = new Analyzer({urlLoader: loader1});
-      const a1 = (await analyzer1.analyze(['a.html']))
-                     .getDocument('a.html') as Document;
+      const a1 = await analyzeDocument('a.html', analyzer1);
       const analyzer2 = await analyzer1._fork({urlLoader: loader2});
-      const a2 = (await analyzer2.analyze(['a.html']))
-                     .getDocument('a.html') as Document;
-      const b1 = (await analyzer1.analyze(['b.html']))
-                     .getDocument('b.html') as Document;
-      const b2 = (await analyzer2.analyze(['b.html']))
-                     .getDocument('b.html') as Document;
+      const a2 = await analyzeDocument('a.html', analyzer2);
+      const b1 = await analyzeDocument('b.html', analyzer1);
+      const b2 = await analyzeDocument('b.html', analyzer2);
 
       assert.equal(a1.parsedDocument.contents, 'a.html 1', 'a.html, loader 1');
       assert.equal(a2.parsedDocument.contents, 'a.html 1', 'a.html, in cache');
@@ -978,17 +934,11 @@ var DuplicateNamespace = {};
               })());
             }
           }
-          promises.push((async() => {
-            return (await analyzer.analyze(['base.html']))
-                .getDocument('base.html') as Document;
-          })());
+          promises.push(analyzeDocument('base.html', analyzer));
           await Promise.all(promises);
         }
         // Analyze the base file
-        promises.push((async() => {
-          return (await analyzer.analyze(['base.html']))
-              .getDocument('base.html') as Document;
-        })());
+        promises.push(analyzeDocument('base.html', analyzer));
         await Promise.all(promises);
       }
       // Assert that all edits went through fine.

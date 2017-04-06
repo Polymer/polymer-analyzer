@@ -24,7 +24,7 @@ export class ScriptTagImport extends Import { type: 'html-script'; }
 
 export class ScannedScriptTagImport extends ScannedImport {
   resolve(document: Document): ScriptTagImport|undefined {
-    if (!document.analyzer.canResolveUrl(this.url)) {
+    if (!document._analysisContext.canResolveUrl(this.url)) {
       return;
     }
 
@@ -37,7 +37,7 @@ export class ScannedScriptTagImport extends ScannedImport {
     // A better design might be to have the import itself be in charge of
     // producing document objects. This will fit better with JS modules, where
     // the type attribute drives how the document is parsed.
-    const importedDocument = document.analyzer.getDocument(this.url);
+    const importedDocument = document._analysisContext.getDocument(this.url);
     if (importedDocument && importedDocument instanceof Document) {
       // This is a terrible hack. However, it's the least terrible option that
       // we've come up with.

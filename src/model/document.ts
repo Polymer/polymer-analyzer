@@ -127,7 +127,12 @@ export type QueryOptions = object & QueryOptionsInterface;
 export class Document implements Feature, Queryable {
   kinds: Set<string> = new Set(['document']);
   identifiers: Set<string> = new Set();
-  analyzer: AnalysisContext;
+
+  /**
+   * AnalysisContext is a private type. Only internal analyzer code should touch
+   * this field.
+   */
+  _analysisContext: AnalysisContext;
   warnings: Warning[];
   languageAnalysis?: any;
 
@@ -157,7 +162,7 @@ export class Document implements Feature, Queryable {
       throw new Error('analyzer is null');
     }
     this._scannedDocument = base;
-    this.analyzer = analyzer;
+    this._analysisContext = analyzer;
     this.languageAnalysis = languageAnalysis;
 
     if (!base.isInline) {

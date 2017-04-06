@@ -65,10 +65,11 @@ export class ScannedImport implements Resolvable {
   }
 
   resolve(document: Document): Import|undefined {
-    if (!document.analyzer.canResolveUrl(this.url)) {
+    if (!document._analysisContext.canResolveUrl(this.url)) {
       return;
     }
-    const importedDocumentOrWarning = document.analyzer.getDocument(this.url);
+    const importedDocumentOrWarning =
+        document._analysisContext.getDocument(this.url);
     if (!(importedDocumentOrWarning instanceof Document)) {
       const error = this.error ? (this.error.message || this.error) : '';
       document.warnings.push({
