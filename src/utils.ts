@@ -45,6 +45,10 @@ export function normalizeNewlines(text: string|string[]): string {
  * environment, so this function is a no-op there.
  *
  * @param pathname - file path to transform.
+ *
+ * TODO(usergenic): Unify the filesystem and url path manipulating code
+ * into a common package.  Bundler, Build and Analyzer (at least) all have
+ * their own flavors of these functions now.
  */
 export function convertToPlatformsPathSeparators(pathname: string): string {
   if (path.sep === '\\') {
