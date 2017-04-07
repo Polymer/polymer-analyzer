@@ -94,7 +94,7 @@ export class Polymer2ElementScanner implements JavaScriptScanner {
         customElements.push({clazz, definition});
         continue;
       }
-      // TODO(rictic): remove polymerElement here.
+      // TODO(rictic): remove @polymerElement here.
       //     See: https://github.com/Polymer/polymer-analyzer/issues/605
       if (jsdoc.hasTag(clazz.doc, 'customElement') ||
           jsdoc.hasTag(clazz.doc, 'polymerElement')) {
@@ -129,42 +129,64 @@ export class Polymer2ElementScanner implements JavaScriptScanner {
     if (element.definition &&
         element.definition.tagName.type === 'string-literal') {
       tagName = element.definition.tagName.value;
-    } else {
+    } else if (
+        node.type === 'ClassExpression' || node.type === 'ClassDeclaration') {
       tagName = getIsValue(node);
     }
     let warnings: Warning[] = [];
 
-    const observersResult = this._getObservers(node, document);
-    let observers: Observer[] = [];
-    if (observersResult) {
-      observers = observersResult.observers;
-      warnings = warnings.concat(observersResult.warnings);
+    let scannedElement: ScannedPolymerElement;
+    if (node.type === 'ClassExpression' || node.type === 'ClassDeclaration') {
+      const observersResult = this._getObservers(node, document);
+      let observers: Observer[] = [];
+      if (observersResult) {
+        observers = observersResult.observers;
+        warnings = warnings.concat(observersResult.warnings);
+      }
+
+      scannedElement = new ScannedPolymerElement({
+        className,
+        tagName,
+        astNode: node,
+        description: (docs.description || '').trim(),
+        events: esutil.getEventComments(node),
+        sourceRange: document.sourceRangeForNode(node),
+        properties: getProperties(node, document),
+        methods: getMethods(node, document),
+        superClass: this._getExtends(node, docs, warnings, document),
+        mixins: jsdoc.getMixins(document, node, docs, warnings),
+        privacy: getOrInferPrivacy(className || '', docs, false),  //
+        observers,
+        jsdoc: docs,
+      });
+
+      // If a class defines observedAttributes, it overrides what the base
+      // classes defined.
+      // TODO(justinfagnani): define and handle composition patterns.
+      const observedAttributes = this._getObservedAttributes(node, document);
+
+      if (observedAttributes != null) {
+        scannedElement.attributes = observedAttributes;
+      }
+
+    } else {
+      scannedElement = new ScannedPolymerElement({
+        className,
+        tagName,
+        astNode: node,
+        jsdoc: docs,
+        sourceRange: document.sourceRangeForNode(node)!,
+        description: (docs.description || '').trim(),
+        superClass: this._getExtends(node, docs, warnings, document),
+        mixins: jsdoc.getMixins(document, node, docs, warnings),
+        privacy: getOrInferPrivacy(className || '', docs, false),
+        events: [],
+        properties: [],
+        methods: [],
+        observers: []
+      });
     }
 
-    const scannedElement = new ScannedPolymerElement({
-      className,
-      tagName,
-      astNode: node,
-      description: (docs.description || '').trim(),
-      events: esutil.getEventComments(node),
-      sourceRange: document.sourceRangeForNode(node),
-      properties: getProperties(node, document),
-      methods: getMethods(node, document),
-      superClass: this._getExtends(node, docs, warnings, document),
-      mixins: jsdoc.getMixins(document, node, docs, warnings),
-      privacy: getOrInferPrivacy(className || '', docs, false),  //
-      observers,
-      jsdoc: docs,
-    });
-
-    // If a class defines observedAttributes, it overrides what the base
-    // classes defined.
-    // TODO(justinfagnani): define and handle composition patterns.
-    const observedAttributes = this._getObservedAttributes(node, document);
-
-    if (observedAttributes != null) {
-      scannedElement.attributes = observedAttributes;
-    }
 
     warnings.forEach((w) => scannedElement.warnings.push(w));
 
@@ -203,9 +225,7 @@ export class Polymer2ElementScanner implements JavaScriptScanner {
    * Returns the name of the superclass, if any.
    */
   private _getExtends(
-      node: estree.ClassDeclaration|estree.ClassExpression|
-      estree.VariableDeclaration,
-      docs: jsdoc.Annotation, warnings: Warning[],
+      node: estree.Node, docs: jsdoc.Annotation, warnings: Warning[],
       document: JavaScriptDocument): ScannedReference|undefined {
     const extendsAnnotations =
         docs.tags!.filter((tag) => tag.tag === 'extends');
@@ -310,7 +330,12 @@ interface FoundClass {
   name: string|undefined;
   namespacedName: string|undefined;
   doc: jsdoc.Annotation;
-  ast: estree.ClassExpression|estree.ClassDeclaration;
+  /**
+   * This will usually be an class declaration or expression, but if the
+   * class is defined just as an application of a mixin on another class it
+   * could be a call expression, or other forms!
+   */
+  ast: estree.Node;
 }
 class ClassFinder implements Visitor {
   readonly classes: FoundClass[] = [];
@@ -318,29 +343,38 @@ class ClassFinder implements Visitor {
 
   enterAssignmentExpression(
       node: estree.AssignmentExpression, parent: estree.Node) {
-    if (node.right.type !== 'ClassExpression') {
-      return;
-    }
-    const name = astValue.getIdentifierName(node.left) ||
-        node.right.id && astValue.getIdentifierName(node.right.id);
-    if (!name) {
-      return;
-    }
-    const comment = esutil.getAttachedComment(node.right) ||
-        esutil.getAttachedComment(node) || esutil.getAttachedComment(parent) ||
-        '';
-    this._classFound(name, comment, node.right);
+    this.handleGeneralAssignment(
+        astValue.getIdentifierName(node.left), node.right, node, parent);
   }
 
   enterVariableDeclarator(
       node: estree.VariableDeclarator, parent: estree.Node) {
-    if (node.init && node.init.type === 'ClassExpression') {
-      const name = astValue.getIdentifierName(node.id) ||
-          node.init.id && astValue.getIdentifierName(node.init.id);
-      const comment = esutil.getAttachedComment(node.init) ||
-          esutil.getAttachedComment(node) ||
-          esutil.getAttachedComment(parent) || '';
-      this._classFound(name, comment, node.init);
+    if (node.init) {
+      this.handleGeneralAssignment(
+          astValue.getIdentifierName(node.id), node.init, node, parent);
+    }
+  }
+
+  private handleGeneralAssignment(
+      assignedName: string|undefined, value: estree.Expression,
+      assignment: estree.VariableDeclarator|estree.AssignmentExpression,
+      statement: estree.Node) {
+    const comment = esutil.getAttachedComment(value) ||
+        esutil.getAttachedComment(assignment) ||
+        esutil.getAttachedComment(statement) || '';
+    const doc = jsdoc.parseJsdoc(comment);
+    if (value.type === 'ClassExpression') {
+      const name =
+          assignedName || value.id && astValue.getIdentifierName(value.id);
+
+      this._classFound(name, doc, value);
+    } else {
+      // TODO(rictic): remove @polymerElement here.
+      //     See: https://github.com/Polymer/polymer-analyzer/issues/605
+      if (jsdoc.hasTag(doc, 'customElement') ||
+          jsdoc.hasTag(doc, 'polymerElement')) {
+        this._classFound(assignedName, doc, value);
+      }
     }
   }
 
@@ -352,20 +386,18 @@ class ClassFinder implements Visitor {
     const name = node.id && astValue.getIdentifierName(node.id);
     const comment = esutil.getAttachedComment(node) ||
         esutil.getAttachedComment(parent) || '';
-    this._classFound(name, comment, node);
+    this._classFound(name, jsdoc.parseJsdoc(comment), node);
   }
 
   enterClassDeclaration(node: estree.ClassDeclaration, parent: estree.Node) {
     const name = astValue.getIdentifierName(node.id);
     const comment = esutil.getAttachedComment(node) ||
         esutil.getAttachedComment(parent) || '';
-    this._classFound(name, comment, node);
+    this._classFound(name, jsdoc.parseJsdoc(comment), node);
   }
 
   private _classFound(
-      name: string|undefined, comment: string,
-      ast: estree.ClassExpression|estree.ClassDeclaration) {
-    const doc = jsdoc.parseJsdoc(comment);
+      name: string|undefined, doc: jsdoc.Annotation, ast: estree.Node) {
     const namespacedName = name && getNamespacedIdentifier(name, doc);
 
     this.classes.push({name, namespacedName, doc, ast});
