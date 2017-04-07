@@ -29,14 +29,6 @@ import {Observer, ScannedPolymerElement} from './polymer-element';
 import {getIsValue, getMethods, getProperties} from './polymer2-config';
 
 
-/** Represents the value of an operation that may fail. */
-type Result<V, E> = {
-  successful: true; value: V;
-}|{
-  successful: false;
-  value: E;
-};
-
 /**
  * Represents the first argument of a call to customElements.define.
  */
@@ -65,240 +57,101 @@ export class Polymer2ElementScanner implements JavaScriptScanner {
   async scan(
       document: JavaScriptDocument,
       visit: (visitor: Visitor) => Promise<void>): Promise<ScannedElement[]> {
-    const visitor = new ElementVisitor(document);
-    await visit(visitor);
-    return visitor.getRegisteredElements();
-  }
-}
+    const classFinder = new ClassFinder();
+    const elementDefinitionFinder =
+        new CustomElementsDefineCallFinder(document);
+    // Find all classes and all calls to customElements.define()
+    await Promise.all([visit(classFinder), visit(elementDefinitionFinder)]);
 
-class ElementVisitor implements Visitor {
-  private _possibleElements = new Map<string, ScannedElement>();
-  private _registeredButNotFound = new Map<string, TagNameExpression>();
-  private _elements: Set<ScannedElement> = new Set();
-  private _document: JavaScriptDocument;
-  // TODO(rictic): write a WarningFeature. Emit them from this scanner.
-  private _warnings: Warning[] = [];
+    const elementDefinitionsByClassName = new Map<string, ElementDefineCall>();
+    const elementDefinitionsByClassExpression =
+        new Map<estree.ClassExpression, ElementDefineCall>();
 
-  private _currentElement: ScannedPolymerElement|null = null;
-  private _currentElementNode: estree.Node|null = null;
-
-  constructor(document: JavaScriptDocument) {
-    this._document = document;
-  }
-
-  enterAssignmentExpression(
-      node: estree.AssignmentExpression, parent: estree.Node) {
-    if (node.right.type !== 'ClassExpression') {
-      return;
-    }
-    const className = astValue.getIdentifierName(node.left);
-    if (!className) {
-      return;
-    }
-    const comments = esutil.getAttachedComment(node.right) ||
-        esutil.getAttachedComment(node) || esutil.getAttachedComment(parent) ||
-        '';
-    const docs = jsdoc.parseJsdoc(comments);
-    const namespacedClassName = getNamespacedIdentifier(className, docs);
-    const element =
-        this._handleClass(node.right, {docs, className: namespacedClassName});
-
-    this._possibleElements.set(namespacedClassName, element);
-    this._possibleElements.set(className, element);
-  }
-
-  enterClassExpression(node: estree.ClassExpression, parent: estree.Node) {
-    if (parent.type !== 'VariableDeclarator') {
-      return;
-    }
-
-    const className = astValue.getIdentifierName(parent.id);
-    if (className == null) {
-      return;
-    }
-    const comments = esutil.getAttachedComment(node) ||
-        esutil.getAttachedComment(parent) || '';
-    const docs = jsdoc.parseJsdoc(comments);
-    const namespacedClassName = getNamespacedIdentifier(className, docs);
-
-    const element =
-        this._handleClass(node, {docs, className: namespacedClassName});
-
-    this._possibleElements.set(namespacedClassName, element);
-    this._possibleElements.set(className, element);
-  }
-
-  enterClassDeclaration(node: estree.ClassDeclaration) {
-    const comment = esutil.getAttachedComment(node) || '';
-    const docs = jsdoc.parseJsdoc(comment);
-    const className = node.id.name;
-    const namespacedClassName = getNamespacedIdentifier(className, docs);
-
-    const element =
-        this._handleClass(node, {docs: docs, className: namespacedClassName});
-
-    // Set the element on both the namespaced & unnamespaced names so that we
-    // can detect registration by either name.
-    this._possibleElements.set(className, element);
-    this._possibleElements.set(namespacedClassName, element);
-  }
-
-  enterVariableDeclaration(
-      node: estree.VariableDeclaration, _parent: estree.Node) {
-    // This is for cases when a class is defined by only applying a mixin
-    // to a superclass, like: const Elem = Mixin(HTMLElement);
-    // In this case we don't have a ClassDeclaration or ClassExpresion
-    // to traverse into.
-
-    // TODO(justinfagnani): factor out more common code for creating
-    // an element from jsdocs.
-
-    const comment = esutil.getAttachedComment(node) || '';
-    const docs = jsdoc.parseJsdoc(comment);
-    const isElement = this._hasPolymerDocTag(docs);
-    const sourceRange = this._document.sourceRangeForNode(node);
-    if (isElement) {
-      const warnings: Warning[] = [];
-      const _extends = this._getExtends(node, docs, warnings);
-      const mixins = jsdoc.getMixins(this._document, node, docs, warnings);
-
-      // The name of the variable is available in a child VariableDeclarator
-      // so we save the element and node representing the element to access
-      // in enterVariableDeclarator
-      this._currentElementNode = node;
-
-      const className = astValue.getIdentifierName(node) || '';
-      const namespacedClassName = getNamespacedIdentifier(className, docs);
-
-      const element = this._currentElement = new ScannedPolymerElement({
-        astNode: node,
-        sourceRange,
-        description: docs.description,
-        superClass: _extends,  //
-        mixins,
-        className: namespacedClassName,
-        privacy: getOrInferPrivacy(namespacedClassName, docs, false),
-        jsdoc: docs
-      });
-      this._elements.add(this._currentElement);
-
-      // Set the element on both the namespaced & unnamespaced names so that we
-      // can detect registration by either name.
-      this._possibleElements.set(namespacedClassName, element);
-      if (className) {
-        this._possibleElements.set(className, element);
-      }
-    }
-  }
-
-  leaveVariableDeclaration(
-      node: estree.VariableDeclaration, _parent: estree.Node) {
-    if (this._currentElementNode === node) {
-      // Clean up state when we leave a declaration that defined an element.
-      this._currentElement = null;
-      this._currentElementNode = null;
-    }
-  }
-
-  enterVariableDeclarator(
-      node: estree.VariableDeclarator, parent: estree.Node) {
-    if (this._currentElement != null && parent === this._currentElementNode) {
-      const name = getIdentifierName(node.id);
-      if (name) {
-        const parentJsDocs =
-            jsdoc.parseJsdoc(esutil.getAttachedComment(parent) || '');
-        this._currentElement.className =
-            getNamespacedIdentifier(name, parentJsDocs);
-      }
-    } else if (node.init && node.init.type === 'ClassExpression') {
-      const className = astValue.getIdentifierName(node.id);
-      if (className == null) {
-        return;
-      }
-      const comment = esutil.getAttachedComment(node.init) ||
-          esutil.getAttachedComment(node) ||
-          esutil.getAttachedComment(parent) || '';
-      const docs = jsdoc.parseJsdoc(comment);
-      const namespacedClassName = getNamespacedIdentifier(className, docs);
-
-      const element =
-          this._handleClass(node.init, {docs, className: namespacedClassName});
-
-      this._possibleElements.set(namespacedClassName, element);
-      this._possibleElements.set(className, element);
-    }
-  }
-
-  /**
-   * Returns the name of the superclass, if any.
-   */
-  private _getExtends(
-      node: estree.ClassDeclaration|estree.ClassExpression|
-      estree.VariableDeclaration,
-      docs: jsdoc.Annotation, warnings: Warning[]): ScannedReference|undefined {
-    const extendsAnnotations =
-        docs.tags!.filter((tag) => tag.tag === 'extends');
-
-    // prefer @extends annotations over extends clauses
-    if (extendsAnnotations.length > 0) {
-      const extendsId = extendsAnnotations[0].name;
-      // TODO(justinfagnani): we need source ranges for jsdoc annotations
-      const sourceRange = this._document.sourceRangeForNode(node)!;
-      if (extendsId == null) {
-        warnings.push({
-          code: 'class-extends-annotation-no-id',
-          message: '@extends annotation with no identifier',
-          severity: Severity.WARNING, sourceRange,
-        });
+    for (const defineCall of elementDefinitionFinder.calls) {
+      if (defineCall.clazz.type === 'MaybeChainedIdentifier') {
+        elementDefinitionsByClassName.set(defineCall.clazz.name, defineCall);
       } else {
-        return new ScannedReference(extendsId, sourceRange);
+        elementDefinitionsByClassExpression.set(defineCall.clazz, defineCall);
       }
-    } else if (
-        node.type === 'ClassDeclaration' || node.type === 'ClassExpression') {
-      // If no @extends tag, look for a superclass.
-      // TODO(justinfagnani): Infer mixin applications and superclass from AST.
-      const superClass = node.superClass;
-      if (superClass != null) {
-        const extendsId = getIdentifierName(superClass);
-        if (extendsId != null) {
-          const sourceRange = this._document.sourceRangeForNode(superClass)!;
-          return new ScannedReference(extendsId, sourceRange);
+    }
+    // TODO(rictic): emit ElementDefineCallFeatures for define calls that don't
+    //     map to any local classes?
+
+    const customElements: CustomElementDefinition[] = [];
+    const normalClasses = [];
+    for (const clazz of classFinder.classes) {
+      if (clazz.ast.type === 'ClassExpression') {
+        const definition = elementDefinitionsByClassExpression.get(clazz.ast);
+        if (definition) {
+          customElements.push({clazz, definition});
+          continue;
         }
       }
+      const definition =
+          elementDefinitionsByClassName.get(clazz.namespacedName!) ||
+          elementDefinitionsByClassName.get(clazz.name!);
+      if (definition) {
+        customElements.push({clazz, definition});
+        continue;
+      }
+      // TODO(rictic): remove polymerElement here.
+      //     See: https://github.com/Polymer/polymer-analyzer/issues/605
+      if (jsdoc.hasTag(clazz.doc, 'customElement') ||
+          jsdoc.hasTag(clazz.doc, 'polymerElement')) {
+        customElements.push({clazz});
+        continue;
+      }
+      normalClasses.push(clazz);
     }
+
+    const elementFeatures: ScannedPolymerElement[] = [];
+    for (const element of customElements) {
+      elementFeatures.push(this._makeElementFeature(element, document));
+    }
+
+    // TODO(rictic): handle normalClasses
+
+    // TODO(rictic): gather up the warnings from these visitors and return them
+    // too.
+    // const warnings = elementDefinitionFinder.warnings;
+
+    return elementFeatures;
   }
 
-
-  private _handleClass(
-      node: estree.ClassDeclaration|estree.ClassExpression,
-      options: {docs?: jsdoc.Annotation, className?: string}) {
-    let docs = options.docs;
-    if (!docs) {
-      const comment = esutil.getAttachedComment(node) || '';
-      docs = jsdoc.parseJsdoc(comment);
+  private _makeElementFeature(
+      element: CustomElementDefinition,
+      document: JavaScriptDocument): ScannedPolymerElement {
+    const node = element.clazz.ast;
+    const docs = element.clazz.doc;
+    const className = element.clazz.namespacedName;
+    let tagName;
+    // TODO(rictic): support `@customElements explicit-tag-name` from jsdoc
+    if (element.definition &&
+        element.definition.tagName.type === 'string-literal') {
+      tagName = element.definition.tagName.value;
+    } else {
+      tagName = getIsValue(node);
     }
-    const className = options.className || node.id && node.id.name;
-    const isValue = getIsValue(node);
     let warnings: Warning[] = [];
 
-    const observersResult = this._getObservers(node);
+    const observersResult = this._getObservers(node, document);
     let observers: Observer[] = [];
     if (observersResult) {
       observers = observersResult.observers;
       warnings = warnings.concat(observersResult.warnings);
     }
 
-    const element = new ScannedPolymerElement({
+    const scannedElement = new ScannedPolymerElement({
       className,
+      tagName,
       astNode: node,
-      tagName: isValue,
       description: (docs.description || '').trim(),
       events: esutil.getEventComments(node),
-      sourceRange: this._document.sourceRangeForNode(node),
-      properties: getProperties(node, this._document),
-      methods: getMethods(node, this._document),
-      superClass: this._getExtends(node, docs, warnings),
-      mixins: jsdoc.getMixins(this._document, node, docs, warnings),
+      sourceRange: document.sourceRangeForNode(node),
+      properties: getProperties(node, document),
+      methods: getMethods(node, document),
+      superClass: this._getExtends(node, docs, warnings, document),
+      mixins: jsdoc.getMixins(document, node, docs, warnings),
       privacy: getOrInferPrivacy(className || '', docs, false),  //
       observers,
       jsdoc: docs,
@@ -307,95 +160,15 @@ class ElementVisitor implements Visitor {
     // If a class defines observedAttributes, it overrides what the base
     // classes defined.
     // TODO(justinfagnani): define and handle composition patterns.
-    const observedAttributes = this._getObservedAttributes(node);
+    const observedAttributes = this._getObservedAttributes(node, document);
 
     if (observedAttributes != null) {
-      element.attributes = observedAttributes;
+      scannedElement.attributes = observedAttributes;
     }
 
-    warnings.forEach((w) => element.warnings.push(w));
+    warnings.forEach((w) => scannedElement.warnings.push(w));
 
-    if (this._hasPolymerDocTag(docs)) {
-      this._elements.add(element);
-    }
-    return element;
-  }
-
-  enterCallExpression(node: estree.CallExpression) {
-    const callee = astValue.getIdentifierName(node.callee);
-    if (!(callee === 'window.customElements.define' ||
-          callee === 'customElements.define')) {
-      return;
-    }
-
-    const tagNameExpressionResult =
-        node.arguments[0] && this.getTagNameExpression(node.arguments[0]);
-    if (!tagNameExpressionResult.successful) {
-      this._warnings.push(tagNameExpressionResult.value);
-      return;
-    }
-    const tagNameExpression = tagNameExpressionResult.value;
-    if (tagNameExpression == null) {
-      return;
-    }
-    const elementDefn = node.arguments[1];
-    if (elementDefn == null) {
-      return;
-    }
-    const element: ScannedElement|null =
-        this._getElement(tagNameExpression, elementDefn);
-    if (!element) {
-      return;
-    }
-    this._elements.add(element);
-    const tagNameResult = this.getTagNameFromExpression(tagNameExpression);
-    if (tagNameResult.successful) {
-      element.tagName = tagNameResult.value;
-    } else {
-      this._warnings.push(tagNameResult.value);
-    }
-  }
-
-  private _getElement(tagName: TagNameExpression, elementDefn: estree.Node):
-      ScannedElement|null {
-    const className = astValue.getIdentifierName(elementDefn);
-    if (className) {
-      const element = this._possibleElements.get(className);
-      if (element) {
-        this._possibleElements.delete(className);
-        return element;
-      } else {
-        this._registeredButNotFound.set(className, tagName);
-        return null;
-      }
-    }
-    if (elementDefn.type === 'ClassExpression') {
-      return this._handleClass(elementDefn, {});
-    }
-    return null;
-  }
-
-  private _hasPolymerDocTag(docs: jsdoc.Annotation) {
-    const tags = docs.tags || [];
-    const elementTags =
-        tags.filter((t: jsdoc.Tag) => t.tag === 'polymerElement');
-    return elementTags.length >= 1;
-  }
-
-  private _getObservedAttributes(node: estree.ClassDeclaration|
-                                 estree.ClassExpression) {
-    const returnedValue =
-        this._getReturnValueOfStaticGetter(node, 'observedAttributes');
-    if (returnedValue && returnedValue.type === 'ArrayExpression') {
-      return this._extractAttributesFromObservedAttributes(returnedValue);
-    }
-  }
-
-  private _getObservers(node: estree.ClassDeclaration|estree.ClassExpression) {
-    const returnedValue = this._getReturnValueOfStaticGetter(node, 'observers');
-    if (returnedValue) {
-      return extractObservers(returnedValue, this._document);
-    }
+    return scannedElement;
   }
 
   private _getReturnValueOfStaticGetter(
@@ -417,6 +190,66 @@ class ElementVisitor implements Visitor {
     return;
   }
 
+  private _getObservers(
+      node: estree.ClassDeclaration|estree.ClassExpression,
+      document: JavaScriptDocument) {
+    const returnedValue = this._getReturnValueOfStaticGetter(node, 'observers');
+    if (returnedValue) {
+      return extractObservers(returnedValue, document);
+    }
+  }
+
+  /**
+   * Returns the name of the superclass, if any.
+   */
+  private _getExtends(
+      node: estree.ClassDeclaration|estree.ClassExpression|
+      estree.VariableDeclaration,
+      docs: jsdoc.Annotation, warnings: Warning[],
+      document: JavaScriptDocument): ScannedReference|undefined {
+    const extendsAnnotations =
+        docs.tags!.filter((tag) => tag.tag === 'extends');
+
+    // prefer @extends annotations over extends clauses
+    if (extendsAnnotations.length > 0) {
+      const extendsId = extendsAnnotations[0].name;
+      // TODO(justinfagnani): we need source ranges for jsdoc annotations
+      const sourceRange = document.sourceRangeForNode(node)!;
+      if (extendsId == null) {
+        warnings.push({
+          code: 'class-extends-annotation-no-id',
+          message: '@extends annotation with no identifier',
+          severity: Severity.WARNING, sourceRange,
+        });
+      } else {
+        return new ScannedReference(extendsId, sourceRange);
+      }
+    } else if (
+        node.type === 'ClassDeclaration' || node.type === 'ClassExpression') {
+      // If no @extends tag, look for a superclass.
+      // TODO(justinfagnani): Infer mixin applications and superclass from AST.
+      const superClass = node.superClass;
+      if (superClass != null) {
+        const extendsId = getIdentifierName(superClass);
+        if (extendsId != null) {
+          const sourceRange = document.sourceRangeForNode(superClass)!;
+          return new ScannedReference(extendsId, sourceRange);
+        }
+      }
+    }
+  }
+
+  private _getObservedAttributes(
+      node: estree.ClassDeclaration|estree.ClassExpression,
+      document: JavaScriptDocument) {
+    const returnedValue =
+        this._getReturnValueOfStaticGetter(node, 'observedAttributes');
+    if (returnedValue && returnedValue.type === 'ArrayExpression') {
+      return this._extractAttributesFromObservedAttributes(
+          returnedValue, document);
+    }
+  }
+
   /**
    * Extract attributes from the array expression inside a static
    * observedAttributes method.
@@ -431,8 +264,8 @@ class ElementVisitor implements Visitor {
    *       ];
    *     }
    */
-  private _extractAttributesFromObservedAttributes(arry:
-                                                       estree.ArrayExpression) {
+  private _extractAttributesFromObservedAttributes(
+      arry: estree.ArrayExpression, document: JavaScriptDocument) {
     const results: ScannedAttribute[] = [];
     for (const expr of arry.elements) {
       const value = astValue.expressionToValue(expr);
@@ -454,7 +287,7 @@ class ElementVisitor implements Visitor {
         const attribute: ScannedAttribute = {
           name: value,
           description: description,
-          sourceRange: this._document.sourceRangeForNode(expr),
+          sourceRange: document.sourceRangeForNode(expr),
           astNode: expr,
           warnings: [],
         };
@@ -466,66 +299,127 @@ class ElementVisitor implements Visitor {
     }
     return results;
   }
+}
 
+interface CustomElementDefinition {
+  clazz: FoundClass;
+  definition?: ElementDefineCall;
+}
 
-  /**
-   * Gets all found elements. Can only be called once.
-   */
-  getRegisteredElements(): ScannedElement[] {
-    for (const classAndTag of this._registeredButNotFound.entries()) {
-      const className = classAndTag[0];
-      const tagNameExpression = classAndTag[1];
-      const element = this._possibleElements.get(className);
-      if (element) {
-        element.className = className;
-        const tagNameResult = this.getTagNameFromExpression(tagNameExpression);
-        if (tagNameResult.successful) {
-          element.tagName = tagNameResult.value;
-        } else {
-          this._warnings.push(tagNameResult.value);
-        }
-        this._elements.add(element);
-      }
+interface FoundClass {
+  name: string|undefined;
+  namespacedName: string|undefined;
+  doc: jsdoc.Annotation;
+  ast: estree.ClassExpression|estree.ClassDeclaration;
+}
+class ClassFinder implements Visitor {
+  readonly classes: FoundClass[] = [];
+  private readonly alreadyMatched = new Set<estree.ClassExpression>();
+
+  enterAssignmentExpression(
+      node: estree.AssignmentExpression, parent: estree.Node) {
+    if (node.right.type !== 'ClassExpression') {
+      return;
     }
-    return Array.from(this._elements);
+    const name = astValue.getIdentifierName(node.left) ||
+        node.right.id && astValue.getIdentifierName(node.right.id);
+    if (!name) {
+      return;
+    }
+    const comment = esutil.getAttachedComment(node.right) ||
+        esutil.getAttachedComment(node) || esutil.getAttachedComment(parent) ||
+        '';
+    this._classFound(name, comment, node.right);
   }
 
-  getTagNameFromExpression(expression: TagNameExpression):
-      Result<string|undefined, Warning> {
-    if (expression.type === 'string-literal') {
-      return {successful: true, value: expression.value};
+  enterVariableDeclarator(
+      node: estree.VariableDeclarator, parent: estree.Node) {
+    if (node.init && node.init.type === 'ClassExpression') {
+      const name = astValue.getIdentifierName(node.id) ||
+          node.init.id && astValue.getIdentifierName(node.init.id);
+      const comment = esutil.getAttachedComment(node.init) ||
+          esutil.getAttachedComment(node) ||
+          esutil.getAttachedComment(parent) || '';
+      this._classFound(name, comment, node.init);
     }
-    const element = this._possibleElements.get(expression.className) ||
-        Array.from(this._elements)
-            .find((e) => e.className === expression.className);
-    if (!element) {
-      return {
-        successful: false,
-        value: {
-          code: 'cant-determine-element-tagname',
-          message: `Couldn't dereference the class name ${
-                                                          expression.className
-                                                        } here.`,
-          severity: Severity.WARNING,
-          sourceRange: expression.classNameSourceRange
-        }
-      };
-    }
-    return {successful: true, value: element.tagName};
   }
 
-  getTagNameExpression(expression: estree.Node):
-      Result<TagNameExpression, Warning> {
+  enterClassExpression(node: estree.ClassExpression, parent: estree.Node) {
+    if (this.alreadyMatched.has(node)) {
+      return;
+    }
+
+    const name = node.id && astValue.getIdentifierName(node.id);
+    const comment = esutil.getAttachedComment(node) ||
+        esutil.getAttachedComment(parent) || '';
+    this._classFound(name, comment, node);
+  }
+
+  enterClassDeclaration(node: estree.ClassDeclaration, parent: estree.Node) {
+    const name = astValue.getIdentifierName(node.id);
+    const comment = esutil.getAttachedComment(node) ||
+        esutil.getAttachedComment(parent) || '';
+    this._classFound(name, comment, node);
+  }
+
+  private _classFound(
+      name: string|undefined, comment: string,
+      ast: estree.ClassExpression|estree.ClassDeclaration) {
+    const doc = jsdoc.parseJsdoc(comment);
+    const namespacedName = name && getNamespacedIdentifier(name, doc);
+
+    this.classes.push({name, namespacedName, doc, ast});
+    if (ast.type === 'ClassExpression') {
+      this.alreadyMatched.add(ast);
+    }
+  }
+}
+
+interface ElementDefineCall {
+  tagName: TagNameExpression;
+  clazz: ElementClassExpression;
+}
+type ElementClassExpression = estree.ClassExpression|{
+  type: 'MaybeChainedIdentifier';
+  name: string, sourceRange: SourceRange
+};
+class CustomElementsDefineCallFinder implements Visitor {
+  readonly warnings: Warning[] = [];
+  readonly calls: ElementDefineCall[] = [];
+  private readonly _document: JavaScriptDocument;
+  constructor(document: JavaScriptDocument) {
+    this._document = document;
+  }
+  enterCallExpression(node: estree.CallExpression) {
+    const callee = astValue.getIdentifierName(node.callee);
+    if (!(callee === 'window.customElements.define' ||
+          callee === 'customElements.define')) {
+      return;
+    }
+
+    const tagNameExpression =
+        node.arguments[0] && this._getTagNameExpression(node.arguments[0]);
+    if (tagNameExpression == null) {
+      return;
+    }
+    const elementClassExpression =
+        node.arguments[1] && this._getElementClassExpression(node.arguments[1]);
+    if (!elementClassExpression) {
+      return;
+    }
+    this.calls.push(
+        {tagName: tagNameExpression, clazz: elementClassExpression});
+  }
+
+  private _getTagNameExpression(expression: estree.Node): TagNameExpression
+      |undefined {
     const tryForLiteralString = astValue.expressionToValue(expression);
     if (tryForLiteralString != null &&
         typeof tryForLiteralString === 'string') {
       return {
-        successful: true,
-        value: {
-          type: 'string-literal',
-          value: tryForLiteralString,
-          sourceRange: this._document.sourceRangeForNode(expression)!
-        }
+        type: 'string-literal',
+        value: tryForLiteralString,
+        sourceRange: this._document.sourceRangeForNode(expression)!
       };
     }
     if (expression.type === 'MemberExpression') {
@@ -536,26 +430,43 @@ class ElementVisitor implements Visitor {
       const className = astValue.getIdentifierName(expression.object);
       if (isPropertyNameIs && className) {
         return {
-          successful: true,
-          value: {
-            type: 'is',
-            className,
-            classNameSourceRange:
-                this._document.sourceRangeForNode(expression.object)!
-          }
+          type: 'is',
+          className,
+          classNameSourceRange:
+              this._document.sourceRangeForNode(expression.object)!
         };
       }
     }
-    return {
-      successful: false,
-      value: {
-        code: 'cant-determine-element-tagname',
-        message:
-            `Unable to evaluate this expression down to a definitive string ` +
-            `tagname.`,
-        severity: Severity.WARNING,
-        sourceRange: this._document.sourceRangeForNode(expression)!
-      }
-    };
+    this.warnings.push({
+      code: 'cant-determine-element-tagname',
+      message:
+          `Unable to evaluate this expression down to a definitive string ` +
+          `tagname.`,
+      severity: Severity.WARNING,
+      sourceRange: this._document.sourceRangeForNode(expression)!
+    });
+    return undefined;
+  }
+
+  private _getElementClassExpression(elementDefn: estree.Node):
+      ElementClassExpression|null {
+    const className = astValue.getIdentifierName(elementDefn);
+    if (className) {
+      return {
+        type: 'MaybeChainedIdentifier',
+        name: className,
+        sourceRange: this._document.sourceRangeForNode(elementDefn)!
+      };
+    }
+    if (elementDefn.type === 'ClassExpression') {
+      return elementDefn;
+    }
+    this.warnings.push({
+      code: 'cant-determine-element-class',
+      message: `Unable to evaluate this expression down to a class reference.`,
+      severity: Severity.WARNING,
+      sourceRange: this._document.sourceRangeForNode(elementDefn)!
+    });
+    return null;
   }
 }

@@ -331,7 +331,7 @@ namespaced name.`,
     ]);
   });
 
-  test('Reads just mixin application', async() => {
+  test.skip('Reads just mixin application', async() => {
     const elements = await getElements('test-element-9.js');
     const elementData = await Promise.all(elements.map(getTestProps));
 
