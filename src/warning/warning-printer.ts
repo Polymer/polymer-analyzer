@@ -57,6 +57,9 @@ export class WarningPrinter {
           `INTERNAL ERROR: Tried to print a '${warning.code}' ` +
           `warning without a source range. Please report this!\n` +
           `     https://github.com/Polymer/polymer-analyzer/issues/new\n`);
+      this._outStream.write(
+          `${this._severityToString(warning.severity)} ` +
+          `[${warning.code}] - ${warning.message}\n`);
       return;
     }
 
@@ -84,9 +87,8 @@ export class WarningPrinter {
       default:
         const never: never = severity;
         throw new Error(
-            `Unknown severity value - ${
-                                        never
-                                      } - encountered while printing warning.`);
+            `Unknown severity value - ${never} - ` +
+            `encountered while printing warning.`);
     }
   }
 
