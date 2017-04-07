@@ -46,7 +46,7 @@ export function normalizeNewlines(text: string|string[]): string {
  *
  * @param pathname - file path to transform.
  */
-export function normalizePathSeparators(pathname: string): string {
+export function convertToPlatformsPathSeparators(pathname: string): string {
   if (path.sep === '\\') {
     return pathname.replace(/\\|\//g, path.sep);
   }

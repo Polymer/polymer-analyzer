@@ -15,7 +15,7 @@
 import {assert} from 'chai';
 
 import {FSUrlLoader} from '../../url-loader/fs-url-loader';
-import {normalizePathSeparators} from '../../utils';
+import {convertToPlatformsPathSeparators} from '../../utils';
 
 suite('FSUrlLoader', function() {
 
@@ -48,7 +48,7 @@ suite('FSUrlLoader', function() {
     test('resolves an in-package URL', () => {
       assert.equal(
           new FSUrlLoader('root').getFilePath('foo.html'),
-          normalizePathSeparators('root/foo.html'));
+          convertToPlatformsPathSeparators('root/foo.html'));
     });
 
     test('throws for a sibling URL', () => {
