@@ -230,6 +230,21 @@ suite('PolymerElementScanner', () => {
           1);
     });
 
+    test('finds assigned call expressions', async() => {
+      const contents = `
+          const MyOtherElement = Polymer({
+            is: 'my-other-element'
+          });
+      `;
+      const document =
+          new JavaScriptParser().parse(contents, 'test-document.html');
+      const visit = async(visitor: Visitor) => document.visit([visitor]);
+
+      const features = await scanner.scan(document, visit);
+      assert.deepEqual(features.map((f) => f.tagName), ['my-other-element']);
+      assert.deepEqual(features.map((f) => f.className), ['MyOtherElement']);
+    });
+
     const testName =
         'Produces correct warnings for bad observers and computed properties';
     test(testName, async() => {
