@@ -16,7 +16,15 @@ import {parse as parseUrl_, Url} from 'url';
 
 const unspecifiedProtocol = '-:';
 
+/**
+ * Regular expression used to split multi-line strings.  Supports the common
+ * line-termination sequences of CRLF (windows) and just LF (*nix/osx)
+ */
 export const EOL = /\r\n|\n/g;
+
+/**
+ * LF (line-feed) aka Newline.  Using a constant to highlight its use.
+ */
 export const LF = '\n';
 
 /**
