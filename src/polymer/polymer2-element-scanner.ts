@@ -86,52 +86,61 @@ class ElementVisitor implements Visitor {
     this._document = document;
   }
 
-  enterClassExpression(node: estree.ClassExpression, parent: estree.Node) {
-    if (parent.type !== 'AssignmentExpression' &&
-        parent.type !== 'VariableDeclarator') {
+  enterAssignmentExpression(
+      node: estree.AssignmentExpression, parent: estree.Node) {
+    if (node.right.type !== 'ClassExpression') {
       return;
     }
-    const className = astValue.getIdentifierName(
-        parent.type === 'AssignmentExpression' ? parent.left : parent.id);
+    const className = astValue.getIdentifierName(node.left);
+    if (!className) {
+      return;
+    }
+    const comments = esutil.getAttachedComment(node.right) ||
+        esutil.getAttachedComment(node) || esutil.getAttachedComment(parent) ||
+        '';
+    const docs = jsdoc.parseJsdoc(comments);
+    const namespacedClassName = getNamespacedIdentifier(className, docs);
+    const element =
+        this._handleClass(node.right, {docs, className: namespacedClassName});
+
+    this._possibleElements.set(namespacedClassName, element);
+    this._possibleElements.set(className, element);
+  }
+
+  enterClassExpression(node: estree.ClassExpression, parent: estree.Node) {
+    if (parent.type !== 'VariableDeclarator') {
+      return;
+    }
+
+    const className = astValue.getIdentifierName(parent.id);
     if (className == null) {
       return;
     }
-    const element = this._handleClass(node);
-    if (element) {
-      const nodeComments = esutil.getAttachedComment(node) || '';
-      const nodeJsDocs = jsdoc.parseJsdoc(nodeComments);
-      const namespacedClassName =
-          getNamespacedIdentifier(className, nodeJsDocs);
-      element.className = namespacedClassName;
+    const comments = esutil.getAttachedComment(node) ||
+        esutil.getAttachedComment(parent) || '';
+    const docs = jsdoc.parseJsdoc(comments);
+    const namespacedClassName = getNamespacedIdentifier(className, docs);
 
-      const summaryTag = jsdoc.getTag(nodeJsDocs, 'summary');
-      element.summary = (summaryTag && summaryTag.description) || '';
+    const element =
+        this._handleClass(node, {docs, className: namespacedClassName});
 
-      // Set the element on both the namespaced & unnamespaced names so that we
-      // can detect registration by either name.
-      this._possibleElements.set(namespacedClassName, element);
-      this._possibleElements.set(className, element);
-    }
+    this._possibleElements.set(namespacedClassName, element);
+    this._possibleElements.set(className, element);
   }
 
   enterClassDeclaration(node: estree.ClassDeclaration) {
-    const element = this._handleClass(node);
-    if (element) {
-      const className = node.id.name;
-      const nodeComments = esutil.getAttachedComment(node) || '';
-      const nodeJsDocs = jsdoc.parseJsdoc(nodeComments);
-      const namespacedClassName =
-          getNamespacedIdentifier(className, nodeJsDocs);
-      element.className = namespacedClassName;
+    const comment = esutil.getAttachedComment(node) || '';
+    const docs = jsdoc.parseJsdoc(comment);
+    const className = node.id.name;
+    const namespacedClassName = getNamespacedIdentifier(className, docs);
 
-      const summaryTag = jsdoc.getTag(nodeJsDocs, 'summary');
-      element.summary = (summaryTag && summaryTag.description) || '';
+    const element =
+        this._handleClass(node, {docs: docs, className: namespacedClassName});
 
-      // Set the element on both the namespaced & unnamespaced names so that we
-      // can detect registration by either name.
-      this._possibleElements.set(className, element);
-      this._possibleElements.set(namespacedClassName, element);
-    }
+    // Set the element on both the namespaced & unnamespaced names so that we
+    // can detect registration by either name.
+    this._possibleElements.set(className, element);
+    this._possibleElements.set(namespacedClassName, element);
   }
 
   enterVariableDeclaration(
@@ -168,13 +177,10 @@ class ElementVisitor implements Visitor {
         superClass: _extends,  //
         mixins,
         className: namespacedClassName,
-        privacy: getOrInferPrivacy(namespacedClassName, docs, false)
+        privacy: getOrInferPrivacy(namespacedClassName, docs, false),
+        jsdoc: docs
       });
       this._elements.add(this._currentElement);
-
-
-      const summaryTag = jsdoc.getTag(docs, 'summary');
-      element.summary = (summaryTag && summaryTag.description) || '';
 
       // Set the element on both the namespaced & unnamespaced names so that we
       // can detect registration by either name.
@@ -197,11 +203,29 @@ class ElementVisitor implements Visitor {
   enterVariableDeclarator(
       node: estree.VariableDeclarator, parent: estree.Node) {
     if (this._currentElement != null && parent === this._currentElementNode) {
-      const name = (node.id as estree.Identifier).name;
-      const parentComments = esutil.getAttachedComment(parent) || '';
-      const parentJsDocs = jsdoc.parseJsdoc(parentComments);
-      this._currentElement.className =
-          getNamespacedIdentifier(name, parentJsDocs);
+      const name = getIdentifierName(node.id);
+      if (name) {
+        const parentJsDocs =
+            jsdoc.parseJsdoc(esutil.getAttachedComment(parent) || '');
+        this._currentElement.className =
+            getNamespacedIdentifier(name, parentJsDocs);
+      }
+    } else if (node.init && node.init.type === 'ClassExpression') {
+      const className = astValue.getIdentifierName(node.id);
+      if (className == null) {
+        return;
+      }
+      const comment = esutil.getAttachedComment(node.init) ||
+          esutil.getAttachedComment(node) ||
+          esutil.getAttachedComment(parent) || '';
+      const docs = jsdoc.parseJsdoc(comment);
+      const namespacedClassName = getNamespacedIdentifier(className, docs);
+
+      const element =
+          this._handleClass(node.init, {docs, className: namespacedClassName});
+
+      this._possibleElements.set(namespacedClassName, element);
+      this._possibleElements.set(className, element);
     }
   }
 
@@ -245,9 +269,15 @@ class ElementVisitor implements Visitor {
   }
 
 
-  private _handleClass(node: estree.ClassDeclaration|estree.ClassExpression) {
-    const comment = esutil.getAttachedComment(node) || '';
-    const docs = jsdoc.parseJsdoc(comment);
+  private _handleClass(
+      node: estree.ClassDeclaration|estree.ClassExpression,
+      options: {docs?: jsdoc.Annotation, className?: string}) {
+    let docs = options.docs;
+    if (!docs) {
+      const comment = esutil.getAttachedComment(node) || '';
+      docs = jsdoc.parseJsdoc(comment);
+    }
+    const className = options.className || node.id && node.id.name;
     const isValue = getIsValue(node);
     let warnings: Warning[] = [];
 
@@ -258,7 +288,6 @@ class ElementVisitor implements Visitor {
       warnings = warnings.concat(observersResult.warnings);
     }
 
-    const className = node.id && node.id.name;
     const element = new ScannedPolymerElement({
       className,
       astNode: node,
@@ -272,6 +301,7 @@ class ElementVisitor implements Visitor {
       mixins: jsdoc.getMixins(this._document, node, docs, warnings),
       privacy: getOrInferPrivacy(className || '', docs, false),  //
       observers,
+      jsdoc: docs,
     });
 
     // If a class defines observedAttributes, it overrides what the base
@@ -340,7 +370,7 @@ class ElementVisitor implements Visitor {
       }
     }
     if (elementDefn.type === 'ClassExpression') {
-      return this._handleClass(elementDefn);
+      return this._handleClass(elementDefn, {});
     }
     return null;
   }
