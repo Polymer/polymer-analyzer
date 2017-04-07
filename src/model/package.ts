@@ -131,9 +131,11 @@ export class Package implements Queryable {
 
   private _getDocumentQueryOptions(options?: QueryOptions):
       DocumentQueryOptions {
+    options = options || {};
     return {
       imported: true,
-      externalPackages: !!(options && options.externalPackages)
+      externalPackages: options.externalPackages,
+      noLazyImports: options.noLazyImports
     };
   }
 }

@@ -13,8 +13,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
 
+* [BREAKING] Analyzer.analyze no longer takes the file's current contents as a second argument. This functionality was broken into two pieces, `filesChanged`, and `InMemoryOverlayLoader`.
+* Added a `filesChanged` method to Analyzer letting it know when a file needs to be reloaded.
+* Added an `InMemoryOverlayLoader` UrlLoader, for cases like a text editor where you'd like to use an in memory source of truth for a subset of files.
+* The warning printer displays the squiggle underline in the correct place on lines indented by tabs.
+* Extract className from the form `var className = Polymer({...})`
+
+## [2.0.0-alpha.35] - 2017-04-05
+
+* [minor breaking change] By default queries for features and warnings now traverse lazy imports. Added a query option to limit results only to those reachable by normal (eager) imports.
 * `generateAnalysis()` now includes PolymerBehavior information in `metadata.polymer.behaviors` collection.
+* Jsdoc `@demo` annotations are now added to `demos` collection for `Element`, `ElementMixin`, `PolymerElement` and `Behavior`.
 * Types and descriptions are now extracted from method @param and @returns jsdoc annotations.
+* Fixed caching issue such that Documents would not always have information from the latest versions of their dependencies.
 * Running AppVeyor now for continuous-integration for Windows platform support.
 * Analyzer now supports Windows-based development.
 
