@@ -11,9 +11,51 @@
  * subject to an additional IP rights grant found at
  * http://polymer.github.io/PATENTS.txt
  */
+import * as path from 'path';
 import {parse as parseUrl_, Url} from 'url';
 
 const unspecifiedProtocol = '-:';
+
+/**
+ * Regular expression used to split multi-line strings.  Supports the common
+ * line-termination sequences of CRLF (windows) and just LF (*nix/osx)
+ */
+export const EOL = /\r\n|\n/g;
+
+/**
+ * LF (line-feed) aka Newline.  Using a constant to highlight its use.
+ */
+export const LF = '\n';
+
+/**
+ * Replace all line-terminator sequences with newline `\n`.
+ *
+ * @param text - String to convert.
+ */
+export function normalizeNewlines(text: string|string[]): string {
+  if (Array.isArray(text)) {
+    return text.map(normalizeNewlines).join(LF);
+  }
+  return text.replace(EOL, LF);
+}
+
+/**
+ * Ensure path separators used match the platform's separator.
+ * Backslash *is* a valid filename character in a posix
+ * environment, so this function is a no-op there.
+ *
+ * @param pathname - file path to transform.
+ *
+ * TODO(usergenic): Unify the filesystem and url path manipulating code
+ * into a common package.  Bundler, Build and Analyzer (at least) all have
+ * their own flavors of these functions now.
+ */
+export function convertToPlatformsPathSeparators(pathname: string): string {
+  if (path.sep === '\\') {
+    return pathname.replace(/\\|\//g, path.sep);
+  }
+  return pathname;
+}
 
 export function parseUrl(url: string): Url {
   if (!url.startsWith('//')) {
@@ -23,6 +65,21 @@ export function parseUrl(url: string): Url {
   urlObject.protocol = undefined;
   urlObject.href = urlObject.href!.replace(/^-:/, '');
   return urlObject;
+}
+
+/**
+ * Ensure path separators of the posix forward-slash form when
+ * running on environment (Windows) where path separator is a
+ * backslash.  Backslash *is* a valid filename character in a
+ * posix environment, so this function is a no-op there.
+ *
+ * @param pathname - file path to transform.
+ */
+export function posixify(pathname: string): string {
+  if (path.sep === '\\') {
+    return pathname.replace(/\\/g, '/');
+  }
+  return pathname;
 }
 
 export function trimLeft(str: string, char: string): string {

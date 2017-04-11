@@ -34,6 +34,7 @@ suite('generate-elements', () => {
   suite('generateAnalysisMetadata', () => {
 
     suite('generates for Document array from fixtures', () => {
+
       const basedir = path.join(__dirname, 'static', 'analysis');
       const analysisFixtureDirs =
           fs.readdirSync(basedir)
@@ -72,10 +73,13 @@ suite('generate-elements', () => {
                 generateAnalysis(documents, renormedPackagePath);
             validateAnalysis(analyzedPackages);
 
+            const goldenAnalysis =
+                JSON.parse(fs.readFileSync(pathToGolden, 'utf-8'));
+
             try {
               assert.deepEqual(
                   analyzedPackages,
-                  JSON.parse(fs.readFileSync(pathToGolden, 'utf-8')),
+                  goldenAnalysis,
                   `Generated form of ${
                                        path.relative(__dirname, pathToGolden)
                                      } ` +

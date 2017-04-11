@@ -18,6 +18,7 @@ import * as estree from 'estree';
 import {JavaScriptDocument} from '../javascript/javascript-document';
 import {Privacy} from '../model/model';
 import {ScannedReference, Severity, Warning} from '../model/model';
+import {EOL} from '../utils';
 
 /**
  * An annotated JSDoc block tag, all fields are optionally processed except for
@@ -137,7 +138,7 @@ export function removeLeadingAsterisks(description: string): string {
   if ((typeof description) !== 'string')
     return description;
 
-  return description.split('\n')
+  return description.split(EOL)
       .map(function(line) {
         // remove leading '\s*' from each line
         const match = line.match(/^[\s]*\*\s?(.*)$/);
@@ -158,7 +159,8 @@ export function parseJsdoc(docs: string): Annotation {
   // description of multiline comments for readibility.
   // TODO(rictic): figure out if we can trim() here or not. Something something
   //     markdown?
-  const description = d.description && d.description.replace(/^\n+|\n+$/g, '');
+  const description =
+      d.description && d.description.replace(/^[\r\n]+|[\r\n]+$/g, '');
   return {description: description, tags: _tagsToHydroTags(d.tags)};
 }
 
@@ -199,7 +201,7 @@ export function getTag(
 export function unindent(text: string): string {
   if (!text)
     return text;
-  const lines = text.replace(/\t/g, '  ').split('\n');
+  const lines = text.replace(/\t/g, '  ').split(EOL);
   const indent = lines.reduce<number>(function(prev, line) {
     if (/^\s*$/.test(line))
       return prev;  // Completely ignore blank lines.

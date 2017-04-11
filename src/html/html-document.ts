@@ -128,7 +128,7 @@ export class ParsedHtmlDocument extends ParsedDocument<ASTNode, HtmlVisitor> {
       return undefined;
     }
     const whitespaceAfterEquals =
-        fullAttribute.substring(equalsIndex + 1).match(/[\s\n]*/)![0]!;
+        fullAttribute.substring(equalsIndex + 1).match(/\s*/m)![0]!;
     let endOfTextToSkip =
         // the beginning of the attribute key value pair
         location.startOffset +

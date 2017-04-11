@@ -16,7 +16,7 @@ import * as fs from 'fs';
 import * as pathlib from 'path';
 import {Url} from 'url';
 
-import {parseUrl} from '../utils';
+import {convertToPlatformsPathSeparators, parseUrl} from '../utils';
 
 import {UrlLoader} from './url-loader';
 
@@ -29,13 +29,13 @@ export class FSUrlLoader implements UrlLoader {
   root: string;
 
   constructor(root?: string) {
-    this.root = root || '';
+    this.root = convertToPlatformsPathSeparators(root || '');
   }
 
   canLoad(url: string): boolean {
     const urlObject = parseUrl(url);
     const pathname =
-        pathlib.normalize(decodeURIComponent(urlObject.pathname || ''));
+        pathlib.posix.normalize(decodeURIComponent(urlObject.pathname || ''));
     return this._isValid(urlObject, pathname);
   }
 
@@ -60,23 +60,27 @@ export class FSUrlLoader implements UrlLoader {
   getFilePath(url: string): string {
     const urlObject = parseUrl(url);
     const pathname =
-        pathlib.normalize(decodeURIComponent(urlObject.pathname || ''));
+        pathlib.posix.normalize(decodeURIComponent(urlObject.pathname || ''));
     if (!this._isValid(urlObject, pathname)) {
       throw new Error(`Invalid URL ${url}`);
     }
-    return this.root ? pathlib.join(this.root, pathname) : pathname;
+    return this.root ?
+        pathlib.join(this.root, convertToPlatformsPathSeparators(pathname)) :
+        convertToPlatformsPathSeparators(pathname);
   }
 
   async readDirectory(pathFromRoot: string, deep?: boolean): Promise<string[]> {
     const files = await new Promise<string[]>((resolve, reject) => {
       fs.readdir(
-          pathlib.join(this.root, pathFromRoot),
+          pathlib.join(
+              this.root, convertToPlatformsPathSeparators(pathFromRoot)),
           (err, files) => err ? reject(err) : resolve(files));
     });
     const results = [];
     const subDirResultPromises = [];
     for (const basename of files) {
-      const file = pathlib.join(pathFromRoot, basename);
+      const file = pathlib.join(
+          convertToPlatformsPathSeparators(pathFromRoot), basename);
       const stat = await new Promise<fs.Stats>(
           (resolve, reject) => fs.stat(
               pathlib.join(this.root, file),

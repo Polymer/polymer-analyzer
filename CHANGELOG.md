@@ -31,6 +31,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Jsdoc `@demo` annotations are now added to `demos` collection for `Element`, `ElementMixin`, `PolymerElement` and `Behavior`.
 * Types and descriptions are now extracted from method @param and @returns jsdoc annotations.
 * Fixed caching issue such that Documents would not always have information from the latest versions of their dependencies.
+* Running AppVeyor now for continuous-integration for Windows platform support.
+* Analyzer now supports Windows-based development.
 
 ## [2.0.0-alpha.34] - 2017-03-20
 

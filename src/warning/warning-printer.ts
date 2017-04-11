@@ -16,6 +16,7 @@ import * as chalk from 'chalk';
 
 import {Analyzer} from '../analyzer';
 import {Severity, SourceRange, Warning} from '../model/model';
+import {EOL} from '../utils';
 
 export type Verbosity = 'one-line' | 'full';
 
@@ -129,7 +130,7 @@ export class WarningPrinter {
   private async _getLinesOfText(
       startLine: number, endLine: number, localPath: string) {
     const contents = await this._options.analyzer.load(localPath);
-    return contents.split('\n').slice(startLine, endLine + 1);
+    return contents.split(EOL).slice(startLine, endLine + 1);
   }
 }
 

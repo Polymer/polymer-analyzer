@@ -16,6 +16,7 @@ import {assert} from 'chai';
 import {getLocationInfoForPosition} from '../../editor-service/ast-from-source-position';
 import {HtmlParser} from '../../html/html-parser';
 import {SourcePosition} from '../../model/model';
+import {EOL} from '../../utils';
 
 suite('getLocationInfoForPosition', () => {
   const parser = new HtmlParser();
@@ -178,7 +179,7 @@ suite('getLocationInfoForPosition', () => {
 function getEveryPosition(source: string): SourcePosition[] {
   const results: SourcePosition[] = [];
   let lineNum = 0;
-  for (const line of source.split('\n')) {
+  for (const line of source.split(EOL)) {
     let columnNum = 0;
     for (const _ of line) {
       _.big;  // TODO(rictic): tsc complains about unused _

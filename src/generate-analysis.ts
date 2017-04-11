@@ -24,6 +24,7 @@ import {Feature} from './model/feature';
 import {Attribute as ResolvedAttribute, Element as ResolvedElement, ElementMixin as ResolvedMixin, Event as ResolvedEvent, Method as ResolvedMethod, Property as ResolvedProperty, SourceRange as ResolvedSourceRange} from './model/model';
 import {Package} from './model/package';
 import {Behavior as ResolvedPolymerBehavior} from './polymer/behavior';
+import {posixify} from './utils';
 
 export type ElementOrMixin = ResolvedElement | ResolvedMixin;
 
@@ -83,7 +84,7 @@ export function generateAnalysis(
     };
   }
 
-  return buildAnalysis(members, packagePath);
+  return buildAnalysis(members, posixify(packagePath));
 }
 
 function buildAnalysis(members: Members, packagePath: string): Analysis {
@@ -190,7 +191,7 @@ export function validateAnalysis(analyzedPackage: Analysis|null|undefined) {
 function serializeNamespace(
     namespace: ResolvedNamespace, packagePath: string): Namespace {
   const packageRelativePath =
-      pathLib.relative(packagePath, namespace.sourceRange.file);
+      pathLib.posix.relative(packagePath, posixify(namespace.sourceRange.file));
   const metadata = {
     name: namespace.name,
     description: namespace.description,
@@ -207,7 +208,7 @@ function serializeNamespace(
 function serializeFunction(
     fn: ResolvedFunction, packagePath: string): Function {
   const packageRelativePath =
-      pathLib.relative(packagePath, fn.sourceRange.file);
+      pathLib.posix.relative(packagePath, posixify(fn.sourceRange.file));
   const metadata: Function = {
     name: fn.name,
     description: fn.description,
@@ -270,8 +271,8 @@ function serializePolymerBehaviorAsElementMixin(
 function serializeElementLike(
     elementOrMixin: ElementOrMixin, packagePath: string): ElementLike {
   const path = elementOrMixin.sourceRange.file;
-  const packageRelativePath =
-      pathLib.relative(packagePath, elementOrMixin.sourceRange.file);
+  const packageRelativePath = pathLib.posix.relative(
+      packagePath, posixify(elementOrMixin.sourceRange.file));
 
   const attributes = elementOrMixin.attributes.map(
       (a) => serializeAttribute(elementOrMixin, path, a));
@@ -400,7 +401,7 @@ function resolveSourceRangePath(
   }
   // The source location's path is relative to file resolver's base, so first
   // we need to make it relative to the element.
-  const filePath =
-      pathLib.relative(pathLib.dirname(elementPath), sourceRange.file);
+  const filePath = pathLib.posix.relative(
+      posixify(pathLib.dirname(elementPath)), posixify(sourceRange.file));
   return {file: filePath, start: sourceRange.start, end: sourceRange.end};
 }
