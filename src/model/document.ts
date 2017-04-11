@@ -22,7 +22,7 @@ import {DomModule} from '../polymer/dom-module-scanner';
 import {PolymerElement} from '../polymer/polymer-element';
 import {PolymerElementMixin} from '../polymer/polymer-element-mixin';
 
-import {Analysis} from './analysis-result';
+import {Analysis} from './analysis';
 import {Element} from './element';
 import {ElementMixin} from './element-mixin';
 import {ElementReference} from './element-reference';

@@ -45,7 +45,7 @@ export * from './inline-document';
 export * from './literal';
 export * from './property';
 export * from './method';
-export {Analysis, QueryOptions as AnalysisQueryOptions} from './analysis-result';
+export {Analysis, QueryOptions as AnalysisQueryOptions} from './analysis';
 export * from './reference';
 export * from './resolvable';
 export * from './source-range';
