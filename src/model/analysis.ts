@@ -50,6 +50,8 @@ export class Analysis implements Queryable {
   }
 
   constructor(results: Map<string, Document|Warning>) {
+    workAroundDuplicateJsScriptsBecauseOfHtmlScriptTags(results);
+
     this._results = results;
     const documents = Array.from(results.values())
                           .filter((r) => r instanceof Document) as Document[];
@@ -161,4 +163,42 @@ function addAll<T>(set1: Set<T>, set2: Set<T>): Set<T> {
     set1.add(val);
   }
   return set1;
+}
+
+/**
+ * So, we have this really terrible hack, whereby we generate a new Document for
+ * a js file when it is referenced in an external script tag in an HTML
+ * document. We do this so that we can inject an artificial import of the HTML
+ * document into the js document, so that the HTML document's dependencies are
+ * also dependencies of the js document.
+ *
+ * This works, but we want to eliminate these duplicate JS Documents from the
+ * Analysis before the user sees them.
+ */
+function workAroundDuplicateJsScriptsBecauseOfHtmlScriptTags(
+    results: Map<string, Document|Warning>) {
+  const documents = Array.from(results.values())
+                        .filter((r) => r instanceof Document) as Document[];
+  // TODO(rictic): handle JS imported via script src from HTML better than
+  //     this.
+  const potentialDuplicates =
+      new Set(documents.filter((r) => r.kinds.has('js-document')));
+  const canonicalOverrides = new Set<Document>();
+  for (const doc of documents) {
+    if (potentialDuplicates.has(doc)) {
+      continue;
+    }
+    for (const potentialDupe of potentialDuplicates) {
+      for (const potentialCanonicalDoc of doc.getById(
+               'js-document', potentialDupe.url, {imported: true})) {
+        if (!potentialCanonicalDoc.isInline) {
+          canonicalOverrides.add(potentialCanonicalDoc);
+        }
+      }
+    }
+  }
+
+  for (const canonicalDoc of canonicalOverrides) {
+    results.set(canonicalDoc.url, canonicalDoc);
+  }
 }

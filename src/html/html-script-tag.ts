@@ -37,16 +37,13 @@ export class ScannedScriptTagImport extends ScannedImport {
     // A better design might be to have the import itself be in charge of
     // producing document objects. This will fit better with JS modules, where
     // the type attribute drives how the document is parsed.
-    const importedDocument = document._analysisContext.getDocument(this.url);
-    if (importedDocument && importedDocument instanceof Document) {
-      // This is a terrible hack. However, it's the least terrible option that
-      // we've come up with.
-      if (!importedDocument.getByKind('document').has(document)) {
-        const wasDone = importedDocument['_doneResolving'];
-        importedDocument['_doneResolving'] = false;
-        importedDocument._addFeature(document);
-        importedDocument['_doneResolving'] = wasDone;
-      }
+    const scannedDocument =
+        document._analysisContext._getScannedDocument(this.url);
+    if (scannedDocument) {
+      const importedDocument =
+          new Document(scannedDocument, document._analysisContext);
+      importedDocument._addFeature(document);
+      importedDocument.resolve();
       return new ScriptTagImport(
           this.url,
           this.type,
@@ -58,8 +55,7 @@ export class ScannedScriptTagImport extends ScannedImport {
           false);
     } else {
       // not found or syntax error
-      const error = (this.error ? (this.error.message || this.error) : '') ||
-          importedDocument.message;
+      const error = (this.error ? (this.error.message || this.error) : '');
       document.warnings.push({
         code: 'could-not-load',
         message: `Unable to load import: ${error}`,
