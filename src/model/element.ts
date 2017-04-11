@@ -22,6 +22,9 @@ export {Visitor} from '../javascript/estree-visitor';
 export class ScannedElement extends ScannedElementBase {
   tagName?: string;
   className?: string;
+  get name() {
+    return this.className;
+  }
   superClass?: ScannedReference;
   privacy: Privacy;
 

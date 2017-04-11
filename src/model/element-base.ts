@@ -13,7 +13,6 @@
  */
 
 import * as estree from 'estree';
-import * as url from 'url';
 
 import * as jsdoc from '../javascript/jsdoc';
 import {getOrInferPrivacy} from '../polymer/js-utils';
@@ -51,14 +50,7 @@ export abstract class ScannedElementBase implements Resolvable {
   }
 
   applyJsdocDemoTags(baseUrl: string): void {
-    if (!this.jsdoc || !this.jsdoc.tags) {
-      return;
-    }
-    this.demos = this.jsdoc.tags.filter((tag) => tag.tag === 'demo' && tag.name)
-                     .map((tag) => ({
-                            desc: tag.description || undefined,
-                            path: url.resolve(baseUrl, tag.name!)
-                          }));
+    this.demos = jsdoc.extractDemos(this.jsdoc, baseUrl);
   }
 
   resolve(_document: Document): any {

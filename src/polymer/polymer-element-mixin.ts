@@ -32,6 +32,7 @@ export interface Options {
   sourceRange: SourceRange;
   mixins: ScannedReference[];
   astNode: estree.Node;
+  classAstNode?: estree.Node;
 }
 
 export class ScannedPolymerElementMixin extends ScannedElementMixin implements
@@ -48,6 +49,7 @@ export class ScannedPolymerElementMixin extends ScannedElementMixin implements
   pseudo: boolean = false;
   readonly abstract: boolean = false;
   readonly sourceRange: SourceRange;
+  classAstNode?: estree.Node;
 
   constructor({
     name,
@@ -57,7 +59,8 @@ export class ScannedPolymerElementMixin extends ScannedElementMixin implements
     privacy,
     sourceRange,
     mixins,
-    astNode
+    astNode,
+    classAstNode
   }: Options) {
     super({name});
     this.jsdoc = jsdoc;
@@ -67,6 +70,7 @@ export class ScannedPolymerElementMixin extends ScannedElementMixin implements
     this.sourceRange = sourceRange;
     this.mixins = mixins;
     this.astNode = astNode;
+    this.classAstNode = classAstNode;
   }
 
   addProperty(prop: ScannedPolymerProperty) {
