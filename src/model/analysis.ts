@@ -74,7 +74,17 @@ export class Analysis implements Queryable {
   }
 
   getDocument(url: string): Document|Warning|undefined {
-    return this._results.get(url);
+    const result = this._results.get(url);
+    if (result != null) {
+      return result;
+    }
+    const documents =
+        Array.from(this.getById('document', url, {externalPackages: true}))
+            .filter((d) => !d.isInline);
+    if (documents.length !== 1) {
+      return undefined;
+    }
+    return documents[0]!;
   }
 
   getByKind<K extends keyof FeatureKinds>(kind: K, options?: QueryOptions):
