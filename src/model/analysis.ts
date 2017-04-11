@@ -174,6 +174,9 @@ function addAll<T>(set1: Set<T>, set2: Set<T>): Set<T> {
  *
  * This works, but we want to eliminate these duplicate JS Documents from the
  * Analysis before the user sees them.
+ *
+ * https://github.com/Polymer/polymer-analyzer/issues/615 tracks a better
+ * solution for this issue
  */
 function workAroundDuplicateJsScriptsBecauseOfHtmlScriptTags(
     results: Map<string, Document|Warning>) {

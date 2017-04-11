@@ -37,6 +37,9 @@ export class ScannedScriptTagImport extends ScannedImport {
     // A better design might be to have the import itself be in charge of
     // producing document objects. This will fit better with JS modules, where
     // the type attribute drives how the document is parsed.
+    //
+    // See https://github.com/Polymer/polymer-analyzer/issues/615
+
     const scannedDocument =
         document._analysisContext._getScannedDocument(this.url);
     if (scannedDocument) {
