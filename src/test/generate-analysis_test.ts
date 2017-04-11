@@ -19,7 +19,7 @@ import * as path from 'path';
 import {Analysis} from '../analysis-format';
 import {Analyzer} from '../analyzer';
 import {generateAnalysis, validateAnalysis, ValidationError} from '../generate-analysis';
-import {AnalysisResult} from '../model/analysis-result';
+import {Analysis as AnalysisResult} from '../model/analysis-result';
 import {FSUrlLoader} from '../url-loader/fs-url-loader';
 import {PackageUrlResolver} from '../url-loader/package-url-resolver';
 

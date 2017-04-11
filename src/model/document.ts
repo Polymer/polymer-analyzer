@@ -22,7 +22,7 @@ import {DomModule} from '../polymer/dom-module-scanner';
 import {PolymerElement} from '../polymer/polymer-element';
 import {PolymerElementMixin} from '../polymer/polymer-element-mixin';
 
-import {AnalysisResult} from './analysis-result';
+import {Analysis} from './analysis-result';
 import {Element} from './element';
 import {ElementMixin} from './element-mixin';
 import {ElementReference} from './element-reference';
@@ -346,7 +346,7 @@ export class Document implements Feature, Queryable {
       if (feature.kinds.has('import') && options.imported) {
         const imprt = feature as Import;
         const isPackageInternal =
-            imprt.document && !AnalysisResult.isExternal(imprt.document.url);
+            imprt.document && !Analysis.isExternal(imprt.document.url);
         const externalityOk = options.externalPackages || isPackageInternal;
         const lazinessOk = !options.noLazyImports || !imprt.lazy;
         if (externalityOk && lazinessOk) {
@@ -360,7 +360,7 @@ export class Document implements Feature, Queryable {
     const result = new Set();
     for (const feature of features) {
       if (feature.sourceRange &&
-          AnalysisResult.isExternal(feature.sourceRange.file)) {
+          Analysis.isExternal(feature.sourceRange.file)) {
         continue;
       }
       result.add(feature);

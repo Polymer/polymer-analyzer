@@ -41,7 +41,7 @@ const MATCHES_EXTERNAL = /(^|\/)(bower_components|node_modules|build($|\/))/;
  * well as from external dependencies that are transitively imported by
  * documents in the package.
  */
-export class AnalysisResult implements Queryable {
+export class Analysis implements Queryable {
   private _results: Map<string, Document|Warning>;
   private _searchRoots: Set<Document>;
 

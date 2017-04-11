@@ -18,7 +18,7 @@ import * as path from 'path';
 
 import {AnalysisContext} from './core/analysis-context';
 import {Warning} from './index';
-import {AnalysisResult, Document} from './model/model';
+import {Analysis, Document} from './model/model';
 import {Parser} from './parser/parser';
 import {Scanner} from './scanning/scanner';
 import {UrlLoader} from './url-loader/url-loader';
@@ -73,7 +73,7 @@ export class Analyzer {
    * Loads, parses and analyzes the root document of a dependency graph and its
    * transitive dependencies.
    */
-  async analyze(urls: string[]): Promise<AnalysisResult> {
+  async analyze(urls: string[]): Promise<Analysis> {
     const previousAnalysisComplete = this._analysisComplete;
     this._analysisComplete = (async() => {
       const previousContext = await previousAnalysisComplete;
@@ -83,12 +83,12 @@ export class Analyzer {
     const results = new Map(urls.map(
         (url) => [url, context.getDocument(url)] as
             [string, Document | Warning]));
-    return new AnalysisResult(results);
+    return new Analysis(results);
   }
 
-  async analyzePackage(): Promise<AnalysisResult> {
+  async analyzePackage(): Promise<Analysis> {
     const previousAnalysisComplete = this._analysisComplete;
-    let _package: AnalysisResult|null = null;
+    let _package: Analysis|null = null;
     this._analysisComplete = (async() => {
       const previousContext = await previousAnalysisComplete;
       if (!previousContext.loader.readDirectory) {
@@ -99,7 +99,7 @@ export class Analyzer {
       const allFiles = await previousContext.loader.readDirectory('', true);
       // TODO(rictic): parameterize this, perhaps with polymer.json.
       const filesInPackage =
-          allFiles.filter((file) => !AnalysisResult.isExternal(file));
+          allFiles.filter((file) => !Analysis.isExternal(file));
       const extensions = new Set(previousContext.parsers.keys());
       const filesWithParsers = filesInPackage.filter(
           (fn) => extensions.has(path.extname(fn).substring(1)));
@@ -109,7 +109,7 @@ export class Analyzer {
       const documentsOrWarnings = new Map(filesWithParsers.map(
           (url) => [url, newContext.getDocument(url)] as
               [string, Document | Warning]));
-      _package = new AnalysisResult(documentsOrWarnings);
+      _package = new Analysis(documentsOrWarnings);
       return newContext;
     })();
     await this._analysisComplete;

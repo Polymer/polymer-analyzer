@@ -19,7 +19,7 @@ import * as pathLib from 'path';
 import {Analysis, Attribute, Element, ElementLike, ElementMixin, Event, Function, Method, Namespace, Property, SourceRange} from './analysis-format';
 import {Function as ResolvedFunction} from './javascript/function';
 import {Namespace as ResolvedNamespace} from './javascript/namespace';
-import {AnalysisResult} from './model/analysis-result';
+import {Analysis as AnalysisResult} from './model/analysis-result';
 import {Document} from './model/document';
 import {Feature} from './model/feature';
 import {Attribute as ResolvedAttribute, Element as ResolvedElement, ElementMixin as ResolvedMixin, Event as ResolvedEvent, Method as ResolvedMethod, Property as ResolvedProperty, SourceRange as ResolvedSourceRange} from './model/model';
