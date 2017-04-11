@@ -26,7 +26,7 @@ import {ScannedElement, ScannedFeature, ScannedReference, Severity, SourceRange,
 import {extractObservers} from './declaration-property-handlers';
 import {getOrInferPrivacy} from './js-utils';
 import {Observer, ScannedPolymerElement} from './polymer-element';
-import {getIsValue, getMethods, getProperties} from './polymer2-config';
+import {getIsValue, getMethods, getProperties, getStaticGetterValue} from './polymer2-config';
 
 
 /**
@@ -64,10 +64,14 @@ export class Polymer2ElementScanner implements JavaScriptScanner {
     await Promise.all([visit(classFinder), visit(elementDefinitionFinder)]);
 
     const elementDefinitionsByClassName = new Map<string, ElementDefineCall>();
+    // For classes that show up as expressions in the second argument position
+    // of a customElements.define call.
     const elementDefinitionsByClassExpression =
         new Map<estree.ClassExpression, ElementDefineCall>();
 
     for (const defineCall of elementDefinitionFinder.calls) {
+      // MaybeChainedIdentifier is invented below. It's like Identifier, but it
+      // includes 'Polymer.Element' as a name.
       if (defineCall.clazz.type === 'MaybeChainedIdentifier') {
         elementDefinitionsByClassName.set(defineCall.clazz.name, defineCall);
       } else {
@@ -77,16 +81,20 @@ export class Polymer2ElementScanner implements JavaScriptScanner {
     // TODO(rictic): emit ElementDefineCallFeatures for define calls that don't
     //     map to any local classes?
 
+    // Next we want to distinguish custom elements from other classes.
     const customElements: CustomElementDefinition[] = [];
     const normalClasses = [];
     for (const clazz of classFinder.classes) {
-      if (clazz.ast.type === 'ClassExpression') {
-        const definition = elementDefinitionsByClassExpression.get(clazz.ast);
+      // Class expressions inside the customElements.define call
+      if (clazz.astNode.type === 'ClassExpression') {
+        const definition =
+            elementDefinitionsByClassExpression.get(clazz.astNode);
         if (definition) {
           customElements.push({clazz, definition});
           continue;
         }
       }
+      // Classes whose names are referenced in a same-file customElements.define
       const definition =
           elementDefinitionsByClassName.get(clazz.namespacedName!) ||
           elementDefinitionsByClassName.get(clazz.name!);
@@ -94,20 +102,19 @@ export class Polymer2ElementScanner implements JavaScriptScanner {
         customElements.push({clazz, definition});
         continue;
       }
-      // TODO(rictic): remove @polymerElement here.
+      // Classes explicitly defined as elements in their jsdoc tags.
+      // TODO(rictic): swap to new jsdoc tag here.
       //     See: https://github.com/Polymer/polymer-analyzer/issues/605
-      if (jsdoc.hasTag(clazz.doc, 'customElement') ||
-          jsdoc.hasTag(clazz.doc, 'polymerElement')) {
+      if (jsdoc.hasTag(clazz.doc, 'polymerElement')) {
         customElements.push({clazz});
         continue;
       }
+      // Classes that aren't custom elements, or at least, aren't obviously.
       normalClasses.push(clazz);
     }
 
-    const elementFeatures: ScannedPolymerElement[] = [];
-    for (const element of customElements) {
-      elementFeatures.push(this._makeElementFeature(element, document));
-    }
+    const elementFeatures =
+        customElements.map((e) => this._makeElementFeature(e, document));
 
     // TODO(rictic): handle normalClasses
 
@@ -121,10 +128,10 @@ export class Polymer2ElementScanner implements JavaScriptScanner {
   private _makeElementFeature(
       element: CustomElementDefinition,
       document: JavaScriptDocument): ScannedPolymerElement {
-    const node = element.clazz.ast;
+    const node = element.clazz.astNode;
     const docs = element.clazz.doc;
     const className = element.clazz.namespacedName;
-    let tagName;
+    let tagName: string|undefined = undefined;
     // TODO(rictic): support `@customElements explicit-tag-name` from jsdoc
     if (element.definition &&
         element.definition.tagName.type === 'string-literal') {
@@ -168,8 +175,10 @@ export class Polymer2ElementScanner implements JavaScriptScanner {
       if (observedAttributes != null) {
         scannedElement.attributes = observedAttributes;
       }
-
     } else {
+      // Most likely we've got a class here which is defined as an application
+      // of a mixin. e.g.
+      // const myElem = ElementMaker(HTMLElement);
       scannedElement = new ScannedPolymerElement({
         className,
         tagName,
@@ -193,28 +202,10 @@ export class Polymer2ElementScanner implements JavaScriptScanner {
     return scannedElement;
   }
 
-  private _getReturnValueOfStaticGetter(
-      node: estree.ClassDeclaration|estree.ClassExpression,
-      methodName: string): estree.Node|undefined {
-    const observedAttributesDefn: estree.MethodDefinition|undefined =
-        node.body.body.find((m) => {
-          if (m.type !== 'MethodDefinition' || !m.static) {
-            return false;
-          }
-          return astValue.getIdentifierName(m.key) === methodName;
-        });
-    if (observedAttributesDefn) {
-      const body = observedAttributesDefn.value.body.body[0];
-      if (body && body.type === 'ReturnStatement' && body.argument) {
-        return body.argument;
-      }
-    }
-  }
-
   private _getObservers(
       node: estree.ClassDeclaration|estree.ClassExpression,
       document: JavaScriptDocument) {
-    const returnedValue = this._getReturnValueOfStaticGetter(node, 'observers');
+    const returnedValue = getStaticGetterValue(node, 'observers');
     if (returnedValue) {
       return extractObservers(returnedValue, document);
     }
@@ -261,8 +252,7 @@ export class Polymer2ElementScanner implements JavaScriptScanner {
   private _getObservedAttributes(
       node: estree.ClassDeclaration|estree.ClassExpression,
       document: JavaScriptDocument) {
-    const returnedValue =
-        this._getReturnValueOfStaticGetter(node, 'observedAttributes');
+    const returnedValue = getStaticGetterValue(node, 'observedAttributes');
     if (returnedValue && returnedValue.type === 'ArrayExpression') {
       return this._extractAttributesFromObservedAttributes(
           returnedValue, document);
@@ -334,8 +324,12 @@ interface FoundClass {
    * class is defined just as an application of a mixin on another class it
    * could be a call expression, or other forms!
    */
-  ast: estree.Node;
+  astNode: estree.Node;
 }
+
+/**
+ * Finds all classes and matches them up with their best jsdoc comment.
+ */
 class ClassFinder implements Visitor {
   readonly classes: FoundClass[] = [];
   private readonly alreadyMatched = new Set<estree.ClassExpression>();
@@ -354,6 +348,7 @@ class ClassFinder implements Visitor {
     }
   }
 
+  /** Generalizes over variable declarators and assignment expressions. */
   private handleGeneralAssignment(
       assignedName: string|undefined, value: estree.Expression,
       assignment: estree.VariableDeclarator|estree.AssignmentExpression,
@@ -368,16 +363,19 @@ class ClassFinder implements Visitor {
 
       this._classFound(name, doc, value);
     } else {
-      // TODO(rictic): remove @polymerElement here.
+      // TODO(rictic): remove the @polymerElement tag here
       //     See: https://github.com/Polymer/polymer-analyzer/issues/605
-      if (jsdoc.hasTag(doc, 'customElement') ||
-          jsdoc.hasTag(doc, 'polymerElement')) {
+      if (jsdoc.hasTag(doc, 'polymerElement')) {
         this._classFound(assignedName, doc, value);
       }
     }
   }
 
   enterClassExpression(node: estree.ClassExpression, parent: estree.Node) {
+    // Class expressions may be on the right hand side of assignments, so
+    // we may have already handled this expression from the parent or
+    // grandparent node. Class declarations can't be on the right hand side of
+    // assignments, so they'll definitely only be handled once.
     if (this.alreadyMatched.has(node)) {
       return;
     }
@@ -396,12 +394,12 @@ class ClassFinder implements Visitor {
   }
 
   private _classFound(
-      name: string|undefined, doc: jsdoc.Annotation, ast: estree.Node) {
+      name: string|undefined, doc: jsdoc.Annotation, astNode: estree.Node) {
     const namespacedName = name && getNamespacedIdentifier(name, doc);
 
-    this.classes.push({name, namespacedName, doc, ast});
-    if (ast.type === 'ClassExpression') {
-      this.alreadyMatched.add(ast);
+    this.classes.push({name, namespacedName, doc, astNode});
+    if (astNode.type === 'ClassExpression') {
+      this.alreadyMatched.add(astNode);
     }
   }
 }
@@ -410,17 +408,22 @@ interface ElementDefineCall {
   tagName: TagNameExpression;
   clazz: ElementClassExpression;
 }
+
 type ElementClassExpression = estree.ClassExpression|{
   type: 'MaybeChainedIdentifier';
   name: string, sourceRange: SourceRange
 };
+
+/** Finds calls to customElements.define() */
 class CustomElementsDefineCallFinder implements Visitor {
   readonly warnings: Warning[] = [];
   readonly calls: ElementDefineCall[] = [];
   private readonly _document: JavaScriptDocument;
+
   constructor(document: JavaScriptDocument) {
     this._document = document;
   }
+
   enterCallExpression(node: estree.CallExpression) {
     const callee = astValue.getIdentifierName(node.callee);
     if (!(callee === 'window.customElements.define' ||
@@ -428,22 +431,24 @@ class CustomElementsDefineCallFinder implements Visitor {
       return;
     }
 
-    const tagNameExpression =
-        node.arguments[0] && this._getTagNameExpression(node.arguments[0]);
+    const tagNameExpression = this._getTagNameExpression(node.arguments[0]);
     if (tagNameExpression == null) {
       return;
     }
     const elementClassExpression =
-        node.arguments[1] && this._getElementClassExpression(node.arguments[1]);
-    if (!elementClassExpression) {
+        this._getElementClassExpression(node.arguments[1]);
+    if (elementClassExpression == null) {
       return;
     }
     this.calls.push(
         {tagName: tagNameExpression, clazz: elementClassExpression});
   }
 
-  private _getTagNameExpression(expression: estree.Node): TagNameExpression
-      |undefined {
+  private _getTagNameExpression(expression: estree.Node|
+                                undefined): TagNameExpression|undefined {
+    if (expression == null) {
+      return;
+    }
     const tryForLiteralString = astValue.expressionToValue(expression);
     if (tryForLiteralString != null &&
         typeof tryForLiteralString === 'string') {
@@ -479,8 +484,11 @@ class CustomElementsDefineCallFinder implements Visitor {
     return undefined;
   }
 
-  private _getElementClassExpression(elementDefn: estree.Node):
-      ElementClassExpression|null {
+  private _getElementClassExpression(elementDefn: estree.Node|
+                                     undefined): ElementClassExpression|null {
+    if (elementDefn == null) {
+      return null;
+    }
     const className = astValue.getIdentifierName(elementDefn);
     if (className) {
       return {
