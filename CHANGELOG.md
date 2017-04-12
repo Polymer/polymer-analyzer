@@ -14,7 +14,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## Unreleased
 
 * [BREAKING] Analyzer.analyze() now must be passed an array of urls instead of a single url and it returns an Analysis. Use Analysis.getDocument(url) to get a Document from an Analysis.
-* [BREAKING]: the `getByKind`, `getById`, `getOnlyAtId`, and `listFeatures` methods on Document and Package have been replaced with a single method: `getFeatures`. It has all of the functionality of the individual methods, just packaged as a single simple query interface.
+* [BREAKING] The `getByKind`, `getById`, `getOnlyAtId`, and `listFeatures` methods on Document and Package have been replaced with a single method: `getFeatures`. It has all of the functionality of the individual methods, just packaged as a single simple query interface.
+* [BREAKING] Dropped support for node v4, added support for node v8. See our [node version support policy](https://www.polymer-project.org/2.0/docs/tools/node-support) for details.
 * Added `canLoad` method to `Analyzer`.
 * Handle undefined source ranges more gracefully in WarningPrinter.
 * [polymer] Negative number literals are allowed in databindings.
