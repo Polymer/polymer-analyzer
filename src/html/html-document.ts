@@ -203,7 +203,17 @@ export class ParsedHtmlDocument extends ParsedDocument<ASTNode, HtmlVisitor> {
 }
 
 const injectedTagNames = new Set(['html', 'head', 'body']);
-function removeFakeNodes(ast: dom5.Node) {
+
+/**
+ * When parse5 parses an HTML document, it tries to fill in a few html tags
+ * it considers missing if it doesn't see them (see `injectedTagNames` const
+ * above.)  This function removes these elements from the AST so the AST
+ * represents only the elements actually found in the source html.  "Fake"
+ * nodes are identified by having no `__location` property.  This function
+ * modifies the AST in-place, so be sure to use a `clone()` instead of the
+ * active AST on a document.
+ */
+export function removeFakeNodes(ast: dom5.Node) {
   const children = (ast.childNodes || []).slice();
   if (ast.parentNode && !ast.__location && injectedTagNames.has(ast.nodeName)) {
     for (const child of children) {
