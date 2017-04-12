@@ -19,7 +19,7 @@ import {ParsedDocument} from '../parser/document';
 import {Analysis} from './analysis';
 import {Feature, ScannedFeature} from './feature';
 import {Import} from './import';
-import {DocumentQuery as Query, DocumentQueryOptions as QueryOptions, DocumentQueryWithKind as QueryWithKind, FeatureKind, FeatureKindMap, Queryable} from './queryable';
+import {DocumentQuery as Query, DocumentQueryWithKind as QueryWithKind, FeatureKind, FeatureKindMap, Queryable} from './queryable';
 import {isResolvable} from './resolvable';
 import {SourceRange} from './source-range';
 import {Warning} from './warning';
@@ -216,18 +216,13 @@ export class Document implements Feature, Queryable {
       Set<FeatureKindMap[K]>;
   getFeatures(query?: Query): Set<Feature>;
   getFeatures(query: Query = {}): Set<Feature> {
-    const queryOptions = {
-      externalPackages: query.externalPackages,
-      imported: query.imported,
-      noLazyImports: query.noLazyImports,
-    };
     if (query.id && query.kind) {
-      return this._getById(query.kind, query.id, queryOptions);
+      return this._getById(query.kind, query.id, query);
     } else if (query.kind) {
-      return this._getByKind(query.kind, queryOptions);
+      return this._getByKind(query.kind, query);
     }
     const features = new Set();
-    this._listFeatures(features, new Set(), queryOptions);
+    this._listFeatures(features, new Set(), query);
     const queryId = query.id;
     if (queryId) {
       const filteredFeatures =
@@ -237,50 +232,48 @@ export class Document implements Feature, Queryable {
     return features;
   }
 
-  private _getByKind<K extends keyof FeatureKindMap>(
-      kind: K, options?: QueryOptions): Set<FeatureKindMap[K]>;
-  private _getByKind(kind: string, options?: QueryOptions): Set<Feature>;
-  private _getByKind(kind: string, options: QueryOptions = {}): Set<Feature> {
-    if (this._featuresByKind && this._isCachable(options)) {
+  private _getByKind<K extends FeatureKind>(kind: K, query?: Query):
+      Set<FeatureKindMap[K]>;
+  private _getByKind(kind: string, query?: Query): Set<Feature>;
+  private _getByKind(kind: string, query: Query = {}): Set<Feature> {
+    if (this._featuresByKind && this._isCachable(query)) {
       // We have a fast index! Use that.
       const features = this._featuresByKind.get(kind) || new Set();
-      if (!options.externalPackages) {
+      if (!query.externalPackages) {
         return this._filterOutExternal(features);
       }
       return features;
-    } else if (this._doneResolving && this._isCachable(options)) {
+    } else if (this._doneResolving && this._isCachable(query)) {
       // We're done discovering features in this document and its children so
       // we can safely build up the indexes.
       this._buildIndexes();
-      return this._getByKind(kind, options);
+      return this._getByKind(kind, query);
     }
-    return this._getSlowlyByKind(kind, options);
+    return this._getSlowlyByKind(kind, query);
   }
 
-  private _getById<K extends keyof FeatureKindMap>(
-      kind: K, identifier: string,
-      options?: QueryOptions): Set<FeatureKindMap[K]>;
-  private _getById(kind: string, identifier: string, options?: QueryOptions):
+  private _getById<K extends FeatureKind>(
+      kind: K, identifier: string, query?: Query): Set<FeatureKindMap[K]>;
+  private _getById(kind: string, identifier: string, query?: Query):
       Set<Feature>;
-  private _getById(
-      kind: string, identifier: string,
-      options: QueryOptions = {}): Set<Feature> {
-    if (this._featuresByKindAndId && this._isCachable(options)) {
+  private _getById(kind: string, identifier: string, query: Query = {}):
+      Set<Feature> {
+    if (this._featuresByKindAndId && this._isCachable(query)) {
       // We have a fast index! Use that.
       const idMap = this._featuresByKindAndId.get(kind);
       const features = (idMap && idMap.get(identifier)) || new Set();
-      if (!options.externalPackages) {
+      if (!query.externalPackages) {
         return this._filterOutExternal(features);
       }
       return features;
-    } else if (this._doneResolving && this._isCachable(options)) {
+    } else if (this._doneResolving && this._isCachable(query)) {
       // We're done discovering features in this document and its children so
       // we can safely build up the indexes.
       this._buildIndexes();
-      return this._getById(kind, identifier, options);
+      return this._getById(kind, identifier, query);
     }
     const result = new Set<Feature>();
-    for (const featureOfKind of this._getByKind(kind, options)) {
+    for (const featureOfKind of this._getByKind(kind, query)) {
       if (featureOfKind.identifiers.has(identifier)) {
         result.add(featureOfKind);
       }
@@ -288,13 +281,13 @@ export class Document implements Feature, Queryable {
     return result;
   }
 
-  private _isCachable(options: QueryOptions = {}): boolean {
-    return !!options.imported && !options.noLazyImports;
+  private _isCachable(query: Query = {}): boolean {
+    return !!query.imported && !query.noLazyImports;
   }
 
-  private _getSlowlyByKind(kind: string, options: QueryOptions): Set<Feature> {
+  private _getSlowlyByKind(kind: string, query: Query): Set<Feature> {
     const allFeatures = new Set<Feature>();
-    this._listFeatures(allFeatures, new Set(), options);
+    this._listFeatures(allFeatures, new Set(), query);
 
     const result = new Set<Feature>();
     for (const feature of allFeatures) {
@@ -316,7 +309,7 @@ export class Document implements Feature, Queryable {
    * or excludes lazy imports)
    */
   private _listFeatures(
-      result: Set<Feature>, visited: Set<Document>, options: QueryOptions) {
+      result: Set<Feature>, visited: Set<Document>, query: Query) {
     if (visited.has(this)) {
       return;
     }
@@ -324,16 +317,16 @@ export class Document implements Feature, Queryable {
     for (const feature of this._localFeatures) {
       result.add(feature);
       if (feature.kinds.has('document')) {
-        (feature as Document)._listFeatures(result, visited, options);
+        (feature as Document)._listFeatures(result, visited, query);
       }
-      if (feature.kinds.has('import') && options.imported) {
+      if (feature.kinds.has('import') && query.imported) {
         const imprt = feature as Import;
         const isPackageInternal =
             imprt.document && !Analysis.isExternal(imprt.document.url);
-        const externalityOk = options.externalPackages || isPackageInternal;
-        const lazinessOk = !options.noLazyImports || !imprt.lazy;
+        const externalityOk = query.externalPackages || isPackageInternal;
+        const lazinessOk = !query.noLazyImports || !imprt.lazy;
         if (externalityOk && lazinessOk) {
-          imprt.document._listFeatures(result, visited, options);
+          imprt.document._listFeatures(result, visited, query);
         }
       }
     }

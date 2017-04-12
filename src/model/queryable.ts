@@ -17,7 +17,7 @@ import {Warning} from './warning';
 // A map between kind string literal types and their feature types.
 export interface FeatureKindMap {}
 export type FeatureKind = keyof FeatureKindMap;
-export interface BaseQueryOptions {
+export type BaseQueryOptions = {
   /**
    * If true then results will include features from outside the package, e.g.
    * from files in bower_components or node_modules directories.
@@ -41,15 +41,18 @@ export interface BaseQueryOptions {
    * identified by their tag and class names.
    */
   id?: string;
-}
+} & object;
 
-export type QueryOptions = BaseQueryOptions & object;
-
-export type AnalysisQueryOptions = QueryOptions & {
+export type BaseAnalysisQuery = BaseQueryOptions & {
+  /**
+   * When querying over an Analysis, the results would not be defined if
+   * imports are not considered, so it is legal to specify this parameter,
+   * but it must be true (and it will be ignored in any case).
+   */
   imported?: true;
 };
 
-export type DocumentQueryOptions = QueryOptions & {
+export type BaseDocumentQuery = BaseQueryOptions & {
   /**
    * If true, the query will return results from the document and its
    * dependencies. Otherwise it will only include results from the document.
@@ -61,12 +64,12 @@ export type DocumentQueryOptions = QueryOptions & {
 export type BaseQuery = BaseQueryOptions & {kind?: string};
 export type BaseQueryWithKind<K extends FeatureKind> =
     BaseQueryOptions & {kind: K};
-export type DocumentQuery = DocumentQueryOptions & {kind?: string};
+export type DocumentQuery = BaseDocumentQuery & {kind?: string};
 export type DocumentQueryWithKind<K extends FeatureKind> =
-    DocumentQueryOptions & {kind: K};
-export type AnalysisQuery = AnalysisQueryOptions & {kind?: string};
+    BaseDocumentQuery & {kind: K};
+export type AnalysisQuery = BaseAnalysisQuery & {kind?: string};
 export type AnalysisQueryWithKind<K extends FeatureKind> =
-    AnalysisQueryOptions & {kind: K};
+    BaseAnalysisQuery & {kind: K};
 
 
 /**
