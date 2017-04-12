@@ -2,5 +2,9 @@ language: node_js
 node_js:
   - "4"
   - "6"
+before_install:
+- npm i -g yarn
+install:
+- yarn install --ignore-scripts --prefer-offline
 script:
 - npm test && npm run benchmark
