@@ -11,48 +11,11 @@
  * subject to an additional IP rights grant found at
  * http://polymer.github.io/PATENTS.txt
  */
-import {Function} from '../javascript/function';
-import {Namespace} from '../javascript/namespace';
-import {Behavior} from '../polymer/behavior';
-import {DomModule} from '../polymer/dom-module-scanner';
-import {PolymerElement} from '../polymer/polymer-element';
-import {PolymerElementMixin} from '../polymer/polymer-element-mixin';
-
-import {Document} from './document';
-import {Element} from './element';
-import {ElementMixin} from './element-mixin';
-import {ElementReference} from './element-reference';
 import {Feature} from './feature';
-import {Import} from './import';
 import {Warning} from './warning';
 
 // A map between kind string literal types and their feature types.
-export interface FeatureKindMap {
-  'document': Document;
-  'element': Element;
-  'element-mixin': ElementMixin;
-  'polymer-element': PolymerElement;
-  'polymer-element-mixin': PolymerElementMixin;
-  'behavior': Behavior;
-  'namespace': Namespace;
-  'function': Function;
-  'dom-module': DomModule;
-  'element-reference': ElementReference;
-  'import': Import;
-
-  // Document specializations.
-  'html-document': Document;
-  'js-document': Document;
-  'json-document': Document;
-  'css-document': Document;
-
-  // Import specializations.
-  'html-import': Import;
-  'html-script': Import;
-  'html-style': Import;
-  'js-import': Import;
-  'css-import': Import;
-}
+export interface FeatureKindMap {}
 export type FeatureKind = keyof FeatureKindMap;
 export interface BaseQueryOptions {
   /**

@@ -77,6 +77,17 @@ export class ScannedDocument {
   }
 }
 
+declare module './queryable' {
+  interface FeatureKindMap {
+    'document': Document;
+
+    // Document specializations.
+    'html-document': Document;
+    'js-document': Document;
+    'json-document': Document;
+    'css-document': Document;
+  }
+}
 export class Document implements Feature, Queryable {
   kinds: Set<string> = new Set(['document']);
   identifiers: Set<string> = new Set();

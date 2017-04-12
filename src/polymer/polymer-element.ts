@@ -209,6 +209,13 @@ export interface PolymerExtension extends ElementBase {
   emitPropertyMetadata(property: PolymerProperty): any;
 }
 
+declare module '../model/queryable' {
+  interface FeatureKindMap {
+    'polymer-element': PolymerElement;
+    'pseudo-element': Element;
+  }
+}
+
 export class PolymerElement extends Element implements PolymerExtension {
   properties: PolymerProperty[] = [];
   methods: Method[] = [];
@@ -222,10 +229,7 @@ export class PolymerElement extends Element implements PolymerExtension {
 
   abstract?: boolean;
 
-  constructor() {
-    super();
-    this.kinds = new Set(['element', 'polymer-element']);
-  }
+  kinds = new Set(['element', 'polymer-element']);
 
   emitPropertyMetadata(property: PolymerProperty) {
     const polymerMetadata: any = {};
