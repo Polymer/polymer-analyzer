@@ -52,4 +52,4 @@ export * from './reference';
 export * from './resolvable';
 export * from './source-range';
 export * from './warning';
-export {Queryable, FeatureKinds, DocumentQuery, AnalysisQuery} from './queryable';
+export {Queryable, FeatureKindMap, DocumentQuery, AnalysisQuery} from './queryable';

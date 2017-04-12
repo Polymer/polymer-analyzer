@@ -14,7 +14,7 @@
 
 import {Document} from './document';
 import {Feature} from './feature';
-import {AnalysisQuery as Query, AnalysisQueryWithKind as QueryWithKind, DocumentQuery, FeatureKinds, Queryable} from './queryable';
+import {AnalysisQuery as Query, AnalysisQueryWithKind as QueryWithKind, DocumentQuery, FeatureKind, FeatureKindMap, Queryable} from './queryable';
 import {Warning} from './warning';
 
 
@@ -90,9 +90,10 @@ export class Analysis implements Queryable {
    *
    * You can also narrow by feature kind and identifier.
    */
-  getFeatures<K extends keyof FeatureKinds>(query: QueryWithKind<K>):
-      Set<FeatureKinds[K]>;
-  getFeatures(query: Query): Set<Feature> {
+  getFeatures<K extends FeatureKind>(query: QueryWithKind<K>):
+      Set<FeatureKindMap[K]>;
+  getFeatures(query?: Query): Set<Feature>;
+  getFeatures(query: Query = {}): Set<Feature> {
     const result = new Set();
     const docQuery = this._getDocumentQuery(query);
     for (const doc of this._searchRoots) {
@@ -115,8 +116,7 @@ export class Analysis implements Queryable {
     return Array.from(result);
   }
 
-  private _getDocumentQuery(query?: Query): DocumentQuery {
-    query = query || {};
+  private _getDocumentQuery(query: Query = {}): DocumentQuery {
     return {
       kind: query.kind,
       id: query.id,

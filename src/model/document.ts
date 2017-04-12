@@ -19,7 +19,7 @@ import {ParsedDocument} from '../parser/document';
 import {Analysis} from './analysis';
 import {Feature, ScannedFeature} from './feature';
 import {Import} from './import';
-import {DocumentQuery as Query, DocumentQueryOptions as QueryOptions, DocumentQueryWithKind as QueryWithKind, FeatureKinds, Queryable} from './queryable';
+import {DocumentQuery as Query, DocumentQueryOptions as QueryOptions, DocumentQueryWithKind as QueryWithKind, FeatureKind, FeatureKindMap, Queryable} from './queryable';
 import {isResolvable} from './resolvable';
 import {SourceRange} from './source-range';
 import {Warning} from './warning';
@@ -42,10 +42,10 @@ export class ScannedDocument {
 
   constructor(
       document: ParsedDocument<any, any>, features: ScannedFeature[],
-      warnings?: Warning[]) {
+      warnings: Warning[] = []) {
     this.document = document;
     this.features = features;
-    this.warnings = warnings || [];
+    this.warnings = warnings;
     this.isInline = document.isInline;
   }
 
@@ -201,10 +201,10 @@ export class Document implements Feature, Queryable {
    *
    * You can also narrow by feature kind and identifier.
    */
-  getFeatures<K extends keyof FeatureKinds>(query: QueryWithKind<K>):
-      Set<FeatureKinds[K]>;
-  getFeatures(query: Query): Set<Feature>;
-  getFeatures(query: Query): Set<Feature> {
+  getFeatures<K extends FeatureKind>(query: QueryWithKind<K>):
+      Set<FeatureKindMap[K]>;
+  getFeatures(query?: Query): Set<Feature>;
+  getFeatures(query: Query = {}): Set<Feature> {
     const queryOptions = {
       externalPackages: query.externalPackages,
       imported: query.imported,
@@ -226,11 +226,10 @@ export class Document implements Feature, Queryable {
     return features;
   }
 
-  private _getByKind<K extends keyof FeatureKinds>(
-      kind: K, options?: QueryOptions): Set<FeatureKinds[K]>;
+  private _getByKind<K extends keyof FeatureKindMap>(
+      kind: K, options?: QueryOptions): Set<FeatureKindMap[K]>;
   private _getByKind(kind: string, options?: QueryOptions): Set<Feature>;
-  private _getByKind(kind: string, options?: QueryOptions): Set<Feature> {
-    options = options || {};
+  private _getByKind(kind: string, options: QueryOptions = {}): Set<Feature> {
     if (this._featuresByKind && this._isCachable(options)) {
       // We have a fast index! Use that.
       const features = this._featuresByKind.get(kind) || new Set();
@@ -247,14 +246,14 @@ export class Document implements Feature, Queryable {
     return this._getSlowlyByKind(kind, options);
   }
 
-  private _getById<K extends keyof FeatureKinds>(
+  private _getById<K extends keyof FeatureKindMap>(
       kind: K, identifier: string,
-      options?: QueryOptions): Set<FeatureKinds[K]>;
+      options?: QueryOptions): Set<FeatureKindMap[K]>;
   private _getById(kind: string, identifier: string, options?: QueryOptions):
       Set<Feature>;
-  private _getById(kind: string, identifier: string, options?: QueryOptions):
-      Set<Feature> {
-    options = options || {};
+  private _getById(
+      kind: string, identifier: string,
+      options: QueryOptions = {}): Set<Feature> {
     if (this._featuresByKindAndId && this._isCachable(options)) {
       // We have a fast index! Use that.
       const idMap = this._featuresByKindAndId.get(kind);
@@ -278,8 +277,7 @@ export class Document implements Feature, Queryable {
     return result;
   }
 
-  private _isCachable(options?: QueryOptions): boolean {
-    options = options || {};
+  private _isCachable(options: QueryOptions = {}): boolean {
     return !!options.imported && !options.noLazyImports;
   }
 
@@ -297,6 +295,15 @@ export class Document implements Feature, Queryable {
     return result;
   }
 
+  /**
+   * Walks the graph of documents, starting from `this`, finding features which
+   * match the given query and adding them to the `result` set. Uses `visited`
+   * to deal with cycles.
+   *
+   * This method is O(numFeatures), though it does not walk documents that are
+   * not relevant to the query (e.g. based on whether the query follows imports,
+   * or excludes lazy imports)
+   */
   private _listFeatures(
       result: Set<Feature>, visited: Set<Document>, options: QueryOptions) {
     if (visited.has(this)) {
@@ -336,9 +343,9 @@ export class Document implements Feature, Queryable {
   /**
    * Get warnings for the document and all matched features.
    */
-  getWarnings(query?: Query): Warning[] {
+  getWarnings(query: Query = {}): Warning[] {
     const warnings: Set<Warning> = new Set(this.warnings);
-    for (const feature of this.getFeatures(query || {})) {
+    for (const feature of this.getFeatures(query)) {
       for (const warning of feature.warnings) {
         warnings.add(warning);
       }

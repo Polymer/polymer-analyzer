@@ -27,7 +27,7 @@ import {Import} from './import';
 import {Warning} from './warning';
 
 // A map between kind string literal types and their feature types.
-export interface FeatureKinds {
+export interface FeatureKindMap {
   'document': Document;
   'element': Element;
   'element-mixin': ElementMixin;
@@ -53,7 +53,7 @@ export interface FeatureKinds {
   'js-import': Import;
   'css-import': Import;
 }
-
+export type FeatureKind = keyof FeatureKindMap;
 export interface BaseQueryOptions {
   /**
    * If true then results will include features from outside the package, e.g.
@@ -96,11 +96,14 @@ export type DocumentQueryOptions = QueryOptions & {
 
 
 export type BaseQuery = BaseQueryOptions & {kind?: string};
-export type BaseQueryWithKind<K> = BaseQueryOptions & {kind: K};
+export type BaseQueryWithKind<K extends FeatureKind> =
+    BaseQueryOptions & {kind: K};
 export type DocumentQuery = DocumentQueryOptions & {kind?: string};
-export type DocumentQueryWithKind<K> = DocumentQueryOptions & {kind: K};
+export type DocumentQueryWithKind<K extends FeatureKind> =
+    DocumentQueryOptions & {kind: K};
 export type AnalysisQuery = AnalysisQueryOptions & {kind?: string};
-export type AnalysisQueryWithKind<K> = AnalysisQueryOptions & {kind: K};
+export type AnalysisQueryWithKind<K extends FeatureKind> =
+    AnalysisQueryOptions & {kind: K};
 
 
 /**
@@ -108,9 +111,9 @@ export type AnalysisQueryWithKind<K> = AnalysisQueryOptions & {kind: K};
  * and warnings that's queryable in a few different ways.
  */
 export interface Queryable {
-  getFeatures<K extends keyof FeatureKinds>(query: BaseQueryWithKind<K>):
-      Set<FeatureKinds[K]>;
-  getFeatures(query: BaseQuery): Set<Feature>;
+  getFeatures<K extends FeatureKind>(query: BaseQueryWithKind<K>):
+      Set<FeatureKindMap[K]>;
+  getFeatures(query?: BaseQuery): Set<Feature>;
 
   getWarnings(options?: BaseQuery): Warning[];
 }

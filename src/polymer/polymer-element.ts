@@ -289,12 +289,14 @@ function resolveElement(
       element.events,
       behaviors.map((b) => ({source: b.className, values: b.events})));
 
-  const domModules = document.getFeatures({
-    kind: 'dom-module',
-    id: scannedElement.tagName || '',
-    imported: true,
-    externalPackages: true
-  });
+
+  const domModules =
+      scannedElement.tagName == null ? new Set() : document.getFeatures({
+        kind: 'dom-module',
+        id: scannedElement.tagName,
+        imported: true,
+        externalPackages: true
+      });
   let domModule = undefined;
   if (domModules.size === 1) {
     // TODO(rictic): warn if this isn't true.
