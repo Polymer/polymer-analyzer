@@ -38,7 +38,6 @@ import {Polymer2MixinScanner} from '../polymer/polymer2-mixin-scanner';
 import {PseudoElementScanner} from '../polymer/pseudo-element-scanner';
 import {scan} from '../scanning/scan';
 import {Scanner} from '../scanning/scanner';
-import {TypeScriptAnalyzer} from '../typescript/typescript-analyzer';
 import {TypeScriptPreparser} from '../typescript/typescript-preparser';
 import {PackageUrlResolver} from '../url-loader/package-url-resolver';
 import {UrlLoader} from '../url-loader/url-loader';
@@ -69,9 +68,8 @@ export class AnalysisContext {
     ['json', new JsonParser()],
   ]);
 
-  private readonly _languageAnalyzers = new Map<string, LanguageAnalyzer<any>>([
-    ['ts', new TypeScriptAnalyzer(this)],
-  ]);
+  private readonly _languageAnalyzers =
+      new Map<string, LanguageAnalyzer<any>>([]);
 
   /** A map from import url to urls that document lazily depends on. */
   private readonly _lazyEdges: LazyEdgeMap|undefined;
