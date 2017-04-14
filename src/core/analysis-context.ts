@@ -68,8 +68,10 @@ export class AnalysisContext {
     ['json', new JsonParser()],
   ]);
 
-  private readonly _languageAnalyzers =
-      new Map<string, LanguageAnalyzer<any>>([]);
+  private readonly _languageAnalyzers = new Map<string, LanguageAnalyzer<any>>([
+    // TODO(rictic): add typescript language analyzer back after investigating
+    //     https://github.com/Polymer/polymer-analyzer/issues/623
+  ]);
 
   /** A map from import url to urls that document lazily depends on. */
   private readonly _lazyEdges: LazyEdgeMap|undefined;
