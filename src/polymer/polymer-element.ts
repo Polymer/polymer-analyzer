@@ -262,9 +262,9 @@ function resolveElement(
     scannedElement: ScannedPolymerElement, document: Document): PolymerElement {
   const element = new PolymerElement();
   element.privacy = scannedElement.privacy;
-  applySuperClass(element, scannedElement, document);
-  applyMixins(element, scannedElement, document);
   applySelf(element, scannedElement, document);
+  applyMixins(element, scannedElement, document);
+  applySuperClass(element, scannedElement, document);
 
   //
   // Behaviors
@@ -334,52 +334,64 @@ function inheritFrom(element: PolymerElement, superElement: PolymerExtension) {
   // TODO(justinfagnani): fixup and use inheritValues, but it has slightly odd
   // semantics currently
 
-  for (const superProperty of superElement.properties) {
-    const newProperty = Object.assign({}, superProperty);
-    if (!newProperty.inheritedFrom) {
-      const superName = getSuperName(superElement);
-      if (superName) {
-        newProperty.inheritedFrom = superName;
-      }
-    }
-    element.properties.push(newProperty);
-  }
-
-  for (const superMethod of superElement.methods) {
-    const newMethod = Object.assign({}, superMethod);
-    if (!newMethod.inheritedFrom) {
-      const superName = getSuperName(superElement);
-      if (superName) {
-        newMethod.inheritedFrom = superName;
-      }
-    }
-    element.methods.push(newMethod);
-  }
-
-  for (const superAttribute of superElement.attributes) {
-    const newAttribute = Object.assign({}, superAttribute);
-    if (!newAttribute.inheritedFrom) {
-      const superName = getSuperName(superElement);
-      if (superName) {
-        newAttribute.inheritedFrom = superName;
-      }
-    }
-    element.attributes.push(newAttribute);
-  }
-
-  for (const superEvent of superElement.events) {
-    const newEvent = Object.assign({}, superEvent);
-    if (!newEvent.inheritedFrom) {
-      const superName = getSuperName(superElement);
-      if (superName) {
-        newEvent.inheritedFrom = superName;
-      }
-    }
-    element.events.push(newEvent);
-  }
+  const superName = getSuperName(superElement);
+  _inheritVals(
+      element.properties, superElement.properties, superName, element.warnings);
+  _inheritVals(
+      element.methods, superElement.methods, superName, element.warnings);
+  _inheritVals(
+      element.attributes, superElement.attributes, superName, element.warnings);
+  _inheritVals(
+      element.events, superElement.events, superName, element.warnings);
 
   // TODO(justinfagnani): slots, listeners, observers, dom-module?
   // What actually inherits?
+}
+
+type PropLike = {
+  name: string,
+  sourceRange?: SourceRange,
+  inheritedFrom?: string,
+  privacy?: Privacy
+};
+/**
+ * Mutates `existing`
+ *
+ * TODO(rictic): unify this with inheritValues in this file.
+ */
+function _inheritVals<P extends PropLike>(
+    existing: P[],
+    superVals: P[],
+    superName: string | undefined,
+    warnings: Warning[]) {
+  const existingVals = new Map(existing.map((e) => [e.name, e] as [string, P]));
+  for (const superVal of superVals) {
+    if (existingVals.has(superVal.name)) {
+      if (superVal.privacy === 'private') {
+        const existingVal = existingVals.get(superVal.name)!;
+        if (existingVal.sourceRange) {
+          warnings.push({
+            code: 'overriding-private',
+            message: `Overriding private member '${superVal.name}' ` +
+                `on ${superName || 'parent'}`,
+            sourceRange: existingVal.sourceRange,
+            severity: Severity.WARNING
+          });
+        }
+      }
+      /**
+       * TODO(rictic): if superVal.privacy is protected, does that require
+       * existingVal's privacy to be protected too?
+       */
+      continue;
+    }
+    if (superVal.privacy === 'private') {
+      continue;
+    }
+    const newVal = Object.assign({}, superVal);
+    newVal.inheritedFrom = newVal.inheritedFrom || superName;
+    existing.push(newVal);
+  }
 }
 
 function applySelf(
@@ -468,11 +480,12 @@ function applySuperClass(
   }
 }
 
-function applyMixins(
+export function applyMixins(
     element: PolymerElement,
     scannedElement: ScannedElement,
     document: Document) {
-  for (const scannedMixinReference of scannedElement.mixins) {
+  for (let i = scannedElement.mixins.length - 1; i >= 0; i--) {
+    const scannedMixinReference = scannedElement.mixins[i];
     const mixinReference = scannedMixinReference.resolve(document);
     const mixinId = mixinReference.identifier;
     element.mixins.push(mixinReference);

@@ -57,12 +57,15 @@ suite('PolymerElement', () => {
       attributes: element.attributes.map((a) => ({
                                            name: a.name,
                                          })),
-      methods: element.methods.map(
-          (m) => ({name: m.name, params: m.params, return: m.return })),
+      methods: element.methods.map((m) => ({
+                                     name: m.name,
+                                     params: m.params, return: m.return,
+                                     inheritedFrom: m.inheritedFrom
+                                   })),
     };
   }
 
-  test('Scans base and sub-class', async() => {
+  test('Scans and resolves base and sub-class', async() => {
     const elements = await getElements('test-element-3.js');
     const elementData = Array.from(elements).map(getTestProps);
     assert.deepEqual(elementData, [
@@ -87,20 +90,20 @@ suite('PolymerElement', () => {
         description: '',
         properties: [
           {
-            name: 'foo',
-            inheritedFrom: 'BaseElement',
-          },
-          {
             name: 'bar',
             inheritedFrom: undefined,
+          },
+          {
+            name: 'foo',
+            inheritedFrom: 'BaseElement',
           },
         ],
         attributes: [
           {
-            name: 'foo',
+            name: 'bar',
           },
           {
-            name: 'bar',
+            name: 'foo',
           },
         ],
         methods: [],
@@ -135,9 +138,11 @@ suite('PolymerElement', () => {
             name: 'two',
           }
         ],
-        methods: [
-          {name: 'customMethodOnBaseElement', params: [], return: undefined}
-        ],
+        methods: [{
+          name: 'customMethodOnBaseElement',
+          params: [], return: undefined,
+          inheritedFrom: undefined
+        }],
       },
       {
         tagName: 'sub-element',
@@ -146,29 +151,32 @@ suite('PolymerElement', () => {
         description: '',
         properties: [
           {
+            name: 'four',
+            inheritedFrom: undefined,
+          },
+          {
+            inheritedFrom: undefined,
+            name: 'five',
+          },
+          {
+            name: 'two',
+            inheritedFrom: 'Mixin',
+          },
+          {
+            name: 'three',
+            inheritedFrom: 'Mixin',
+          },
+          {
             name: 'one',
             inheritedFrom: 'BaseElement',
           },
-          {
-            name: 'two',
-            inheritedFrom: 'Mixin',
-          },
-          {
-            name: 'three',
-            inheritedFrom: 'Mixin',
-          },
-          {
-            name: 'four',
-            inheritedFrom: undefined,
-          },
-          {
-            inheritedFrom: undefined,
-            name: 'five',
-          }
         ],
         attributes: [
           {
-            name: 'one',
+            name: 'four',
+          },
+          {
+            name: 'five',
           },
           {
             name: 'two',
@@ -177,19 +185,27 @@ suite('PolymerElement', () => {
             name: 'three',
           },
           {
-            name: 'four',
+            name: 'one',
           },
-          {
-            name: 'five',
-          }
         ],
         methods: [
-          {name: 'customMethodOnBaseElement', params: [], return: undefined},
-          {name: 'customMethodOnMixin', params: [], return: undefined},
-          {name: 'customMethodOnSubElement', params: [], return: undefined},
+          {
+            name: 'customMethodOnSubElement',
+            params: [], return: undefined,
+            inheritedFrom: undefined
+          },
+          {
+            name: 'customMethodOnMixin',
+            params: [], return: undefined,
+            inheritedFrom: 'Mixin'
+          },
+          {
+            name: 'customMethodOnBaseElement',
+            params: [], return: undefined,
+            inheritedFrom: 'BaseElement'
+          },
         ],
       },
     ]);
   });
-
 });
