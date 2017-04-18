@@ -82,7 +82,7 @@ declare module './queryable' {
 export class InlineDocument extends Document {
   constructor(base: ScannedDocument, containerDocument: Document) {
     super(base, containerDocument._analysisContext);
-    this.kinds.add('inline-document');
+    (this.kinds as Set<string>).add('inline-document');
     this._addFeature(containerDocument);
   }
 }
