@@ -140,7 +140,7 @@ export interface ElementLike extends Feature {
    *
    * e.g. `['demos/index.html', 'demos/extended.html']`
    */
-  demos: string[];
+  demos: Demo[];
 
   /** Names of mixines applied to this element.  */
   mixins?: string[];
@@ -360,4 +360,12 @@ export interface Slot extends Feature {
   description: string;
 
   // Something about fallback perhaps?
+}
+
+export interface Demo extends Feature {
+  /** A markdown description of the demo. */
+  description?: string;
+
+  /** Relative URL of the demo. */
+  url: string;
 }
