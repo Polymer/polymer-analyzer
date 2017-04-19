@@ -34,10 +34,6 @@ export class ScannedElement extends ScannedElementBase {
     super();
   }
 
-  applyHtmlComment(commentText: string|undefined) {
-    this.description = this.description || commentText || '';
-  }
-
   resolve(document: Document): Element {
     const element = new Element();
     Object.assign(element, this);
