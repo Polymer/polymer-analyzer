@@ -323,18 +323,14 @@ function resolveElement(
  * Note: mutates `element`.
  */
 function inheritFrom(element: PolymerElement, superElement: PolymerExtension) {
-  // TODO(justinfagnani): fixup and use inheritValues, but it has slightly odd
-  // semantics currently
+  // TODO(rictic): we don't inherit private members, but we should check for
+  //     clashes between them, as that can cause issues at runtime.
 
   const superName = getSuperName(superElement);
-  _overwriteInherited(
-      element.properties, superElement.properties, superName, element.warnings);
-  _overwriteInherited(
-      element.methods, superElement.methods, superName, element.warnings);
-  _overwriteInherited(
-      element.attributes, superElement.attributes, superName, element.warnings);
-  _overwriteInherited(
-      element.events, superElement.events, superName, element.warnings);
+  _overwriteInherited(element.properties, superElement.properties, superName);
+  _overwriteInherited(element.methods, superElement.methods, superName);
+  _overwriteInherited(element.attributes, superElement.attributes, superName);
+  _overwriteInherited(element.events, superElement.events, superName);
 
   // TODO(justinfagnani): slots, listeners, observers, dom-module?
   // What actually inherits?
@@ -348,46 +344,47 @@ interface PropertyLike {
 }
 
 /**
- * Mutates `existing`
+ * This method is applied to an array of members to overwrite members lower in
+ * the prototype graph (closer to Object) with members higher up (closer to the
+ * final class we're constructing).
  *
- * TODO(rictic): unify this with inheritValues in this file.
+ * @param . existing The array of members so far. N.B. *This param is mutated.*
+ * @param . overriding The array of members from this new, higher prototype in
+ *   the graph
+ * @param . overridingClassName The name of the prototype whose members are
+ *   being applied over the existing ones. Should be `undefined` if isSelf is
+ *   true.
+ * @param . warnings Place to put generated warnings.
+ * @param . isSelf True when this is the final call to _overwriteInherited,
+ *   where we're adding the batch of members defined on the class itself. In
+ *   this case we'll also want to add in private members, which are otherwise
+ *   skipped.
  */
 function _overwriteInherited<P extends PropertyLike>(
     existing: Array<P>,
     overriding: P[],
-    overridingName: string | undefined,
-    warnings: Warning[],
-    ignorePrivate = true) {
-  const existingIdxByName =
+    overridingClassName: string | undefined,
+    isSelf = false) {
+  // This exists to treat the arrays as maps.
+  // TODO(rictic): convert these arrays to maps.
+  const existingIndexByName =
       new Map(existing.map((e, idx) => [e.name, idx] as [string, number]));
   for (const overridingVal of overriding) {
     const newVal = Object.assign({}, overridingVal, {
-      inheritedFrom: overridingVal['inheritedFrom'] || overridingName
+      inheritedFrom: overridingVal['inheritedFrom'] || overridingClassName
     });
-    if (existingIdxByName.has(overridingVal.name)) {
-      if (overridingVal.privacy === 'private') {
-        const existingVal =
-            existing[existingIdxByName.get(overridingVal.name)!];
-        if (existingVal.sourceRange) {
-          warnings.push({
-            code: 'overriding-private',
-            message: `Overriding private member '${overridingVal.name}' ` +
-                `on ${overridingName || 'parent'}`,
-            sourceRange: existingVal.sourceRange,
-            severity: Severity.WARNING
-          });
-        }
-      }
+    if (existingIndexByName.has(overridingVal.name)) {
       /**
        * TODO(rictic): if existingVal.privacy is protected, newVal should be
        *    protected unless an explicit privacy was specified.
        *    https://github.com/Polymer/polymer-analyzer/issues/631
        */
 
-      existing[existingIdxByName.get(overridingVal.name)!] = newVal;
+      const existingIndex = existingIndexByName.get(overridingVal.name)!;
+      existing[existingIndex] = newVal;
       continue;
     }
-    if (ignorePrivate && overridingVal.privacy === 'private') {
+    if (!isSelf && overridingVal.privacy === 'private') {
       continue;
     }
     existing.push(newVal);
@@ -426,26 +423,16 @@ function applySelf(
       element.properties,
       scannedElement.properties as PolymerProperty[],
       undefined,
-      element.warnings,
-      false);
+      true);
   _overwriteInherited(
       element.attributes,
       scannedElement.attributes as Attribute[],
       undefined,
-      element.warnings,
-      false);
+      true);
   _overwriteInherited(
-      element.methods,
-      scannedElement.methods as Method[],
-      undefined,
-      element.warnings,
-      false);
+      element.methods, scannedElement.methods as Method[], undefined, true);
   _overwriteInherited(
-      element.events,
-      scannedElement.events as Event[],
-      undefined,
-      element.warnings,
-      false);
+      element.events, scannedElement.events as Event[], undefined, true);
 }
 
 function applySuperClass(
