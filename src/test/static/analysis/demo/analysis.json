@@ -13,8 +13,14 @@
                 "selectors": []
             },
             "demos": [
-                "demo.html",
-                "demo.html?q=1#s"
+                {
+                    "description": "An amazing demo",
+                    "url": "demo.html"
+                },
+                {
+                    "description": "Demos might have quertystrings and/or search values.",
+                    "url": "demo.html?q=1#s"
+                }
             ],
             "slots": [],
             "events": [],
@@ -45,7 +51,9 @@
                 "selectors": []
             },
             "demos": [
-                "demo.html"
+                {
+                    "url": "demo.html"
+                }
             ],
             "slots": [],
             "events": [],

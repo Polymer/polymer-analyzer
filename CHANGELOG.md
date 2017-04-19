@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## Unreleased
 
 * Fixed issue where jsdocs syntax in HTML comments was not parsed for polymer elements.
+* [BREAKING] `AnalysisFormat` has a new `Demo` interface for reporting `@demo` annotations from Jsdocs.
 
 ## [2.0.0-alpha.38] - 2017-04-13
 
