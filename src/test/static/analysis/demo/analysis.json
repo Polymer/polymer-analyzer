@@ -18,7 +18,7 @@
                     "url": "demo.html"
                 },
                 {
-                    "description": "Demos might have quertystrings and/or search values.",
+                    "description": "Demos might have querystrings and/or search values.",
                     "url": "demo.html?q=1#s"
                 }
             ],
@@ -27,12 +27,12 @@
             "metadata": {},
             "sourceRange": {
                 "start": {
-                  "line": 8,
-                  "column": 12
+                    "line": 8,
+                    "column": 12
                 },
                 "end": {
-                  "line": 8,
-                  "column": 32
+                    "line": 8,
+                    "column": 32
                 }
             },
             "privacy": "public",
