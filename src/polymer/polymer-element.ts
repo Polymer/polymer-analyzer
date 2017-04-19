@@ -183,7 +183,15 @@ export class ScannedPolymerElement extends ScannedElement implements
     addMethod(this, method);
   }
 
+  applyDescriptionAsJsdoc() {
+    this.jsdoc = jsdoc.parseJsdoc(this.description);
+    this.description = this.jsdoc.description;
+  }
+
   resolve(document: Document): PolymerElement {
+    if (!this.jsdoc) {
+      this.applyDescriptionAsJsdoc();
+    }
     this.applyJsdocDemoTags(document.url);
     return resolveElement(this, document);
   }
@@ -400,6 +408,10 @@ function applySelf(
   scannedElement.events.forEach((o) => element.events.push(o));
   element.extends = scannedElement.extends;
   element.jsdoc = scannedElement.jsdoc;
+  if (!element.jsdoc && element.description) {
+    element.jsdoc = jsdoc.parseJsdoc(element.description);
+    element.description = element.jsdoc.description;
+  }
   scannedElement.listeners.forEach((o) => element.listeners.push(o));
   // scannedElement.mixins.forEach(
   //     (o) => element.mixins.push(o.resolve(document)));
