@@ -90,20 +90,20 @@ suite('PolymerElement', () => {
         description: '',
         properties: [
           {
-            name: 'bar',
-            inheritedFrom: undefined,
-          },
-          {
             name: 'foo',
             inheritedFrom: 'BaseElement',
+          },
+          {
+            name: 'bar',
+            inheritedFrom: undefined,
           },
         ],
         attributes: [
           {
-            name: 'bar',
+            name: 'foo',
           },
           {
-            name: 'foo',
+            name: 'bar',
           },
         ],
         methods: [],
@@ -151,12 +151,8 @@ suite('PolymerElement', () => {
         description: '',
         properties: [
           {
-            name: 'four',
-            inheritedFrom: undefined,
-          },
-          {
-            inheritedFrom: undefined,
-            name: 'five',
+            name: 'one',
+            inheritedFrom: 'BaseElement',
           },
           {
             name: 'two',
@@ -167,16 +163,17 @@ suite('PolymerElement', () => {
             inheritedFrom: 'Mixin',
           },
           {
-            name: 'one',
-            inheritedFrom: 'BaseElement',
+            name: 'four',
+            inheritedFrom: undefined,
+          },
+          {
+            inheritedFrom: undefined,
+            name: 'five',
           },
         ],
         attributes: [
           {
-            name: 'four',
-          },
-          {
-            name: 'five',
+            name: 'one',
           },
           {
             name: 'two',
@@ -185,14 +182,17 @@ suite('PolymerElement', () => {
             name: 'three',
           },
           {
-            name: 'one',
+            name: 'four',
+          },
+          {
+            name: 'five',
           },
         ],
         methods: [
           {
-            name: 'customMethodOnSubElement',
+            name: 'customMethodOnBaseElement',
             params: [], return: undefined,
-            inheritedFrom: undefined
+            inheritedFrom: 'BaseElement'
           },
           {
             name: 'customMethodOnMixin',
@@ -200,9 +200,9 @@ suite('PolymerElement', () => {
             inheritedFrom: 'Mixin'
           },
           {
-            name: 'customMethodOnBaseElement',
+            name: 'customMethodOnSubElement',
             params: [], return: undefined,
-            inheritedFrom: 'BaseElement'
+            inheritedFrom: undefined
           },
         ],
       },
