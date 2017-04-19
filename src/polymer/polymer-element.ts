@@ -21,6 +21,7 @@ import {Document, Element, ElementBase, LiteralValue, Method, Privacy, Property,
 import {ScannedReference} from '../model/reference';
 
 import {Behavior, ScannedBehaviorAssignment} from './behavior';
+import {DomModule} from './dom-module-scanner';
 import {JavascriptDatabindingExpression} from './expression-scanner';
 import {getOrInferPrivacy} from './js-utils';
 import {PolymerElementMixin} from './polymer-element-mixin';
@@ -294,8 +295,9 @@ function resolveElement(
       behaviors.map((b) => ({source: b.className, values: b.events})));
 
 
-  const domModules =
-      scannedElement.tagName == null ? new Set() : document.getFeatures({
+  const domModules = scannedElement.tagName == null ?
+      new Set<DomModule>() :
+      document.getFeatures({
         kind: 'dom-module',
         id: scannedElement.tagName,
         imported: true,
