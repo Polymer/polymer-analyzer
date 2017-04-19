@@ -327,16 +327,36 @@ function inheritFrom(element: PolymerElement, superElement: PolymerExtension) {
   //     clashes between them, as that can cause issues at runtime.
 
   const superName = getSuperName(superElement);
-  _overwriteInherited(element.properties, superElement.properties, superName);
-  _overwriteInherited(element.methods, superElement.methods, superName);
-  _overwriteInherited(element.attributes, superElement.attributes, superName);
-  _overwriteInherited(element.events, superElement.events, superName);
+  _overwriteInherited(
+      element.properties,
+      superElement.properties,
+      superName,
+      element.warnings,
+      element.sourceRange);
+  _overwriteInherited(
+      element.methods,
+      superElement.methods,
+      superName,
+      element.warnings,
+      element.sourceRange);
+  _overwriteInherited(
+      element.attributes,
+      superElement.attributes,
+      superName,
+      element.warnings,
+      element.sourceRange);
+  _overwriteInherited(
+      element.events,
+      superElement.events,
+      superName,
+      element.warnings,
+      element.sourceRange);
 
   // TODO(justinfagnani): slots, listeners, observers, dom-module?
   // What actually inherits?
 }
 
-interface PropertyLike {
+export interface PropertyLike {
   name: string;
   sourceRange?: SourceRange;
   inheritedFrom?: string;
@@ -352,19 +372,21 @@ interface PropertyLike {
  * @param . overriding The array of members from this new, higher prototype in
  *   the graph
  * @param . overridingClassName The name of the prototype whose members are
- *   being applied over the existing ones. Should be `undefined` if isSelf is
- *   true.
+ *   being applied over the existing ones. Should be `undefined` when
+ *   applyingSelf is true
  * @param . warnings Place to put generated warnings.
- * @param . isSelf True when this is the final call to _overwriteInherited,
- *   where we're adding the batch of members defined on the class itself. In
- *   this case we'll also want to add in private members, which are otherwise
- *   skipped.
+ * @param . sourceRange A source range to use for warnings when the inheritance
+ *   goes wrong but there's no more specific source range.
+ * @param . applyingSelf True on the last call to this method, when we're
+ *   applying the class's own local members.
  */
-function _overwriteInherited<P extends PropertyLike>(
+export function _overwriteInherited<P extends PropertyLike>(
     existing: Array<P>,
     overriding: P[],
     overridingClassName: string | undefined,
-    isSelf = false) {
+    warnings: Warning[],
+    sourceRange: SourceRange,
+    applyingSelf = false) {
   // This exists to treat the arrays as maps.
   // TODO(rictic): convert these arrays to maps.
   const existingIndexByName =
@@ -379,12 +401,22 @@ function _overwriteInherited<P extends PropertyLike>(
        *    protected unless an explicit privacy was specified.
        *    https://github.com/Polymer/polymer-analyzer/issues/631
        */
-
       const existingIndex = existingIndexByName.get(overridingVal.name)!;
+      const existingValue = existing[existingIndex]!;
+      if (existingValue.privacy === 'private') {
+        let warningSourceRange = sourceRange;
+        if (applyingSelf) {
+          warningSourceRange = newVal.sourceRange || sourceRange;
+        }
+        warnings.push({
+          code: 'overriding-private',
+          message: `Overriding private member '${overridingVal.name}' ` +
+              `inherited from ${existingValue.inheritedFrom || 'parent'}`,
+          sourceRange: warningSourceRange,
+          severity: Severity.WARNING
+        });
+      }
       existing[existingIndex] = newVal;
-      continue;
-    }
-    if (!isSelf && overridingVal.privacy === 'private') {
       continue;
     }
     existing.push(newVal);
@@ -423,16 +455,30 @@ function applySelf(
       element.properties,
       scannedElement.properties as PolymerProperty[],
       undefined,
+      element.warnings,
+      element.sourceRange,
       true);
   _overwriteInherited(
       element.attributes,
       scannedElement.attributes as Attribute[],
       undefined,
+      element.warnings,
+      element.sourceRange,
       true);
   _overwriteInherited(
-      element.methods, scannedElement.methods as Method[], undefined, true);
+      element.methods,
+      scannedElement.methods as Method[],
+      undefined,
+      element.warnings,
+      element.sourceRange,
+      true);
   _overwriteInherited(
-      element.events, scannedElement.events as Event[], undefined, true);
+      element.events,
+      scannedElement.events as Event[],
+      undefined,
+      element.warnings,
+      element.sourceRange,
+      true);
 }
 
 function applySuperClass(

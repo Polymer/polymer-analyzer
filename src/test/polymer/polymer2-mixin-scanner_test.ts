@@ -404,10 +404,11 @@ Polymer.TestMixin = Polymer.woohoo(function TestMixin(base) {
         attributes: [{name: 'foo'}],
         description: '',
         methods: [
+          {name: 'baseMethod', params: [], return: undefined},
+          {name: 'privateMethod', params: [], return: undefined},
+          {name: 'privateOverriddenMethod', params: [], return: undefined},
           {name: 'overrideMethod', params: [], return: undefined},
           {name: 'middleMethod', params: [], return: undefined},
-          {name: 'privateOverriddenMethod', params: [], return: undefined},
-          {name: 'baseMethod', params: [], return: undefined},
         ],
         properties: [{name: 'foo'}],
         summary: '',

@@ -19,7 +19,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Mix mixins into mixins. A PolymerElementMixin now has all of the members it inherits other mixins it mixes.
 * Improved our modeling of inheritance:
   * overriding inherited members now works correctly
-  * private members are not inherited
   * overriding a private member produces a Warning
 
 ## [2.0.0-alpha.37] - 2017-04-12
