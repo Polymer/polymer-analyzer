@@ -320,7 +320,7 @@ function resolveElement(
   }
 
   for (const method of element.methods) {
-    // methods are only public by default if they're documented.
+    // Method privacy is infered from function names unless specifically defined in jsdoc
     method.privacy = getOrInferPrivacy(method.name, method.jsdoc, true);
   }
 

@@ -162,7 +162,7 @@ export class Polymer2ElementScanner implements JavaScriptScanner {
         methods: getMethods(node, document),
         superClass: this._getExtends(node, docs, warnings, document),
         mixins: jsdoc.getMixins(document, node, docs, warnings),
-        privacy: getOrInferPrivacy(className || '', docs, false),
+        privacy: getOrInferPrivacy(className || '', docs, false, 'private'),
         observers: observers,
         jsdoc: docs,
       });
@@ -188,7 +188,7 @@ export class Polymer2ElementScanner implements JavaScriptScanner {
         description: (docs.description || '').trim(),
         superClass: this._getExtends(node, docs, warnings, document),
         mixins: jsdoc.getMixins(document, node, docs, warnings),
-        privacy: getOrInferPrivacy(className || '', docs, false),
+        privacy: getOrInferPrivacy(className || '', docs, false, 'private'),
         events: [],
         properties: [],
         methods: [],
