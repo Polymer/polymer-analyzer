@@ -11,7 +11,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
    Unreleased section, uncommenting the header as necessary.
 -->
 
-<!--## Unreleased-->
+## Unreleased
+
+* [BREAKING] Improve rules for infering method privacy. Specifically, undocumented methods without an underscore pre- or postfix are now considered public (were considered private before) 
 
 ## [2.0.0-alpha.38] - 2017-04-13
 

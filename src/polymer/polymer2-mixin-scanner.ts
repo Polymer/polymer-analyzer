@@ -72,7 +72,7 @@ class MixinVisitor implements Visitor {
           astNode: node,
           description: parentJsDocs.description,
           summary: (summaryTag && summaryTag.description) || '',
-          privacy: getOrInferPrivacy(namespacedName, parentJsDocs, false),
+          privacy: getOrInferPrivacy(namespacedName, parentJsDocs, true, 'public'),
           jsdoc: parentJsDocs,
           mixins: jsdoc.getMixins(
               this._document, node, parentJsDocs, this._warnings),
@@ -105,7 +105,7 @@ class MixinVisitor implements Visitor {
           astNode: node,
           description: nodeJsDocs.description,
           summary: (summaryTag && summaryTag.description) || '',
-          privacy: getOrInferPrivacy(namespacedName, nodeJsDocs, false),
+          privacy: getOrInferPrivacy(namespacedName, nodeJsDocs, true, 'public'),
           jsdoc: nodeJsDocs,
           mixins:
               jsdoc.getMixins(this._document, node, nodeJsDocs, this._warnings)
@@ -147,7 +147,7 @@ class MixinVisitor implements Visitor {
             astNode: node,
             description: docs.description,
             summary: (summaryTag && summaryTag.description) || '',
-            privacy: getOrInferPrivacy(namespacedName, docs, false),
+            privacy: getOrInferPrivacy(namespacedName, docs, true, 'public'),
             jsdoc: docs,
             mixins: jsdoc.getMixins(
                 this._document, declaration, docs, this._warnings)

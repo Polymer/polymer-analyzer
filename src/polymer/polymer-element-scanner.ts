@@ -64,7 +64,7 @@ class ElementVisitor implements Visitor {
       description: docs.description,
       events: getEventComments(node),
       sourceRange: this.document.sourceRangeForNode(node), className,
-      privacy: getOrInferPrivacy(className, docs, false)
+      privacy: getOrInferPrivacy(className, docs, false, 'public')
     });
     this.propertyHandlers =
         declarationPropertyHandlers(this.element, this.document);
@@ -188,7 +188,7 @@ class ElementVisitor implements Visitor {
           description: rawDescription,
           events: getEventComments(parent),
           sourceRange: this.document.sourceRangeForNode(node.arguments[0]),
-          privacy: getOrInferPrivacy('', jsDoc, false)
+          privacy: getOrInferPrivacy('', jsDoc, false, 'public')
         });
         docs.annotate(this.element);
         this.element.description = (this.element.description || '').trim();

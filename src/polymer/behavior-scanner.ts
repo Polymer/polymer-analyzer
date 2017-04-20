@@ -159,7 +159,7 @@ class BehaviorVisitor implements Visitor {
       description: comment,
       events: esutil.getEventComments(node),
       sourceRange: this.document.sourceRangeForNode(node),
-      privacy: getOrInferPrivacy(symbol, parsedJsdocs, false),
+      privacy: getOrInferPrivacy(symbol, parsedJsdocs, true, 'public'),
     }));
     const behavior = this.currentBehavior!;
 
@@ -176,7 +176,7 @@ class BehaviorVisitor implements Visitor {
     }
 
     behavior.privacy =
-        getOrInferPrivacy(behavior.className, behavior.jsdoc, false);
+        getOrInferPrivacy(behavior.className, behavior.jsdoc, true, 'public');
     this._parseChainedBehaviors(node);
 
     this.currentBehavior = this.mergeBehavior(behavior);

@@ -59,7 +59,7 @@ export function toScannedPolymerProperty(
     astNode: node,
     isConfiguration: configurationProperties.has(name),
     jsdoc: parsedJsdoc,
-    privacy: getOrInferPrivacy(name, parsedJsdoc, false)
+    privacy: getOrInferPrivacy(name, parsedJsdoc, true)
   };
 
   return result;
@@ -146,30 +146,26 @@ export function toScannedMethod(
 export function getOrInferPrivacy(
     name: string,
     annotation: jsdoc.Annotation|undefined,
-    privateUnlessDocumented: boolean): Privacy {
+    inferFromName = true,
+    defaultPrivacy: Privacy = 'private'): Privacy {
   const explicitPrivacy = jsdoc.getPrivacy(annotation);
   const specificName = name.slice(name.lastIndexOf('.') + 1);
 
   if (explicitPrivacy) {
     return explicitPrivacy;
-  } else if (specificName.startsWith('__')) {
-    return 'private';
-  } else if (specificName.startsWith('_')) {
-    return 'protected';
-  } else if (specificName.endsWith('_')) {
-    return 'private';
-  } else if (configurationProperties.has(specificName)) {
-    return 'protected';
-  } else {
-    if (privateUnlessDocumented) {
-      // Some members, like methods or properties on classes are private by
-      // default unless they have documentation.
-      const hasDocs = !!annotation && !jsdoc.isAnnotationEmpty(annotation);
-      return hasDocs ? 'public' : 'private';
+  } else if (inferFromName) {
+    if (specificName.startsWith('__')) {
+      return 'private';
+    } else if (specificName.startsWith('_')) {
+      return 'protected';
+    } else if (specificName.endsWith('_')) {
+      return 'private';
+    } else if (configurationProperties.has(specificName)) {
+      return 'protected';
     } else {
-      // Other members, like entries in the Polymer `properties` block are
-      // public unless there are clear signals otherwise.
       return 'public';
     }
+  } else {
+    return defaultPrivacy;
   }
 }
