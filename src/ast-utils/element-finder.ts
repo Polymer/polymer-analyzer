@@ -96,14 +96,16 @@ export function elementFinder() {
       if (prop && prop.kind === 'get' && (propDesc.name === 'behaviors' || propDesc.name === 'observers')) {
         var returnStatement = <estree.ReturnStatement>node.value.body.body[0];
         var argument = <estree.ArrayExpression>returnStatement.argument;
-        if (propDesc.name === 'behaviors') {
-          argument.elements.forEach((elementObject: estree.Identifier) => {
-            element.behaviors.push(elementObject.name);
-          });
-        } else {
-          argument.elements.forEach((elementObject: estree.Literal) => {
-            element.observers.push({ javascriptNode: elementObject, expression: elementObject.raw });
-          });
+        if (argument.elements) {
+          if (propDesc.name === 'behaviors') {
+            argument.elements.forEach((elementObject: estree.Identifier) => {
+              element.behaviors.push(elementObject.name);
+            });
+          } else {
+            argument.elements.forEach((elementObject: estree.Literal) => {
+              element.observers.push({ javascriptNode: elementObject, expression: elementObject.raw });
+            });
+          }
         }
       } else {
         element.properties.push(propDesc);
