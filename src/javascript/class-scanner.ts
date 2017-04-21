@@ -407,7 +407,8 @@ class ClassFinder implements Visitor {
         jsdoc.getMixins(this._document, astNode, doc, warnings),
         getOrInferPrivacy(namespacedName || '', doc, false),
         warnings,
-        jsdoc.hasTag(doc, 'abstract')));
+        jsdoc.hasTag(doc, 'abstract'),
+        []));
     if (astNode.type === 'ClassExpression') {
       this.alreadyMatched.add(astNode);
     }

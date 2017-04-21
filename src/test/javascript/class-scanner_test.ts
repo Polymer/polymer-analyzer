@@ -405,17 +405,17 @@ suite('Class', () => {
           superClass: 'Base',
           methods: [
             {
+              description: 'This is a base method.',
+              name: 'baseMethod',
+              inheritedFrom: 'Base'
+            },
+            {
               description: 'Overrides the method on Base.',
               name: 'overriddenMethod',
             },
             {
               description: 'This method only exists on Subclass.',
               name: 'subMethod',
-            },
-            {
-              description: 'This is a base method.',
-              name: 'baseMethod',
-              inheritedFrom: 'Base'
             },
           ]
         }

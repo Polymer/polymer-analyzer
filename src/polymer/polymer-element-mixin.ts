@@ -14,10 +14,8 @@
 import * as dom5 from 'dom5';
 import * as estree from 'estree';
 
-import {ElementBase} from '../index';
 import {Annotation as JsDocAnnotation} from '../javascript/jsdoc';
-import {ImmutableSet} from '../model/immutable';
-import {Document, ElementMixin, Method, Privacy, ScannedElementMixin, ScannedMethod, ScannedReference, SourceRange} from '../model/model';
+import {Class, Document, ElementMixin, Method, Privacy, ScannedElementMixin, ScannedMethod, ScannedReference, SourceRange} from '../model/model';
 
 import {ScannedBehaviorAssignment} from './behavior';
 import {getOrInferPrivacy} from './js-utils';
@@ -104,25 +102,15 @@ export class PolymerElementMixin extends ElementMixin implements
   readonly domModule?: dom5.Node;
   readonly scriptElement?: dom5.Node;
   readonly localIds: LocalId[] = [];
-
-  readonly kinds: ImmutableSet<string> =
-      new Set(['element-mixin', 'polymer-element-mixin']);
   readonly pseudo: boolean;
-  readonly abstract: boolean;
 
   constructor(scannedMixin: ScannedPolymerElementMixin, document: Document) {
     super(scannedMixin, document);
-    console.log(
-        `polymer element mixin ${this.name} created. ${
-                                                       this.attributes.length
-                                                     } attributes`);
-    this.abstract = scannedMixin.abstract;
-    this.description = scannedMixin.description;
+    this.kinds.add('polymer-element-mixin');
     this.domModule = scannedMixin.domModule;
     this.pseudo = scannedMixin.pseudo;
     this.scriptElement = scannedMixin.scriptElement;
     this.slots = scannedMixin.slots;
-
     this.behaviorAssignments = Array.from(scannedMixin.behaviorAssignments);
     this.observers = Array.from(scannedMixin.observers);
   }
@@ -138,9 +126,9 @@ export class PolymerElementMixin extends ElementMixin implements
     return {polymer: polymerMetadata};
   }
 
-  protected _getSuperclassAndMixins(
-      document: Document, init: ScannedPolymerElementMixin): ElementBase[] {
-    const prototypeChain = super._getSuperclassAndMixins(document, init);
+  protected _getPrototypeChain(
+      document: Document, init: ScannedPolymerElementMixin): Class[] {
+    const prototypeChain = super._getPrototypeChain(document, init);
 
     const {warnings, behaviors} =
         getBehaviors(init.behaviorAssignments, document);

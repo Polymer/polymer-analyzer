@@ -19,6 +19,7 @@ import * as jsdocLib from '../javascript/jsdoc';
 import {Document, Feature, Method, Privacy, Property, Reference, Resolvable, ScannedFeature, ScannedMethod, ScannedProperty, ScannedReference, Severity, SourceRange, Warning} from '../model/model';
 
 import {getOrInferPrivacy} from '../polymer/js-utils';
+import {Demo} from './element-base';
 
 /**
  * Represents a JS class as encountered in source code.
@@ -48,13 +49,14 @@ export class ScannedClass implements ScannedFeature, Resolvable {
   readonly abstract: boolean;
   readonly privacy: Privacy;
   readonly warnings: Warning[];
+  readonly demos: {desc?: string; path: string}[];
   constructor(
       className: string|undefined, localClassName: string|undefined,
       astNode: estree.Node, jsdoc: jsdocLib.Annotation, description: string,
       sourceRange: SourceRange, properties: ScannedProperty[],
       methods: ScannedMethod[], superClass: ScannedReference|undefined,
       mixins: ScannedReference[], privacy: Privacy, warnings: Warning[],
-      abstract: boolean) {
+      abstract: boolean, demos: Demo[]) {
     this.name = className;
     this.localName = localClassName;
     this.astNode = astNode;
@@ -70,6 +72,7 @@ export class ScannedClass implements ScannedFeature, Resolvable {
     this.abstract = abstract;
     const summaryTag = jsdocLib.getTag(jsdoc, 'summary');
     this.summary = (summaryTag && summaryTag.description) || '';
+    this.demos = demos;
   }
 
   resolve(document: Document): Feature|undefined {
@@ -82,10 +85,29 @@ declare module '../model/queryable' {
     'class': Class;
   }
 }
+
+export interface ClassInit {
+  readonly sourceRange: SourceRange|undefined;
+  readonly astNode: any;
+  readonly warnings?: Warning[];
+  readonly summary: string;
+  // TODO(rictic): we don't need both name and className here.
+  readonly name?: string;
+  readonly className?: string;
+  readonly jsdoc?: jsdocLib.Annotation;
+  readonly description: string;
+  readonly properties?: Property[];
+  readonly methods?: Method[];
+  readonly superClass?: ScannedReference|undefined;
+  readonly mixins?: ScannedReference[];
+  readonly abstract: boolean;
+  readonly privacy: Privacy;
+  readonly demos?: Demo[];
+}
 export class Class implements Feature {
   readonly kinds = new Set(['class']);
   readonly identifiers = new Set<string>();
-  readonly sourceRange: SourceRange;
+  readonly sourceRange: SourceRange|undefined;
   readonly astNode: any;
   readonly warnings: Warning[];
   readonly summary: string;
@@ -97,46 +119,182 @@ export class Class implements Feature {
   get className() {
     return this.name;
   }
-  readonly jsdoc: jsdocLib.Annotation;
-  readonly description: string;
+  readonly jsdoc: jsdocLib.Annotation|undefined;
+  description: string;
   readonly properties: Property[] = [];
   readonly methods: Method[] = [];
   readonly superClass: Reference|undefined;
+  /**
+   * Mixins that this class declares with `@mixes`.
+   *
+   * Mixins are applied linearly after the superclass, in order from first
+   * to last. Mixins that compose other mixins will be flattened into a
+   * single list. A mixin can be applied more than once, each time its
+   * members override those before it in the prototype chain.
+   */
   readonly mixins: Reference[] = [];
   readonly abstract: boolean;
   readonly privacy: Privacy;
-  readonly demos: {desc?: string; path: string}[];
+  readonly demos: Demo[];
 
-
-  constructor(scannedClass: ScannedClass, document: Document) {
-    this.sourceRange = scannedClass.sourceRange;
-    this.warnings = scannedClass.warnings.slice();
-    if (scannedClass.name) {
-      this.identifiers.add(scannedClass.name);
+  constructor(init: ClassInit, document: Document) {
+    this.sourceRange = init.sourceRange;
+    this.warnings = init.warnings ? Array.from(init.warnings) : [];
+    if (init.name) {
+      this.identifiers.add(init.name);
     }
-    this.astNode = scannedClass.astNode;
-    this.demos = jsdocLib.extractDemos(scannedClass.jsdoc, document.url);
+    this.astNode = init.astNode;
+    this.demos = jsdocLib.extractDemos(init.jsdoc, document.url);
 
-    this.name = scannedClass.name;
-    this.jsdoc = scannedClass.jsdoc;
-    this.description = scannedClass.description;
-    this.summary = scannedClass.summary;
-    this.abstract = scannedClass.abstract;
-    this.privacy = scannedClass.privacy;
-
-    if (scannedClass.superClass) {
-      this.superClass = scannedClass.superClass.resolve(document);
+    this.name = init.name || init.className;
+    if (this.name) {
+      this.identifiers.add(this.name);
     }
-    this.methods.push(...scannedClass.methods);
-    this.properties.push(...scannedClass.properties);
+    this.jsdoc = init.jsdoc;
+    this.description = init.description;
+    this.summary = init.summary;
+    this.abstract = init.abstract;
+    this.privacy = init.privacy;
+    this.demos = init.demos || [];
+    this.warnings = init.warnings ? Array.from(init.warnings) : [];
 
-    this._applySuperClass(scannedClass, document);
-    this._applyMixins(scannedClass, document);
+    if (init.superClass) {
+      this.superClass = init.superClass.resolve(document);
+    }
+    this.mixins = (init.mixins || []).map((m) => m.resolve(document));
+
+    const prototypeChain = this._getPrototypeChain(document, init);
+    for (const superClass of prototypeChain) {
+      this.inheritFrom(superClass);
+    }
+
+    this._overwriteInherited(
+        this.properties, init.properties || [], undefined, true);
+    this._overwriteInherited(this.methods, init.methods || [], undefined, true);
+
 
     for (const method of this.methods) {
       // methods are only public by default if they're documented.
       method.privacy = getOrInferPrivacy(method.name, method.jsdoc, true);
     }
+  }
+
+  protected inheritFrom(superClass: Class) {
+    this._overwriteInherited(
+        this.properties, superClass.properties, superClass.name);
+    this._overwriteInherited(this.methods, superClass.methods, superClass.name);
+  }
+
+  /**
+   * This method is applied to an array of members to overwrite members lower in
+   * the prototype graph (closer to Object) with members higher up (closer to
+   * the final class we're constructing).
+   *
+   * @param . existing The array of members so far. N.B. *This param is
+   * mutated.*
+   * @param . overriding The array of members from this new, higher prototype in
+   *   the graph
+   * @param . overridingClassName The name of the prototype whose members are
+   *   being applied over the existing ones. Should be `undefined` when
+   *   applyingSelf is true
+   * @param . applyingSelf True on the last call to this method, when we're
+   *   applying the class's own local members.
+   */
+  protected _overwriteInherited<P extends PropertyLike>(
+      existing: P[], overriding: P[], overridingClassName: string|undefined,
+      applyingSelf = false) {
+    // This exists to treat the arrays as maps.
+    // TODO(rictic): convert these arrays to maps.
+    const existingIndexByName =
+        new Map(existing.map((e, idx) => [e.name, idx] as [string, number]));
+    for (const overridingVal of overriding) {
+      const newVal = Object.assign({}, overridingVal, {
+        inheritedFrom: overridingVal['inheritedFrom'] || overridingClassName
+      });
+      if (existingIndexByName.has(overridingVal.name)) {
+        /**
+         * TODO(rictic): if existingVal.privacy is protected, newVal should be
+         *    protected unless an explicit privacy was specified.
+         *    https://github.com/Polymer/polymer-analyzer/issues/631
+         */
+        const existingIndex = existingIndexByName.get(overridingVal.name)!;
+        const existingValue = existing[existingIndex]!;
+        if (existingValue.privacy === 'private') {
+          let warningSourceRange = this.sourceRange!;
+          if (applyingSelf) {
+            warningSourceRange = newVal.sourceRange || this.sourceRange!;
+          }
+          this.warnings.push({
+            code: 'overriding-private',
+            message: `Overriding private member '${overridingVal.name}' ` +
+                `inherited from ${existingValue.inheritedFrom || 'parent'}`,
+            sourceRange: warningSourceRange,
+            severity: Severity.WARNING
+          });
+        }
+        existing[existingIndex] = newVal;
+        continue;
+      }
+      existing.push(newVal);
+    }
+  }
+
+  /**
+   * Returns the elementLikes that make up this class's prototype chain.
+   *
+   * Should return them in the order that they're constructed in JS
+   * engine (i.e. closest to HTMLElement first, closest to `this` last).
+   */
+  protected _getPrototypeChain(document: Document, _init: ClassInit) {
+    const mixins = this.mixins.map(
+        (m) => this._resolveReferenceToSuperClass(m, document, 'class'));
+    const superClass =
+        this._resolveReferenceToSuperClass(this.superClass, document, 'class');
+
+    const prototypeChain: Class[] = [];
+    if (superClass) {
+      prototypeChain.push(superClass);
+    }
+    for (const mixin of mixins) {
+      if (mixin) {
+        prototypeChain.push(mixin);
+      }
+    }
+
+    return prototypeChain;
+  }
+
+  protected _resolveReferenceToSuperClass(
+      reference: Reference|undefined, document: Document, kind: 'class'): Class
+      |undefined {
+    if (!reference || reference.identifier === 'HTMLElement') {
+      return undefined;
+    }
+    const superElements = document.getFeatures({
+      kind: kind,
+      id: reference.identifier,
+      externalPackages: true,
+      imported: true,
+    });
+
+    if (superElements.size < 1) {
+      this.warnings.push({
+        message: `Unable to resolve superclass ${reference.identifier}`,
+        severity: Severity.ERROR,
+        code: 'unknown-superclass',
+        sourceRange: reference.sourceRange!,
+      });
+      return undefined;
+    } else if (superElements.size > 1) {
+      this.warnings.push({
+        message: `Multiple superclasses found for ${reference.identifier}`,
+        severity: Severity.ERROR,
+        code: 'unknown-superclass',
+        sourceRange: reference.sourceRange!,
+      });
+      return undefined;
+    }
+    return superElements.values().next().value;
   }
 
   protected _inheritFrom(superClass: Class|ElementMixin) {
@@ -163,77 +321,6 @@ export class Class implements Feature {
     }
   }
 
-  protected _applySuperClass(scannedElement: ScannedClass, document: Document) {
-    if (scannedElement.superClass &&
-        scannedElement.superClass.identifier !== 'HTMLElement') {
-      const superElements = document.getFeatures({
-        kind: 'class',
-        id: scannedElement.superClass.identifier,
-        externalPackages: true,
-        imported: true,
-      });
-      if (superElements.size === 1) {
-        const superClass = superElements.values().next().value;
-        this._inheritFrom(superClass);
-        return superClass;
-      } else {
-        if (superElements.size === 0) {
-          this.warnings.push({
-            message: `Unable to resolve superclass ` +
-                `${scannedElement.superClass.identifier}`,
-            severity: Severity.ERROR,
-            code: 'unknown-superclass',
-            sourceRange: scannedElement.superClass.sourceRange!,
-          });
-        } else {
-          this.warnings.push({
-            message: `Multiple superclasses found for ` +
-                `${scannedElement.superClass.identifier}`,
-            severity: Severity.ERROR,
-            code: 'unknown-superclass',
-            sourceRange: scannedElement.superClass.sourceRange!,
-          });
-        }
-      }
-    }
-    return undefined;
-  }
-
-  private _applyMixins(scannedClass: ScannedClass, document: Document) {
-    for (const scannedMixinReference of scannedClass.mixins) {
-      const mixinReference = scannedMixinReference.resolve(document);
-      const mixinId = mixinReference.identifier;
-      this.mixins.push(mixinReference);
-      // TODO(rictic): should look for kind: 'mixin'
-      const mixins = document.getFeatures({
-        kind: 'element-mixin',
-        id: mixinId,
-        externalPackages: true,
-        imported: true,
-      });
-      if (mixins.size === 0) {
-        this.warnings.push({
-          message: `@mixes reference not found: ${mixinId}.` +
-              `Did you import it? Is it annotated with @polymerMixin?`,
-          severity: Severity.ERROR,
-          code: 'mixes-reference-not-found',
-          sourceRange: scannedMixinReference.sourceRange!,
-        });
-        continue;
-      } else if (mixins.size > 1) {
-        this.warnings.push({
-          message: `@mixes reference, multiple mixins found ${mixinId}`,
-          severity: Severity.ERROR,
-          code: 'mixes-reference-multiple-found',
-          sourceRange: scannedMixinReference.sourceRange!,
-        });
-        continue;
-      }
-      const mixin = mixins.values().next().value;
-      this._inheritFrom(mixin);
-    }
-  }
-
   emitMetadata(): object {
     return {};
   }
@@ -245,4 +332,12 @@ export class Class implements Feature {
   emitMethodMetadata(_method: Method): object {
     return {};
   }
+}
+
+
+export interface PropertyLike {
+  name: string;
+  sourceRange?: SourceRange;
+  inheritedFrom?: string;
+  privacy?: Privacy;
 }

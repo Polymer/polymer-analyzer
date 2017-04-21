@@ -183,6 +183,24 @@
       "properties": [],
       "methods": [
         {
+          "name": "baseMethod",
+          "description": "This is a base method.",
+          "privacy": "public",
+          "sourceRange": {
+            "start": {
+              "line": 17,
+              "column": 2
+            },
+            "end": {
+              "line": 18,
+              "column": 3
+            }
+          },
+          "metadata": {},
+          "params": [],
+          "inheritedFrom": "Base"
+        },
+        {
           "name": "overriddenMethod",
           "description": "Overrides the method on Base.",
           "privacy": "public",
@@ -215,24 +233,6 @@
           },
           "metadata": {},
           "params": []
-        },
-        {
-          "name": "baseMethod",
-          "description": "This is a base method.",
-          "privacy": "public",
-          "sourceRange": {
-            "start": {
-              "line": 17,
-              "column": 2
-            },
-            "end": {
-              "line": 18,
-              "column": 3
-            }
-          },
-          "metadata": {},
-          "params": [],
-          "inheritedFrom": "Base"
         }
       ],
       "demos": [],

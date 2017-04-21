@@ -19,10 +19,7 @@ import * as pathLib from 'path';
 import {Analysis, Attribute, Class, Element, ElementLike, ElementMixin, Event, Function, Method, Namespace, Parameter, Property, SourceRange} from './analysis-format';
 import {Function as ResolvedFunction} from './javascript/function';
 import {Namespace as ResolvedNamespace} from './javascript/namespace';
-import {Analysis as AnalysisResult} from './model/analysis';
-import {Document} from './model/document';
-import {Feature} from './model/feature';
-import {Attribute as ResolvedAttribute, Class as ResolvedClass, Element as ResolvedElement, ElementMixin as ResolvedMixin, Event as ResolvedEvent, Method as ResolvedMethod, Property as ResolvedProperty, SourceRange as ResolvedSourceRange} from './model/model';
+import {Analysis as AnalysisResult, Attribute as ResolvedAttribute, Class as ResolvedClass, Element as ResolvedElement, ElementMixin as ResolvedMixin, Event as ResolvedEvent, Feature, Method as ResolvedMethod, Property as ResolvedProperty, SourceRange as ResolvedSourceRange} from './model/model';
 import {Behavior as ResolvedPolymerBehavior} from './polymer/behavior';
 
 export type ClassLike = ResolvedElement | ResolvedMixin | ResolvedClass;
@@ -40,56 +37,31 @@ interface Members {
 }
 
 export function generateAnalysis(
-    input: AnalysisResult|Document[], packagePath: string, filter?: Filter):
-    Analysis {
+    input: AnalysisResult, packagePath: string, filter?: Filter): Analysis {
   const _filter = filter || ((_: Feature) => true);
-  let members: Members;
+  const members: Members = {
+    elements: new Set(
+        Array.from(input.getFeatures({kind: 'element'})).filter(_filter)),
+    mixins: new Set(
+        Array.from(input.getFeatures({kind: 'element-mixin'})).filter(_filter)),
+    namespaces: new Set(
+        Array.from(input.getFeatures({kind: 'namespace'})).filter(_filter)),
+    functions: new Set(
+        Array.from(input.getFeatures({kind: 'function'})).filter(_filter)),
+    polymerBehaviors: new Set(
+        Array.from(input.getFeatures({kind: 'behavior'})).filter(_filter)),
+    classes: new Set()
+  };
 
-  if (input instanceof Array) {
-    members = {
-      polymerBehaviors: new Set(),
-      elements: new Set(),
-      mixins: new Set(),
-      namespaces: new Set(),
-      functions: new Set(),
-      classes: new Set()
-    };
-
-    for (const document of input as Document[]) {
-      Array.from(document.getFeatures({kind: 'element'}))
-          .filter(_filter)
-          .forEach((f) => members.elements.add(f));
-      Array.from(document.getFeatures({kind: 'element-mixin'}))
-          .filter(_filter)
-          .forEach((f) => members.mixins.add(f));
-      Array.from(document.getFeatures({kind: 'namespace'}))
-          .filter(_filter)
-          .forEach((f) => members.namespaces.add(f));
-      Array.from(document.getFeatures({kind: 'function'}))
-          .filter(_filter)
-          .forEach((f) => members.functions.add(f));
-      Array.from(document.getFeatures({kind: 'behavior'}))
-          .filter(_filter)
-          .forEach((f) => members.polymerBehaviors.add(f));
-      Array.from(document.getFeatures({kind: 'class'}))
-          .filter(_filter)
-          .forEach((f) => members.classes.add(f));
+  const allClasses =
+      Array.from(input.getFeatures({kind: 'class'})).filter(_filter);
+  for (const clazz of allClasses) {
+    if (members.elements.has(clazz as any) ||
+        members.mixins.has(clazz as any) ||
+        members.polymerBehaviors.has(clazz as any)) {
+      continue;
     }
-  } else {
-    members = {
-      elements: new Set(
-          Array.from(input.getFeatures({kind: 'element'})).filter(_filter)),
-      mixins: new Set(Array.from(input.getFeatures({kind: 'element-mixin'}))
-                          .filter(_filter)),
-      namespaces: new Set(
-          Array.from(input.getFeatures({kind: 'namespace'})).filter(_filter)),
-      functions: new Set(
-          Array.from(input.getFeatures({kind: 'function'})).filter(_filter)),
-      polymerBehaviors: new Set(
-          Array.from(input.getFeatures({kind: 'behavior'})).filter(_filter)),
-      classes: new Set(
-          Array.from(input.getFeatures({kind: 'class'})).filter(_filter))
-    };
+    members.classes.add(clazz);
   }
 
   return buildAnalysis(members, packagePath);

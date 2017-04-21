@@ -18,7 +18,7 @@ import * as estree from 'estree';
 import * as jsdoc from '../javascript/jsdoc';
 import {Annotation as JsDocAnnotation} from '../javascript/jsdoc';
 import {ImmutableArray} from '../model/immutable';
-import {Document, Element, ElementBase, LiteralValue, Privacy, Property, ScannedAttribute, ScannedElement, ScannedElementBase, ScannedEvent, ScannedMethod, ScannedProperty, Severity, SourceRange, Warning} from '../model/model';
+import {Class, Document, Element, ElementBase, LiteralValue, Privacy, Property, ScannedAttribute, ScannedElement, ScannedElementBase, ScannedEvent, ScannedMethod, ScannedProperty, Severity, SourceRange, Warning} from '../model/model';
 import {ScannedReference} from '../model/reference';
 
 import {Behavior, ScannedBehaviorAssignment} from './behavior';
@@ -97,7 +97,6 @@ export interface ScannedPolymerExtension extends ScannedElementBase {
   scriptElement?: dom5.Node;
   // TODO(justinfagnani): Not Polymer-specific, and hopefully not necessary
   pseudo: boolean;
-  abstract?: boolean;
 
   addProperty(prop: ScannedPolymerProperty): void;
 }
@@ -213,8 +212,6 @@ export interface PolymerExtension extends ElementBase {
   scriptElement?: dom5.Node;
   localIds: ImmutableArray<LocalId>;
 
-  abstract?: boolean;
-
   emitPropertyMetadata(property: PolymerProperty): any;
 }
 
@@ -234,14 +231,10 @@ export class PolymerElement extends Element implements PolymerExtension {
   readonly scriptElement?: dom5.Node;
   readonly localIds: ImmutableArray<LocalId> = [];
 
-  readonly abstract?: boolean;
-
-  kinds = new Set(['element', 'polymer-element']);
-
   constructor(scannedElement: ScannedPolymerElement, document: Document) {
     super(scannedElement, document);
+    this.kinds.add('polymer-element');
 
-    this.abstract = scannedElement.abstract;
     this.observers = Array.from(scannedElement.observers);
     this.listeners = Array.from(scannedElement.listeners);
     this.behaviorAssignments = Array.from(scannedElement.behaviorAssignments);
@@ -285,9 +278,9 @@ export class PolymerElement extends Element implements PolymerExtension {
     return {polymer: polymerMetadata};
   }
 
-  protected _getSuperclassAndMixins(
-      document: Document, init: ScannedPolymerElement) {
-    const prototypeChain = super._getSuperclassAndMixins(document, init);
+  protected _getPrototypeChain(document: Document, init: ScannedPolymerElement):
+      Class[] {
+    const prototypeChain = super._getPrototypeChain(document, init);
 
     const {warnings, behaviors} =
         getBehaviors(init.behaviorAssignments, document);
