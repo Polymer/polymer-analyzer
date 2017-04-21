@@ -317,7 +317,9 @@ export class Analyzer {
     for (const element of pseudoElements) {
       element.contentHref = href;
       this.elements.push(element);
-      this.elementsByTagName[element.is] = element;
+      if (element.is) {
+        this.elementsByTagName[element.is] = element;
+      }
     }
     metadataLoaded = metadataLoaded.then(function(metadata){
       var metadataEntry: DocumentDescriptor = {
@@ -419,7 +421,7 @@ export class Analyzer {
           this.elements.push(element);
           if (element.is in this.elementsByTagName) {
             console.warn('Ignoring duplicate element definition: ' + element.is);
-          } else {
+          } else if (element.is) {
             this.elementsByTagName[element.is] = element;
           }
         });
@@ -697,7 +699,9 @@ export class Analyzer {
     if (this.features.length > 0) {
       var featureEl = docs.featureElement(this.features);
       this.elements.unshift(featureEl);
-      this.elementsByTagName[featureEl.is] = featureEl;
+      if (featureEl.is) {
+        this.elementsByTagName[featureEl.is] = featureEl;
+      }
     }
     var behaviorsByName = this.behaviorsByName;
     var elementHelper = (descriptor: ElementDescriptor) => {
