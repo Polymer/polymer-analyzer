@@ -381,7 +381,7 @@ export interface PropertyLike {
  *   applying the class's own local members.
  */
 export function _overwriteInherited<P extends PropertyLike>(
-    existing: Array<P>,
+    existing: P[],
     overriding: P[],
     overridingClassName: string | undefined,
     warnings: Warning[],
