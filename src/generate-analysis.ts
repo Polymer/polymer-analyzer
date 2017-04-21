@@ -410,7 +410,10 @@ function resolveSourceRangePath(
   return {file: filePath, start: sourceRange.start, end: sourceRange.end};
 }
 
-function* iFilter<V>(iter: Iterable<V>, f: (v: V) => boolean) {
+// TODO(rictic): figure out why type inference goes wrong with more general
+//     types here.
+function*
+    iFilter<V extends Feature>(iter: Iterable<V>, f: (v: Feature) => boolean) {
   for (const val of iter) {
     if (f(val)) {
       yield val;
