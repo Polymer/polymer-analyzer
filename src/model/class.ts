@@ -20,6 +20,7 @@ import {Document, Feature, Method, Privacy, Property, Reference, Resolvable, Sca
 
 import {getOrInferPrivacy} from '../polymer/js-utils';
 import {Demo} from './element-base';
+import {ImmutableArray} from './immutable';
 
 /**
  * Represents a JS class as encountered in source code.
@@ -191,7 +192,7 @@ export class Class implements Feature {
    * the final class we're constructing).
    *
    * @param . existing The array of members so far. N.B. *This param is
-   * mutated.*
+   *   mutated.*
    * @param . overriding The array of members from this new, higher prototype in
    *   the graph
    * @param . overridingClassName The name of the prototype whose members are
@@ -201,8 +202,8 @@ export class Class implements Feature {
    *   applying the class's own local members.
    */
   protected _overwriteInherited<P extends PropertyLike>(
-      existing: P[], overriding: P[], overridingClassName: string|undefined,
-      applyingSelf = false) {
+      existing: P[], overriding: ImmutableArray<P>,
+      overridingClassName: string|undefined, applyingSelf = false) {
     // This exists to treat the arrays as maps.
     // TODO(rictic): convert these arrays to maps.
     const existingIndexByName =
