@@ -22,7 +22,6 @@ import {Namespace as ResolvedNamespace} from './javascript/namespace';
 import {Analysis as AnalysisResult, Attribute as ResolvedAttribute, Class as ResolvedClass, Element as ResolvedElement, ElementMixin as ResolvedMixin, Event as ResolvedEvent, Feature, Method as ResolvedMethod, Property as ResolvedProperty, SourceRange as ResolvedSourceRange} from './model/model';
 import {Behavior as ResolvedPolymerBehavior} from './polymer/behavior';
 
-export type ClassLike = ResolvedElement | ResolvedMixin | ResolvedClass;
 export type ElementOrMixin = ResolvedElement | ResolvedMixin;
 
 export type Filter = (feature: Feature | ResolvedFunction) => boolean;
@@ -33,35 +32,36 @@ interface Members {
   namespaces: Set<ResolvedNamespace>;
   functions: Set<ResolvedFunction>;
   polymerBehaviors: Set<ResolvedPolymerBehavior>;
+  /**
+   * All classes that aren't an element, mixin, behavior, etc.
+   */
   classes: Set<ResolvedClass>;
 }
 
 export function generateAnalysis(
     input: AnalysisResult, packagePath: string, filter?: Filter): Analysis {
   const _filter = filter || ((_: Feature) => true);
+
   const members: Members = {
-    elements: new Set(
-        Array.from(input.getFeatures({kind: 'element'})).filter(_filter)),
-    mixins: new Set(
-        Array.from(input.getFeatures({kind: 'element-mixin'})).filter(_filter)),
-    namespaces: new Set(
-        Array.from(input.getFeatures({kind: 'namespace'})).filter(_filter)),
-    functions: new Set(
-        Array.from(input.getFeatures({kind: 'function'})).filter(_filter)),
-    polymerBehaviors: new Set(
-        Array.from(input.getFeatures({kind: 'behavior'})).filter(_filter)),
+    elements: new Set(iFilter(input.getFeatures({kind: 'element'}), _filter)),
+    mixins:
+        new Set(iFilter(input.getFeatures({kind: 'element-mixin'}), _filter)),
+    namespaces:
+        new Set(iFilter(input.getFeatures({kind: 'namespace'}), _filter)),
+    functions: new Set(iFilter(input.getFeatures({kind: 'function'}), _filter)),
+    polymerBehaviors:
+        new Set(iFilter(input.getFeatures({kind: 'behavior'}), _filter)),
     classes: new Set()
   };
 
-  const allClasses =
-      Array.from(input.getFeatures({kind: 'class'})).filter(_filter);
-  for (const clazz of allClasses) {
-    if (members.elements.has(clazz as any) ||
-        members.mixins.has(clazz as any) ||
-        members.polymerBehaviors.has(clazz as any)) {
+  const allClasses = iFilter(input.getFeatures({kind: 'class'}), _filter);
+  for (const class_ of allClasses) {
+    if (members.elements.has(class_ as any) ||
+        members.mixins.has(class_ as any) ||
+        members.polymerBehaviors.has(class_ as any)) {
       continue;
     }
-    members.classes.add(clazz);
+    members.classes.add(class_);
   }
 
   return buildAnalysis(members, packagePath);
@@ -99,11 +99,11 @@ function buildAnalysis(members: Members, packagePath: string): Analysis {
     namespace.mixins.push(serializeElementMixin(mixin, packagePath));
   }
 
-  for (const fnction of members.functions) {
-    const namespaceName = getNamespaceName(fnction.name);
+  for (const function_ of members.functions) {
+    const namespaceName = getNamespaceName(function_.name);
     const namespace = namespaces.get(namespaceName) || analysis;
     namespace.functions = namespace.functions || [];
-    namespace.functions.push(serializeFunction(fnction, packagePath));
+    namespace.functions.push(serializeFunction(function_, packagePath));
   }
 
   // TODO(usergenic): Consider moving framework-specific code to separate file.
@@ -119,11 +119,11 @@ function buildAnalysis(members: Members, packagePath: string): Analysis {
   }
 
 
-  for (const clazz of members.classes) {
-    const namespaceName = getNamespaceName(clazz.name);
+  for (const class_ of members.classes) {
+    const namespaceName = getNamespaceName(class_.name);
     const namespace = namespaces.get(namespaceName) || analysis;
     namespace.classes = namespace.classes || [];
-    namespace.classes.push(serializeClass(clazz, packagePath));
+    namespace.classes.push(serializeClass(class_, packagePath));
   }
 
   return analysis;
@@ -217,39 +217,39 @@ function serializeFunction(
   return metadata;
 }
 
-function serializeClass(clazz: ClassLike, packagePath: string): Class {
-  const path = clazz.sourceRange!.file;
+function serializeClass(class_: ResolvedClass, packagePath: string): Class {
+  const path = class_.sourceRange!.file;
   const packageRelativePath =
-      pathLib.relative(packagePath, clazz.sourceRange!.file);
+      pathLib.relative(packagePath, class_.sourceRange!.file);
 
   const properties =
-      clazz.properties.map((p) => serializeProperty(clazz, path, p));
-  const methods = clazz.methods.map((m) => serializeMethod(clazz, path, m));
+      class_.properties.map((p) => serializeProperty(class_, path, p));
+  const methods = class_.methods.map((m) => serializeMethod(class_, path, m));
 
   return {
-    description: clazz.description || '',
-    summary: clazz.summary || '',
+    description: class_.description || '',
+    summary: class_.summary || '',
     path: packageRelativePath,
     properties: properties,
     methods: methods,
-    demos: (clazz.demos || []).map((d) => d.path),
-    metadata: clazz.emitMetadata(),
-    sourceRange: resolveSourceRangePath(path, clazz.sourceRange),
-    privacy: clazz.privacy,
+    demos: (class_.demos || []).map((d) => d.path),
+    metadata: class_.emitMetadata(),
+    sourceRange: resolveSourceRangePath(path, class_.sourceRange),
+    privacy: class_.privacy,
   };
 }
 
 function serializeElementLike(
     elementOrMixin: ElementOrMixin, packagePath: string): ElementLike {
-  const clazz = serializeClass(elementOrMixin, packagePath) as ElementLike;
+  const class_ = serializeClass(elementOrMixin, packagePath) as ElementLike;
   const path = elementOrMixin.sourceRange!.file;
 
-  clazz.attributes = elementOrMixin.attributes.map(
+  class_.attributes = elementOrMixin.attributes.map(
       (a) => serializeAttribute(elementOrMixin, path, a));
-  clazz.events =
+  class_.events =
       elementOrMixin.events.map((e) => serializeEvent(elementOrMixin, path, e));
 
-  Object.assign(clazz, {
+  Object.assign(class_, {
     styling: {
       cssVariables: [],
       selectors: [],
@@ -259,7 +259,7 @@ function serializeElementLike(
     }),
   });
 
-  return clazz;
+  return class_;
 }
 
 function serializeElement(
@@ -302,7 +302,7 @@ function serializePolymerBehaviorAsElementMixin(
 }
 
 function serializeProperty(
-    elementOrMixin: ClassLike,
+    class_: ResolvedClass,
     elementPath: string,
     resolvedProperty: ResolvedProperty): Property {
   const property: Property = {
@@ -312,7 +312,7 @@ function serializeProperty(
     privacy: resolvedProperty.privacy,
     sourceRange:
         resolveSourceRangePath(elementPath, resolvedProperty.sourceRange),
-    metadata: elementOrMixin.emitPropertyMetadata(resolvedProperty),
+    metadata: class_.emitPropertyMetadata(resolvedProperty),
   };
   if (resolvedProperty.default) {
     property.defaultValue = resolvedProperty.default;
@@ -344,16 +344,15 @@ function serializeAttribute(
 }
 
 function serializeMethod(
-    resolvedElement: ClassLike,
-    elementPath: string,
-    resolvedMethod: ResolvedMethod): Method {
+    class_: ResolvedClass, elementPath: string, resolvedMethod: ResolvedMethod):
+    Method {
   const method: Method = {
     name: resolvedMethod.name,
     description: resolvedMethod.description || '',
     privacy: resolvedMethod.privacy,
     sourceRange:
         resolveSourceRangePath(elementPath, resolvedMethod.sourceRange),
-    metadata: resolvedElement.emitMethodMetadata(resolvedMethod),
+    metadata: class_.emitMethodMetadata(resolvedMethod),
   };
   if (resolvedMethod.params) {
     method.params = resolvedMethod.params.map(({name, description, type}) => {
@@ -409,4 +408,12 @@ function resolveSourceRangePath(
   const filePath =
       pathLib.relative(pathLib.dirname(elementPath), sourceRange.file);
   return {file: filePath, start: sourceRange.start, end: sourceRange.end};
+}
+
+function* iFilter<V>(iter: Iterable<V>, f: (v: V) => boolean) {
+  for (const val of iter) {
+    if (f(val)) {
+      yield val;
+    }
+  }
 }

@@ -91,10 +91,10 @@ export class ClassScanner implements JavaScriptScanner {
     for (const defineCall of elementDefinitionFinder.calls) {
       // MaybeChainedIdentifier is invented below. It's like Identifier, but it
       // includes 'Polymer.Element' as a name.
-      if (defineCall.clazz.type === 'MaybeChainedIdentifier') {
-        elementDefinitionsByClassName.set(defineCall.clazz.name, defineCall);
+      if (defineCall.class_.type === 'MaybeChainedIdentifier') {
+        elementDefinitionsByClassName.set(defineCall.class_.name, defineCall);
       } else {
-        elementDefinitionsByClassExpression.set(defineCall.clazz, defineCall);
+        elementDefinitionsByClassExpression.set(defineCall.class_, defineCall);
       }
     }
     // TODO(rictic): emit ElementDefineCallFeatures for define calls that don't
@@ -110,36 +110,36 @@ export class ClassScanner implements JavaScriptScanner {
     // Next we want to distinguish custom elements from other classes.
     const customElements: CustomElementDefinition[] = [];
     const normalClasses = [];
-    for (const clazz of classFinder.classes) {
-      if (mixinClassExpressions.has(clazz.astNode)) {
+    for (const class_ of classFinder.classes) {
+      if (mixinClassExpressions.has(class_.astNode)) {
         // This class is a mixin and has already been handled as such.
         continue;
       }
       // Class expressions inside the customElements.define call
-      if (clazz.astNode.type === 'ClassExpression') {
+      if (class_.astNode.type === 'ClassExpression') {
         const definition =
-            elementDefinitionsByClassExpression.get(clazz.astNode);
+            elementDefinitionsByClassExpression.get(class_.astNode);
         if (definition) {
-          customElements.push({clazz, definition});
+          customElements.push({class_, definition});
           continue;
         }
       }
       // Classes whose names are referenced in a same-file customElements.define
-      const definition = elementDefinitionsByClassName.get(clazz.name!) ||
-          elementDefinitionsByClassName.get(clazz.localName!);
+      const definition = elementDefinitionsByClassName.get(class_.name!) ||
+          elementDefinitionsByClassName.get(class_.localName!);
       if (definition) {
-        customElements.push({clazz, definition});
+        customElements.push({class_, definition});
         continue;
       }
       // Classes explicitly defined as elements in their jsdoc tags.
       // TODO(rictic): swap to new jsdoc tag here.
       //     See: https://github.com/Polymer/polymer-analyzer/issues/605
-      if (jsdoc.hasTag(clazz.jsdoc, 'polymerElement')) {
-        customElements.push({clazz});
+      if (jsdoc.hasTag(class_.jsdoc, 'polymerElement')) {
+        customElements.push({class_});
         continue;
       }
       // Classes that aren't custom elements, or at least, aren't obviously.
-      normalClasses.push(clazz);
+      normalClasses.push(class_);
     }
 
     const scannedFeatures: (ScannedPolymerElement|ScannedClass|
@@ -166,9 +166,9 @@ export class ClassScanner implements JavaScriptScanner {
   private _makeElementFeature(
       element: CustomElementDefinition,
       document: JavaScriptDocument): ScannedPolymerElement {
-    const clazz = element.clazz;
-    const astNode = element.clazz.astNode;
-    const docs = element.clazz.jsdoc;
+    const class_ = element.class_;
+    const astNode = element.class_.astNode;
+    const docs = element.class_.jsdoc;
     let tagName: string|undefined = undefined;
     // TODO(rictic): support `@customElements explicit-tag-name` from jsdoc
     if (element.definition &&
@@ -202,7 +202,7 @@ export class ClassScanner implements JavaScriptScanner {
 
     // TODO(justinfagnani): Infer mixin applications and superclass from AST.
     scannedElement = new ScannedPolymerElement({
-      className: clazz.name,
+      className: class_.name,
       tagName,
       astNode,
       properties,
@@ -215,13 +215,13 @@ export class ClassScanner implements JavaScriptScanner {
       extends: jsdoc.getTag(docs, 'extends', 'name') || undefined,
       listeners: [],
 
-      description: clazz.description,
-      sourceRange: clazz.sourceRange,
-      superClass: clazz.superClass,
-      jsdoc: clazz.jsdoc,
-      abstract: clazz.abstract,
-      mixins: clazz.mixins,
-      privacy: clazz.privacy
+      description: class_.description,
+      sourceRange: class_.sourceRange,
+      superClass: class_.superClass,
+      jsdoc: class_.jsdoc,
+      abstract: class_.abstract,
+      mixins: class_.mixins,
+      privacy: class_.privacy
     });
 
     if (astNode.type === 'ClassExpression' ||
@@ -312,7 +312,7 @@ export class ClassScanner implements JavaScriptScanner {
 }
 
 interface CustomElementDefinition {
-  clazz: ScannedClass;
+  class_: ScannedClass;
   definition?: ElementDefineCall;
 }
 
@@ -454,7 +454,7 @@ class ClassFinder implements Visitor {
 
 interface ElementDefineCall {
   tagName: TagNameExpression;
-  clazz: ElementClassExpression;
+  class_: ElementClassExpression;
 }
 
 type ElementClassExpression = estree.ClassExpression|{
@@ -489,7 +489,7 @@ class CustomElementsDefineCallFinder implements Visitor {
       return;
     }
     this.calls.push(
-        {tagName: tagNameExpression, clazz: elementClassExpression});
+        {tagName: tagNameExpression, class_: elementClassExpression});
   }
 
   private _getTagNameExpression(expression: estree.Node|

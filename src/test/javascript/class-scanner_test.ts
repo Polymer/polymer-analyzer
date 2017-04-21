@@ -51,7 +51,7 @@ suite('Class', () => {
     return Array.from(analysis.getFeatures({kind: 'class'}));
   };
 
-  async function getTestProps(clazz: ScannedClass|Class) {
+  async function getTestProps(class_: ScannedClass|Class) {
     type TestPropsType = {
       name: string | undefined,
       description: string,
@@ -63,19 +63,19 @@ suite('Class', () => {
       superClass?: string,
     };
     const result: TestPropsType = {
-      name: clazz.name,
-      description: clazz.description,
-      privacy: clazz.privacy
+      name: class_.name,
+      description: class_.description,
+      privacy: class_.privacy
     };
-    if (clazz.properties.length > 0) {
+    if (class_.properties.length > 0) {
       result.properties = [];
-      for (const {name} of clazz.properties) {
+      for (const {name} of class_.properties) {
         result.properties.push({name});
       }
     }
-    if (clazz.methods.length > 0) {
+    if (class_.methods.length > 0) {
       result.methods = [];
-      for (const m of clazz.methods) {
+      for (const m of class_.methods) {
         const method: any = {name: m.name, description: m.description};
         if (m.params && m.params.length > 0) {
           method.params = m.params.map((p) => {
@@ -98,17 +98,17 @@ suite('Class', () => {
         result.methods.push(method);
       }
     }
-    if (clazz.mixins.length > 0) {
+    if (class_.mixins.length > 0) {
       result.mixins = [];
-      for (const {identifier} of clazz.mixins) {
+      for (const {identifier} of class_.mixins) {
         result.mixins.push({identifier});
       }
     }
-    if (clazz.warnings.length > 0) {
-      result.warnings = await underliner.underline(clazz.warnings);
+    if (class_.warnings.length > 0) {
+      result.warnings = await underliner.underline(class_.warnings);
     }
-    if (clazz.superClass) {
-      result.superClass = clazz.superClass.identifier;
+    if (class_.superClass) {
+      result.superClass = class_.superClass.identifier;
     }
     return result;
   };

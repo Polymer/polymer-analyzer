@@ -26,10 +26,19 @@ export interface Analysis {
   // and reference it like:
   // $schema: 'http://polymer-project.org/schema/v1/analysis.json';
 
+  /** All elements found. */
   elements?: Element[];
+  /** All toplevel functions found. */
   functions?: Function[];
+  /** All element mixins found. */
   mixins?: ElementMixin[];
+  /** All toplevel namespaces found. */
   namespaces?: Namespace[];
+  /**
+   * All toplevel classes found that were not covered by one of the other types.
+   *
+   * e.g. classes that are elements are only found in `elements`
+   */
   classes?: Class[];
 
   /**
