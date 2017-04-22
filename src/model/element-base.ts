@@ -18,6 +18,7 @@ import * as jsdoc from '../javascript/jsdoc';
 
 import {Class, ClassInit} from './class';
 import {Privacy} from './feature';
+import {ImmutableArray} from './immutable';
 import {Attribute, Document, Event, Feature, Method, Resolvable, ScannedAttribute, ScannedEvent, ScannedProperty, ScannedReference, SourceRange, Warning} from './model';
 
 export {Visitor} from '../javascript/estree-visitor';
@@ -72,9 +73,9 @@ export interface Demo {
 }
 
 export interface ElementBaseInit extends ClassInit {
-  events?: Event[];
-  attributes?: Attribute[];
-  slots?: Slot[];
+  events?: ImmutableArray<Event>;
+  attributes?: ImmutableArray<Attribute>;
+  slots?: ImmutableArray<Slot>;
 }
 
 /**
@@ -83,7 +84,7 @@ export interface ElementBaseInit extends ClassInit {
 export abstract class ElementBase extends Class implements Feature {
   attributes: Attribute[];
   events: Event[];
-  'slots': Slot[] = [];
+  'slots': ImmutableArray<Slot> = [];
 
   constructor(init: ElementBaseInit, document: Document) {
     super(init, document);
@@ -92,7 +93,7 @@ export abstract class ElementBase extends Class implements Feature {
       attributes = [],
       slots = [],
     } = init;
-    this.slots = Array.from(slots);
+    this.slots = slots;
 
     // Initialization of these attributes is kinda awkward, as they're part
     // of the inheritance system. See `inheritFrom` below which *may* be

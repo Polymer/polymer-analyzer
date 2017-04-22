@@ -15,11 +15,12 @@ import * as dom5 from 'dom5';
 import * as estree from 'estree';
 
 import {Annotation as JsDocAnnotation} from '../javascript/jsdoc';
-import {Class, Document, ElementMixin, Method, Privacy, ScannedElementMixin, ScannedMethod, ScannedReference, SourceRange} from '../model/model';
+import {Document, ElementMixin, Privacy, ScannedElementMixin, ScannedMethod, ScannedReference, SourceRange} from '../model/model';
 
 import {ScannedBehaviorAssignment} from './behavior';
 import {getOrInferPrivacy} from './js-utils';
-import {addMethod, addProperty, getBehaviors, LocalId, Observer, PolymerExtension, PolymerProperty, ScannedPolymerExtension, ScannedPolymerProperty} from './polymer-element';
+import {Constructor, PolymerExt, PolymerExtension} from './polymer-base';
+import {addMethod, addProperty, Observer, ScannedPolymerExtension, ScannedPolymerProperty} from './polymer-element';
 
 export interface Options {
   name: string;
@@ -42,7 +43,6 @@ export class ScannedPolymerElementMixin extends ScannedElementMixin implements
   readonly behaviorAssignments: ScannedBehaviorAssignment[] = [];
   // FIXME(rictic): domModule and scriptElement aren't known at a file local
   //     level. Remove them here, they should only exist on PolymerElement.
-  domModule: dom5.Node|undefined = undefined;
   scriptElement: dom5.Node|undefined = undefined;
   pseudo: boolean = false;
   readonly abstract: boolean = false;
@@ -91,51 +91,16 @@ declare module '../model/queryable' {
     'polymer-element-mixin': PolymerElementMixin;
   }
 }
-export class PolymerElementMixin extends ElementMixin implements
-    PolymerExtension {
-  readonly properties: PolymerProperty[];
-  readonly methods: Method[];
 
-  readonly observers: Observer[];
-  readonly listeners: {event: string, handler: string}[];
-  readonly behaviorAssignments: ScannedBehaviorAssignment[] = [];
-  readonly domModule?: dom5.Node;
-  readonly scriptElement?: dom5.Node;
-  readonly localIds: LocalId[] = [];
+export const PolymerElementMixinExtension:
+    Constructor<ElementMixin&PolymerExtension> = PolymerExt(ElementMixin);
+
+export class PolymerElementMixin extends PolymerElementMixinExtension {
   readonly pseudo: boolean;
 
   constructor(scannedMixin: ScannedPolymerElementMixin, document: Document) {
     super(scannedMixin, document);
     this.kinds.add('polymer-element-mixin');
-    this.domModule = scannedMixin.domModule;
     this.pseudo = scannedMixin.pseudo;
-    this.scriptElement = scannedMixin.scriptElement;
-    this.slots = scannedMixin.slots;
-    this.behaviorAssignments = Array.from(scannedMixin.behaviorAssignments);
-    this.observers = Array.from(scannedMixin.observers);
-  }
-
-  emitPropertyMetadata(property: PolymerProperty) {
-    const polymerMetadata:
-        {notify?: boolean, observer?: string, readOnly?: boolean} = {};
-    const polymerMetadataFields: Array<keyof typeof polymerMetadata> =
-        ['notify', 'observer', 'readOnly'];
-    for (const field of polymerMetadataFields) {
-      if (field in property) {
-        polymerMetadata[field] = property[field];
-      }
-    }
-    return {polymer: polymerMetadata};
-  }
-
-  protected _getSuperclassAndMixins(
-      document: Document, init: ScannedPolymerElementMixin): Class[] {
-    const prototypeChain = super._getSuperclassAndMixins(document, init);
-
-    const {warnings, behaviors} =
-        getBehaviors(init.behaviorAssignments, document);
-    this.warnings.push(...warnings);
-    prototypeChain.push(...behaviors);
-    return prototypeChain;
   }
 }

@@ -18,12 +18,13 @@ import * as estree from 'estree';
 import * as jsdoc from '../javascript/jsdoc';
 import {Annotation as JsDocAnnotation} from '../javascript/jsdoc';
 import {ImmutableArray} from '../model/immutable';
-import {Class, Document, Element, ElementBase, LiteralValue, Privacy, Property, ScannedAttribute, ScannedElement, ScannedElementBase, ScannedEvent, ScannedMethod, ScannedProperty, Severity, SourceRange, Warning} from '../model/model';
+import {Document, Element, LiteralValue, Privacy, Property, ScannedAttribute, ScannedElement, ScannedElementBase, ScannedEvent, ScannedMethod, ScannedProperty, Severity, SourceRange, Warning} from '../model/model';
 import {ScannedReference} from '../model/reference';
 
 import {Behavior, ScannedBehaviorAssignment} from './behavior';
 import {DomModule} from './dom-module-scanner';
 import {JavascriptDatabindingExpression} from './expression-scanner';
+import {Constructor, PolymerExt, PolymerExtension} from './polymer-base';
 
 export interface BasePolymerProperty {
   published?: boolean;
@@ -201,22 +202,6 @@ export class ScannedPolymerElement extends ScannedElement implements
   }
 }
 
-export interface PolymerExtension extends ElementBase {
-  properties: PolymerProperty[];
-
-  observers: ImmutableArray < {
-    javascriptNode: estree.Expression|estree.SpreadElement,
-        expression: LiteralValue,
-        parsedExpression: JavascriptDatabindingExpression|undefined;
-  }
-  > ;
-  listeners: ImmutableArray<{event: string, handler: string}>;
-  behaviorAssignments: ImmutableArray<ScannedBehaviorAssignment>;
-  scriptElement?: dom5.Node;
-  localIds: ImmutableArray<LocalId>;
-
-  emitPropertyMetadata(property: PolymerProperty): any;
-}
 
 declare module '../model/queryable' {
   interface FeatureKindMap {
@@ -225,23 +210,15 @@ declare module '../model/queryable' {
   }
 }
 
-export class PolymerElement extends Element implements PolymerExtension {
-  readonly properties: PolymerProperty[];
-  readonly observers: ImmutableArray<Observer> = [];
-  readonly listeners: ImmutableArray<{event: string, handler: string}> = [];
-  readonly behaviorAssignments: ImmutableArray<ScannedBehaviorAssignment> = [];
+export const PolymerElementExtension: Constructor<Element&PolymerExtension> =
+    PolymerExt(Element);
+export class PolymerElement extends PolymerElementExtension {
   readonly domModule?: dom5.Node;
-  readonly scriptElement?: dom5.Node;
   readonly localIds: ImmutableArray<LocalId> = [];
 
   constructor(scannedElement: ScannedPolymerElement, document: Document) {
     super(scannedElement, document);
     this.kinds.add('polymer-element');
-
-    this.observers = Array.from(scannedElement.observers);
-    this.listeners = Array.from(scannedElement.listeners);
-    this.behaviorAssignments = Array.from(scannedElement.behaviorAssignments);
-    this.scriptElement = scannedElement.scriptElement;
 
     const domModules = scannedElement.tagName == null ?
         new Set<DomModule>() :
@@ -261,38 +238,13 @@ export class PolymerElement extends Element implements PolymerExtension {
     if (domModule) {
       this.description = this.description || domModule.comment || '';
       this.domModule = domModule.node;
-      this.slots = domModule.slots.slice();
-      this.localIds = domModule.localIds.slice();
+      this.slots = Array.from(domModule.slots);
+      this.localIds = domModule.localIds;
     }
 
     if (scannedElement.pseudo) {
       this.kinds.add('pseudo-element');
     }
-  }
-
-  emitPropertyMetadata(property: PolymerProperty) {
-    const polymerMetadata:
-        {notify?: boolean, observer?: string, readOnly?: boolean} = {};
-    const polymerMetadataFields: Array<keyof typeof polymerMetadata> =
-        ['notify', 'observer', 'readOnly'];
-    for (const field of polymerMetadataFields) {
-      if (field in property) {
-        polymerMetadata[field] = property[field];
-      }
-    }
-    return {polymer: polymerMetadata};
-  }
-
-  protected _getSuperclassAndMixins(
-      document: Document, init: ScannedPolymerElement): Class[] {
-    const prototypeChain = super._getSuperclassAndMixins(document, init);
-
-    const {warnings, behaviors} =
-        getBehaviors(init.behaviorAssignments, document);
-
-    this.warnings.push(...warnings);
-    prototypeChain.push(...behaviors);
-    return prototypeChain;
   }
 }
 
