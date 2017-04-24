@@ -355,16 +355,7 @@ function serializeMethod(
     metadata: class_.emitMethodMetadata(resolvedMethod),
   };
   if (resolvedMethod.params) {
-    method.params = resolvedMethod.params.map(({name, description, type}) => {
-      const param: Parameter = {name: name};
-      if (description) {
-        param.description = description;
-      }
-      if (type) {
-        param.type = type;
-      }
-      return param;
-    });
+    method.params = Array.from(resolvedMethod.params);
   }
   if (resolvedMethod.return ) {
     method.return = resolvedMethod.return;

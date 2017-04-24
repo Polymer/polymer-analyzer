@@ -95,7 +95,7 @@ export function annotateEvent(annotation: jsdoc.Annotation): ScannedEvent {
   const tags = (annotation && annotation.tags || []);
   // process @params
   scannedEvent.params.push(
-      ...tags.filter((tag) => tag.tag === 'param').map(function(param) {
+      ...tags.filter((tag) => tag.tag === 'param').map((param) => {
         return {
           type: param.type || 'N/A',
           desc: param.description || '',
