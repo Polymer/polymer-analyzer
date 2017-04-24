@@ -183,17 +183,9 @@ export class ScannedPolymerElement extends ScannedElement implements
     addMethod(this, method);
   }
 
-  applyDescriptionAsJsdoc() {
-    this.jsdoc = jsdoc.parseJsdoc(this.description);
-    this.description = this.jsdoc.description;
-  }
-
   resolve(document: Document): PolymerElement {
-    if (!this.jsdoc) {
-      this.applyDescriptionAsJsdoc();
-    }
-    this.applyJsdocDemoTags(document.url);
-    return resolveElement(this, document);
+    const element = new PolymerElement();
+    return resolveElement(element, this, document);
   }
 }
 
@@ -267,8 +259,9 @@ function propertyToAttributeName(propertyName: string): string|null {
 }
 
 function resolveElement(
-    scannedElement: ScannedPolymerElement, document: Document): PolymerElement {
-  const element = new PolymerElement();
+    element: PolymerElement,
+    scannedElement: ScannedPolymerElement,
+    document: Document): PolymerElement {
   element.privacy = scannedElement.privacy;
   applySuperClass(element, scannedElement, document);
   applyMixins(element, scannedElement, document);
@@ -332,6 +325,7 @@ function resolveElement(
     method.privacy = getOrInferPrivacy(method.name, method.jsdoc, true);
   }
 
+  element.applyJsdocDemoTags(document.url);
   return element;
 }
 
