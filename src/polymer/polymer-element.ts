@@ -276,9 +276,9 @@ export class PolymerElement extends Element implements PolymerExtension {
     return {polymer: polymerMetadata};
   }
 
-  protected _getPrototypeChain(
+  protected _getSuperclassAndMixins(
       document: Document, init: ScannedPolymerElement) {
-    const prototypeChain = super._getPrototypeChain(document, init);
+    const prototypeChain = super._getSuperclassAndMixins(document, init);
 
     const {warnings, behaviors} =
         getBehaviors(init.behaviorAssignments, document);

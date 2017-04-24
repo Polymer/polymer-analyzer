@@ -55,12 +55,10 @@ export abstract class ScannedElementBase implements Resolvable {
       return;
     }
     this.demos = this.jsdoc.tags.filter((tag) => tag.tag === 'demo' && tag.name)
-                     .map((tag) => {
-                       return {
-                         desc: tag.description || undefined,
-                         path: url.resolve(baseUrl, tag.name!)
-                       };
-                     });
+                     .map((tag) => ({
+                            desc: tag.description || undefined,
+                            path: url.resolve(baseUrl, tag.name!)
+                          }));
   }
 
   resolve(_document: Document): any {
@@ -137,44 +135,44 @@ export abstract class ElementBase implements Feature {
     const {
       description,
       summary,
-      demos,
-      events,
+      demos = [],
+      events = [],
       sourceRange,
-      properties,
-      attributes,
-      methods,
+      properties = [],
+      attributes = [],
+      methods = [],
       astNode,
-      warnings,
-      slots,
+      warnings = [],
+      slots = [],
       privacy,
       jsdoc,
       superClass,
-      mixins,
+      mixins = [],
     } = init;
     this.description = description;
     this.summary = summary;
-    this.demos = demos ? Array.from(demos) : [];
+    this.demos = Array.from(demos);
     this.sourceRange = sourceRange;
     this.astNode = astNode;
-    this.warnings = warnings ? Array.from(warnings) : [];
-    this.slots = slots ? Array.from(slots) : [];
+    this.warnings = Array.from(warnings);
+    this.slots = Array.from(slots);
     this.privacy = privacy;
     this.jsdoc = jsdoc;
     this.superClass = superClass ? superClass.resolve(document) : undefined;
-    this.mixins = (mixins || []).map((m) => m.resolve(document));
+    this.mixins = mixins.map((m) => m.resolve(document));
 
-    const prototypeChain = this._getPrototypeChain(document, init);
-    for (const superClass of prototypeChain) {
-      this.inheritFrom(superClass);
+    const superClassLikes = this._getSuperclassAndMixins(document, init);
+    for (const superClassLike of superClassLikes) {
+      this.inheritFrom(superClassLike);
     }
 
-    this._overwriteInherited(
-        this.properties, properties || [], undefined, true);
-    this._overwriteInherited(
-        this.attributes, attributes || [], undefined, true);
-    this._overwriteInherited(this.methods, methods || [], undefined, true);
-    this._overwriteInherited(this.events, events || [], undefined, true);
+    this._overwriteInherited(this.properties, properties, undefined, true);
+    this._overwriteInherited(this.attributes, attributes, undefined, true);
+    this._overwriteInherited(this.methods, methods, undefined, true);
+    this._overwriteInherited(this.events, events, undefined, true);
 
+    // TODO(rictic): this is an awkward place for this. Move it back to
+    //     scanning time.
     for (const method of this.methods) {
       // methods are only public by default if they're documented.
       method.privacy = getOrInferPrivacy(method.name, method.jsdoc, true);
@@ -182,12 +180,14 @@ export abstract class ElementBase implements Feature {
   }
 
   /**
-   * Returns the elementLikes that make up this class's prototype chain.
+   * Returns the classes for our super class and any mixins or mixin-like
+   * things.
    *
-   * Should return them in the order that they're constructed in JS
-   * engine (i.e. closest to HTMLElement first, closest to `this` last).
+   * The order of the returned array is important. Members of earlier classes
+   * will be overridden by members of later classes.
    */
-  protected _getPrototypeChain(document: Document, _init: ElementBaseInit) {
+  protected _getSuperclassAndMixins(
+      document: Document, _init: ElementBaseInit) {
     const mixins = this.mixins.map(
         (m) =>
             this._resolveReferenceToSuperClass(m, document, 'element-mixin'));
@@ -207,6 +207,7 @@ export abstract class ElementBase implements Feature {
     return prototypeChain;
   }
 
+  // TODO(rictic): move to Reference?
   protected _resolveReferenceToSuperClass(
       reference: Reference|undefined, document: Document,
       kind: 'element'|'element-mixin'): ElementBase|undefined {
