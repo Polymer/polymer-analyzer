@@ -402,6 +402,10 @@ function applySelf(
   scannedElement.events.forEach((o) => element.events.push(o));
   element.extends = scannedElement.extends;
   element.jsdoc = scannedElement.jsdoc;
+
+  // When an element has no jsdoc but it has a description, that description
+  // has probably come from an adjacent HTML comment that preceded the
+  // element, so we will treat its annotations as the jsdoc annotations.
   if (!element.jsdoc && element.description) {
     element.jsdoc = jsdoc.parseJsdoc(element.description);
     element.description = element.jsdoc.description;
