@@ -139,25 +139,24 @@ export class Class implements Feature {
   readonly demos: Demo[];
 
   constructor(init: ClassInit, document: Document) {
-    this.sourceRange = init.sourceRange;
-    this.warnings = init.warnings ? Array.from(init.warnings) : [];
-    if (init.name) {
-      this.identifiers.add(init.name);
-    }
-    this.astNode = init.astNode;
-    this.demos = jsdocLib.extractDemos(init.jsdoc, document.url);
+    ({
+      jsdoc: this.jsdoc,
+      description: this.description,
+      summary: this.summary,
+      abstract: this.abstract,
+      privacy: this.privacy,
+      astNode: this.astNode,
+      sourceRange: this.sourceRange
+    } = init);
+
+    this.warnings =
+        init.warnings === undefined ? [] : Array.from(init.warnings);
+    this.demos = init.demos || jsdocLib.extractDemos(init.jsdoc, document.url);
 
     this.name = init.name || init.className;
     if (this.name) {
       this.identifiers.add(this.name);
     }
-    this.jsdoc = init.jsdoc;
-    this.description = init.description;
-    this.summary = init.summary;
-    this.abstract = init.abstract;
-    this.privacy = init.privacy;
-    this.demos = init.demos || [];
-    this.warnings = init.warnings ? Array.from(init.warnings) : [];
 
     if (init.superClass) {
       this.superClass = init.superClass.resolve(document);
