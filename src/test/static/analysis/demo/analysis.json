@@ -52,6 +52,7 @@
             },
             "demos": [
                 {
+                    "description": "",
                     "url": "demo.html"
                 }
             ],

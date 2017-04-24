@@ -12,7 +12,6 @@
  * http://polymer.github.io/PATENTS.txt
  */
 
-import * as url from 'url';
 import {Document} from './document';
 import {ElementBase, ScannedElementBase} from './element-base';
 import {Feature, Privacy} from './feature';
