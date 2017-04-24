@@ -164,9 +164,9 @@ export class Class implements Feature {
     }
     this.mixins = (init.mixins || []).map((m) => m.resolve(document));
 
-    const prototypeChain = this._getPrototypeChain(document, init);
-    for (const superClass of prototypeChain) {
-      this.inheritFrom(superClass);
+    const superClassLikes = this._getSuperclassAndMixins(document, init);
+    for (const superClassLike of superClassLikes) {
+      this.inheritFrom(superClassLike);
     }
 
     this._overwriteInherited(
@@ -246,7 +246,7 @@ export class Class implements Feature {
    * Should return them in the order that they're constructed in JS
    * engine (i.e. closest to HTMLElement first, closest to `this` last).
    */
-  protected _getPrototypeChain(document: Document, _init: ClassInit) {
+  protected _getSuperclassAndMixins(document: Document, _init: ClassInit) {
     const mixins = this.mixins.map(
         (m) => this._resolveReferenceToSuperClass(m, document, 'class'));
     const superClass =
