@@ -51,7 +51,7 @@ export class ScannedBehavior extends ScannedPolymerElement {
         getBehaviors(this.behaviorAssignments, document);
     const behavior = Object.assign(new Behavior(), this);
     behavior.warnings = behavior.warnings.concat(behaviorsAndWarnings.warnings);
-    this.applyJsdocDemoTags(document.url);
+    behavior.applyJsdocDemoTags(document.url);
     return behavior;
   }
 }

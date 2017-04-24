@@ -295,7 +295,8 @@ function serializeElementLike(
       cssVariables: [],
       selectors: [],
     },
-    demos: (elementOrMixin.demos || []).map((d) => d.path),
+    demos: (elementOrMixin.demos ||
+            []).map(({path, desc}) => ({url: path, description: desc || ''})),
     slots: elementOrMixin.slots.map((s) => {
       return {description: '', name: s.name, range: s.range};
     }),

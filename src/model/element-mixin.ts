@@ -23,7 +23,7 @@ export class ScannedElementMixin extends ScannedElementBase {
   resolve(document: Document): ElementMixin {
     const element = new ElementMixin();
     Object.assign(element, this);
-    this.applyJsdocDemoTags(document.url);
+    element.applyJsdocDemoTags(document.url);
     return element;
   }
 }

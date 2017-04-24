@@ -41,19 +41,6 @@ export abstract class ScannedElementBase implements Resolvable {
     this.description = this.description || commentText || '';
   }
 
-  applyJsdocDemoTags(baseUrl: string): void {
-    if (!this.jsdoc || !this.jsdoc.tags) {
-      return;
-    }
-    this.jsdoc.tags.filter((tag) => tag.tag === 'demo' && tag.name)
-        .forEach((tag) => {
-          this.demos.push({
-            desc: tag.description || undefined,
-            path: url.resolve(baseUrl, tag.name!)
-          });
-        });
-  }
-
   resolve(_document: Document): any {
     throw new Error('abstract');
   }
@@ -119,5 +106,18 @@ export abstract class ElementBase implements Feature {
 
   emitEventMetadata(_event: Event): Object {
     return {};
+  }
+
+  applyJsdocDemoTags(baseUrl: string): void {
+    if (!this.jsdoc || !this.jsdoc.tags) {
+      return;
+    }
+    this.jsdoc.tags.filter((tag) => tag.tag === 'demo' && tag.name)
+        .forEach((tag) => {
+          this.demos.push({
+            desc: tag.description || undefined,
+            path: url.resolve(baseUrl, tag.name!)
+          });
+        });
   }
 }

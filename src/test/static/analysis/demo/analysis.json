@@ -2,6 +2,44 @@
     "schema_version": "1.0.0",
     "elements": [
         {
+            "description": "I has a demo",
+            "summary": "",
+            "path": "demo-annotation-in-html-comment.html",
+            "attributes": [],
+            "properties": [],
+            "methods": [],
+            "styling": {
+                "cssVariables": [],
+                "selectors": []
+            },
+            "demos": [
+                {
+                    "description": "An amazing demo",
+                    "url": "demo.html"
+                },
+                {
+                    "description": "Demos might have querystrings and/or search values.",
+                    "url": "demo.html?q=1#s"
+                }
+            ],
+            "slots": [],
+            "events": [],
+            "metadata": {},
+            "sourceRange": {
+                "start": {
+                    "line": 8,
+                    "column": 12
+                },
+                "end": {
+                    "line": 8,
+                    "column": 32
+                }
+            },
+            "privacy": "public",
+            "tagname": "has-a-demo",
+            "superclass": "HTMLElement"
+        },
+        {
             "description": "This is an element.",
             "summary": "",
             "path": "element.html",
@@ -13,7 +51,10 @@
                 "selectors": []
             },
             "demos": [
-                "demo.html"
+                {
+                    "description": "",
+                    "url": "demo.html"
+                }
             ],
             "slots": [],
             "events": [],

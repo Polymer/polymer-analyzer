@@ -186,8 +186,8 @@ export class ScannedPolymerElement extends ScannedElement implements
   }
 
   resolve(document: Document): PolymerElement {
-    this.applyJsdocDemoTags(document.url);
-    return resolveElement(this, document);
+    const element = new PolymerElement();
+    return resolveElement(element, this, document);
   }
 }
 
@@ -261,8 +261,9 @@ function propertyToAttributeName(propertyName: string): string|null {
 }
 
 function resolveElement(
-    scannedElement: ScannedPolymerElement, document: Document): PolymerElement {
-  const element = new PolymerElement();
+    element: PolymerElement,
+    scannedElement: ScannedPolymerElement,
+    document: Document): PolymerElement {
   element.privacy = scannedElement.privacy;
   applySuperClass(element, scannedElement, document);
   applyMixins(element, scannedElement, document);
@@ -316,6 +317,7 @@ function resolveElement(
     method.privacy = getOrInferPrivacy(method.name, method.jsdoc, true);
   }
 
+  element.applyJsdocDemoTags(document.url);
   return element;
 }
 
@@ -440,6 +442,14 @@ function applySelf(
   scannedElement.events.forEach((o) => element.events.push(o));
   element.extends = scannedElement.extends;
   element.jsdoc = scannedElement.jsdoc;
+
+  // When an element has no jsdoc but it has a description, that description
+  // has probably come from an adjacent HTML comment that preceded the
+  // element, so we will treat its annotations as the jsdoc annotations.
+  if (!element.jsdoc && element.description) {
+    element.jsdoc = jsdoc.parseJsdoc(element.description);
+    element.description = element.jsdoc.description;
+  }
   scannedElement.listeners.forEach((o) => element.listeners.push(o));
   scannedElement.observers.forEach((o) => element.observers.push(o));
   element.scriptElement = scannedElement.scriptElement;
