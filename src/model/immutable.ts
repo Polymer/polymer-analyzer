@@ -59,3 +59,17 @@ export function asImmutable<O extends object>(object: O): Readonly<O>;
 export function asImmutable(x: any) {
   return x;
 }
+
+/**
+ * Take care, this function is inherently unsafe.
+ *
+ * You're taking a data structure that has been declare as immutable and getting
+ * a mutable reference to it.
+ */
+export function unsafeAsMutable<V>(array: ImmutableArray<V>): Array<V>;
+export function unsafeAsMutable<V>(set: ImmutableSet<V>): Set<V>;
+export function unsafeAsMutable<K, V>(map: ImmutableMap<K, V>): Map<K, V>;
+export function unsafeAsMutable<O extends object>(object: Readonly<O>): O;
+export function unsafeAsMutable(x: any) {
+  return x;
+}

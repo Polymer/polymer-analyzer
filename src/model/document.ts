@@ -18,7 +18,7 @@ import {ParsedDocument} from '../parser/document';
 
 import {Analysis} from './analysis';
 import {Feature, ScannedFeature} from './feature';
-import {ImmutableSet} from './immutable';
+import {ImmutableSet, unsafeAsMutable} from './immutable';
 import {Import} from './import';
 import {DocumentQuery as Query, DocumentQueryWithKind as QueryWithKind, FeatureKind, FeatureKindMap, Queryable} from './queryable';
 import {isResolvable} from './resolvable';
@@ -131,9 +131,9 @@ export class Document implements Feature, Queryable {
     this.languageAnalysis = languageAnalysis;
 
     if (!base.isInline) {
-      (this.identifiers as Set<string>).add(this.url);
+      unsafeAsMutable(this.identifiers).add(this.url);
     }
-    (this.kinds as Set<string>).add(`${this.parsedDocument.type}-document`);
+    unsafeAsMutable(this.kinds).add(`${this.parsedDocument.type}-document`);
     this.warnings = Array.from(base.warnings);
   }
 

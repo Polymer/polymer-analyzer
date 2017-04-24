@@ -16,7 +16,7 @@ import {Annotation} from '../javascript/jsdoc';
 
 import {Document} from './document';
 import {Feature, ScannedFeature} from './feature';
-import {ImmutableArray} from './immutable';
+import {ImmutableArray, unsafeAsMutable} from './immutable';
 import {Resolvable} from './resolvable';
 import {SourceRange} from './source-range';
 import {Warning} from './warning';
@@ -59,7 +59,7 @@ export class Reference extends Feature {
       identifier: string, sourceRange: SourceRange, astNode: any,
       warnings: ImmutableArray<Warning>) {
     super(sourceRange, astNode, warnings);
-    (this.kinds as Set<string>).add('reference');
+    unsafeAsMutable(this.kinds).add('reference');
     this.identifier = identifier;
   }
 }
