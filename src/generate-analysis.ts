@@ -295,13 +295,8 @@ function serializeElementLike(
       cssVariables: [],
       selectors: [],
     },
-    demos: (elementOrMixin.demos || []).map((demo) => {
-      const json: Demo = {url: demo.path};
-      if (demo.desc) {
-        json.description = demo.desc;
-      }
-      return json;
-    }),
+    demos: (elementOrMixin.demos ||
+            []).map(({path, desc}) => ({url: path, description: desc || ''})),
     slots: elementOrMixin.slots.map((s) => {
       return {description: '', name: s.name, range: s.range};
     }),
