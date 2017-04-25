@@ -270,11 +270,8 @@ export class PolymerElement extends Element implements PolymerExtension {
   emitPropertyMetadata(property: PolymerProperty) {
     const polymerMetadata:
         {notify?: boolean, observer?: string, readOnly?: boolean} = {};
-    const polymerMetadataFields = [
-      'notify' as 'notify',
-      'observer' as 'observer',
-      'readOnly' as 'readOnly'
-    ];
+    const polymerMetadataFields: Array<keyof typeof polymerMetadata> =
+        ['notify', 'observer', 'readOnly'];
     for (const field of polymerMetadataFields) {
       if (field in property) {
         polymerMetadata[field] = property[field];
