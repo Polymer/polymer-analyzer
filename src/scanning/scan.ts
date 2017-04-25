@@ -12,6 +12,7 @@
  * http://polymer.github.io/PATENTS.txt
  */
 
+import {ImmutableArray} from '../model/immutable';
 import {ScannedFeature, Warning} from '../model/model';
 import {ParsedDocument} from '../parser/document';
 
@@ -127,8 +128,12 @@ function compareFeaturesBySourceLocation(
   return position1.column - position2.column;
 }
 
-function sortFeatures(unorderedFeatures: ScannedFeature[][]): ScannedFeature[] {
-  const allFeatures: ScannedFeature[] =
-      Array.prototype.concat.apply([], unorderedFeatures);
+function sortFeatures(
+    unorderedFeatures: ImmutableArray<ImmutableArray<ScannedFeature>>):
+    ScannedFeature[] {
+  const allFeatures = [];
+  for (const subArray of unorderedFeatures) {
+    allFeatures.push(...subArray);
+  }
   return allFeatures.sort(compareFeaturesBySourceLocation);
 }

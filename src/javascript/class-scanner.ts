@@ -158,7 +158,7 @@ export class ClassScanner implements JavaScriptScanner {
       warnings: [
         ...elementDefinitionFinder.warnings,
         ...classFinder.warnings,
-        ...mixinFinder.warnings
+        ...mixinFinder.warnings,
       ]
     };
   }
