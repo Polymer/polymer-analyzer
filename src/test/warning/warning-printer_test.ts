@@ -22,7 +22,7 @@ import {Severity, Warning} from '../../model/model';
 import {FSUrlLoader} from '../../url-loader/fs-url-loader';
 import {WarningPrinter} from '../../warning/warning-printer';
 
-const dumbNameWarning: Warning = {
+const dumbNameWarning = new Warning({
   message: 'This is a dumb name for an element.',
   code: 'dumb-element-name',
   severity: Severity.WARNING,
@@ -31,9 +31,9 @@ const dumbNameWarning: Warning = {
     start: {column: 6, line: 0},
     end: {column: 22, line: 0}
   }
-};
+});
 
-const goodJobWarning: Warning = {
+const goodJobWarning = new Warning({
   message: 'Good job with this observedAttributes getter.',
   code: 'cool-observed-attributes',
   severity: Severity.INFO,
@@ -42,7 +42,7 @@ const goodJobWarning: Warning = {
     start: {line: 22, column: 2},
     end: {line: 29, column: 3}
   }
-};
+});
 
 const staticTestDir = path.join(__dirname, '../static');
 

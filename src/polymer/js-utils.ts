@@ -34,16 +34,14 @@ export function toScannedPolymerProperty(
 
   const warnings: Warning[] = [];
   if (!maybeName) {
-    warnings.push({
+    warnings.push(new Warning({
       code: 'unknown-prop-name',
       message:
-          `Could not determine name of property from expression of type: ${
-                                                                           node.key
-                                                                               .type
-                                                                         }`,
+          `Could not determine name of property from expression of type: ` +
+          `${node.key.type}`,
       sourceRange: sourceRange,
       severity: Severity.WARNING
-    });
+    }));
   }
   let type = closureType(node.value, sourceRange);
   const typeTag = jsdoc.getTag(parsedJsdoc, 'type');

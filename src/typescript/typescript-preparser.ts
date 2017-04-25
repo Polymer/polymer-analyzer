@@ -14,7 +14,7 @@
 
 import * as ts from 'typescript';
 
-import {correctSourceRange, InlineDocInfo, Severity, WarningCarryingException} from '../model/model';
+import {correctSourceRange, InlineDocInfo, Severity, Warning, WarningCarryingException} from '../model/model';
 import {Parser} from '../parser/parser';
 
 import {ParsedTypeScriptDocument} from './typescript-document';
@@ -50,7 +50,7 @@ export class TypeScriptPreparser implements Parser<ParsedTypeScriptDocument> {
       const start = sourceFile.getLineAndCharacterOfPosition(parseError.start);
       const end = sourceFile.getLineAndCharacterOfPosition(
           parseError.start + parseError.length);
-      throw new WarningCarryingException({
+      throw new WarningCarryingException(new Warning({
         code: 'parse-error',
         severity: Severity.ERROR,
         message: ts.flattenDiagnosticMessageText(parseError.messageText, '\n'),
@@ -61,7 +61,7 @@ export class TypeScriptPreparser implements Parser<ParsedTypeScriptDocument> {
               end: {column: end.character, line: end.line}
             },
             inlineInfo.locationOffset)!
-      });
+      }));
     }
     return new ParsedTypeScriptDocument({
       url,

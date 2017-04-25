@@ -53,13 +53,13 @@ export abstract class ScannedElementBase implements Resolvable {
       // element.
       if (this.sourceRange &&
           (this.description || this.jsdoc && this.jsdoc.tags.length > 0)) {
-        this.warnings.push({
+        this.warnings.push(new Warning({
           severity: Severity.WARNING,
           code: 'multiple-doc-comments',
           message:
               `${this.constructor.name} has both HTML doc and JSDoc comments.`,
           sourceRange: this.sourceRange,
-        });
+        }));
       }
       this.jsdoc =
           this.jsdoc ? jsdoc.join(commentJsdoc, this.jsdoc) : commentJsdoc;

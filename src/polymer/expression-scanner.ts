@@ -199,12 +199,12 @@ export abstract class DatabindingExpression {
   }
 
   private _validationWarning(message: string, node: estree.Node): Warning {
-    return {
+    return new Warning({
       code: 'invalid-polymer-expression',
       message,
       sourceRange: this.sourceRangeForNode(node)!,
       severity: Severity.WARNING
-    };
+    });
   }
 }
 
@@ -489,22 +489,22 @@ export function parseExpressionInJsStringLiteral(
   if (stringLiteral.type !== 'Literal') {
     // Should we warn here? It's potentially valid, just unanalyzable. Maybe
     // just an info that someone could escalate to a warning/error?
-    warnings.push({
+    warnings.push(new Warning({
       code: 'unanalyzable-polymer-expression',
       message: `Can only analyze databinding expressions in string literals.`,
       severity: Severity.INFO,
       sourceRange: sourceRangeForLiteral,
-    });
+    }));
     return result;
   }
   const expressionText = stringLiteral.value;
   if (typeof expressionText !== 'string') {
-    warnings.push({
+    warnings.push(new Warning({
       code: 'invalid-polymer-expression',
       message: `Expected a string, got a ${typeof expressionText}.`,
       sourceRange: sourceRangeForLiteral,
       severity: Severity.WARNING
-    });
+    }));
     return result;
   }
   const sourceRange: SourceRange = {

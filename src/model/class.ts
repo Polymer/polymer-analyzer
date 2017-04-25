@@ -222,13 +222,13 @@ export class Class implements Feature {
           if (applyingSelf) {
             warningSourceRange = newVal.sourceRange || this.sourceRange!;
           }
-          this.warnings.push({
+          this.warnings.push(new Warning({
             code: 'overriding-private',
             message: `Overriding private member '${overridingVal.name}' ` +
                 `inherited from ${existingValue.inheritedFrom || 'parent'}`,
             sourceRange: warningSourceRange,
             severity: Severity.WARNING
-          });
+          }));
         }
       }
       existing.set(key, newVal);
@@ -274,20 +274,20 @@ export class Class implements Feature {
     });
 
     if (superElements.size < 1) {
-      this.warnings.push({
+      this.warnings.push(new Warning({
         message: `Unable to resolve superclass ${reference.identifier}`,
         severity: Severity.ERROR,
         code: 'unknown-superclass',
         sourceRange: reference.sourceRange!,
-      });
+      }));
       return undefined;
     } else if (superElements.size > 1) {
-      this.warnings.push({
+      this.warnings.push(new Warning({
         message: `Multiple superclasses found for ${reference.identifier}`,
         severity: Severity.ERROR,
         code: 'unknown-superclass',
         sourceRange: reference.sourceRange!,
-      });
+      }));
       return undefined;
     }
     return superElements.values().next().value;

@@ -15,7 +15,7 @@
 import * as estraverse from 'estraverse';
 import * as estree from 'estree';
 
-import {ScannedEvent, Severity, SourceRange, WarningCarryingException} from '../model/model';
+import {ScannedEvent, Severity, SourceRange, Warning, WarningCarryingException} from '../model/model';
 import {annotateEvent} from '../polymer/docs';
 
 import * as jsdoc from './jsdoc';
@@ -96,14 +96,14 @@ export function closureType(
   } else if (node.type === 'Identifier') {
     return CLOSURE_CONSTRUCTOR_MAP.get(node.name) || node.name;
   } else {
-    throw new WarningCarryingException({
+    throw new WarningCarryingException(new Warning({
       code: 'no-closure-type',
       message:
           `Unable to determine closure type for expression of type ${
                                                                      node.type
                                                                    }`,
       severity: Severity.WARNING, sourceRange
-    });
+    }));
   }
 }
 

@@ -439,11 +439,11 @@ class ClassFinder implements Visitor {
       // TODO(justinfagnani): we need source ranges for jsdoc annotations
       const sourceRange = document.sourceRangeForNode(node)!;
       if (extendsId == null) {
-        warnings.push({
+        warnings.push(new Warning({
           code: 'class-extends-annotation-no-id',
           message: '@extends annotation with no identifier',
           severity: Severity.WARNING, sourceRange,
-        });
+        }));
       } else {
         return new ScannedReference(extendsId, sourceRange);
       }
@@ -531,14 +531,14 @@ class CustomElementsDefineCallFinder implements Visitor {
         };
       }
     }
-    this.warnings.push({
+    this.warnings.push(new Warning({
       code: 'cant-determine-element-tagname',
       message:
           `Unable to evaluate this expression down to a definitive string ` +
           `tagname.`,
       severity: Severity.WARNING,
       sourceRange: this._document.sourceRangeForNode(expression)!
-    });
+    }));
     return undefined;
   }
 
@@ -558,12 +558,12 @@ class CustomElementsDefineCallFinder implements Visitor {
     if (elementDefn.type === 'ClassExpression') {
       return elementDefn;
     }
-    this.warnings.push({
+    this.warnings.push(new Warning({
       code: 'cant-determine-element-class',
       message: `Unable to evaluate this expression down to a class reference.`,
       severity: Severity.WARNING,
       sourceRange: this._document.sourceRangeForNode(elementDefn)!
-    });
+    }));
     return null;
   }
 }

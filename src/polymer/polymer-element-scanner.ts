@@ -256,7 +256,7 @@ class ElementVisitor implements Visitor {
       for (const prop of node.properties) {
         const name = objectKeyToString(prop.key);
         if (!name) {
-          element.warnings.push({
+          element.warnings.push(new Warning({
             message:
                 `Can't determine name for property key from expression with type ${
                                                                                    prop.key
@@ -265,7 +265,7 @@ class ElementVisitor implements Visitor {
             code: 'cant-determine-property-name',
             severity: Severity.WARNING,
             sourceRange: this.document.sourceRangeForNode(prop.key)!
-          });
+          }));
           continue;
         }
 

@@ -19,7 +19,7 @@ import * as astValue from '../javascript/ast-value';
 import * as esutil from '../javascript/esutil';
 import {JavaScriptDocument} from '../javascript/javascript-document';
 import * as jsdoc from '../javascript/jsdoc';
-import {Severity} from '../model/model';
+import {Severity, Warning} from '../model/model';
 
 import {parseExpressionInJsStringLiteral} from './expression-scanner';
 import {toScannedPolymerProperty} from './js-utils';
@@ -89,12 +89,12 @@ export function analyzeProperties(
             if (!prop.type) {
               prop.type = esutil.objectKeyToString(propertyArg.value);
               if (prop.type === undefined) {
-                prop.warnings.push({
+                prop.warnings.push(new Warning({
                   code: 'invalid-property-type',
                   message: 'Invalid type in property object.',
                   severity: Severity.ERROR,
                   sourceRange: document.sourceRangeForNode(propertyArg)!
-                });
+                }));
               }
             }
             break;
@@ -144,12 +144,12 @@ export function analyzeProperties(
     prop.type = esutil.CLOSURE_CONSTRUCTOR_MAP.get(prop.type!) || prop.type;
 
     if (!prop.type) {
-      prop.warnings.push({
+      prop.warnings.push(new Warning({
         code: 'no-type-for-property',
         message: 'Unable to determine type for property.',
         severity: Severity.WARNING,
         sourceRange: document.sourceRangeForNode(property)!
-      });
+      }));
     }
 
     analyzedProps.push(prop);

@@ -14,6 +14,7 @@
 
 import * as estree from 'estree';
 
+import {Warning} from '../index';
 import {Visitor} from '../javascript/estree-visitor';
 import * as esutil from '../javascript/esutil';
 import {JavaScriptDocument} from '../javascript/javascript-document';
@@ -71,13 +72,13 @@ class PolymerCoreFeatureVisitor implements Visitor {
 
     const rhs = assignment.right;
     if (rhs.type !== 'ObjectExpression') {
-      feature.warnings.push({
+      feature.warnings.push(new Warning({
         message: `Expected assignment to \`Polymer.Base\` to be an object.` +
             `Got \`${rhs.type}\` instead.`,
         severity: Severity.ERROR,
         code: 'invalid-polymer-base-assignment',
         sourceRange: this.document.sourceRangeForNode(assignment)!,
-      });
+      }));
       return;
     }
 
@@ -104,26 +105,26 @@ class PolymerCoreFeatureVisitor implements Visitor {
     this.features.push(feature);
 
     if (call.arguments.length !== 1) {
-      feature.warnings.push({
+      feature.warnings.push(new Warning({
         message:
             `Expected only one argument to \`Polymer.Base._addFeature\`. ` +
             `Got ${call.arguments.length}.`,
         severity: Severity.ERROR,
         code: 'invalid-polymer-core-feature-call',
         sourceRange: this.document.sourceRangeForNode(call)!,
-      });
+      }));
       return;
     }
 
     const arg = call.arguments[0];
     if (arg.type !== 'ObjectExpression') {
-      feature.warnings.push({
+      feature.warnings.push(new Warning({
         message: `Expected argument to \`Polymer.Base._addFeature\` to be an ` +
             `object. Got \`${arg.type}\` instead.`,
         severity: Severity.ERROR,
         code: 'invalid-polymer-core-feature-call',
         sourceRange: this.document.sourceRangeForNode(call)!,
-      });
+      }));
       return;
     }
 

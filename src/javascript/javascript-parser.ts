@@ -97,7 +97,7 @@ export function parseJs(
       if (err instanceof SyntaxError) {
         return {
           type: 'failure',
-          warning: {
+          warning: new Warning({
             message: err.message.split('\n')[0],
             severity: Severity.ERROR,
             code: warningCode,
@@ -108,7 +108,7 @@ export function parseJs(
                   end: {line: err.lineNumber - 1, column: err.column - 1}
                 },
                 locationOffset)!
-          }
+          })
         };
       }
       throw err;

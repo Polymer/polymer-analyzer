@@ -13,11 +13,31 @@
  */
 
 import {SourceRange} from './source-range';
-export interface Warning {
+
+export interface WarningInit {
   readonly message: string;
   readonly sourceRange: SourceRange;
   readonly severity: Severity;
   readonly code: string;
+}
+export class Warning {
+  readonly code: string;
+  readonly message: string;
+  readonly sourceRange: SourceRange;
+  readonly severity: Severity;
+
+
+  // Useful while we migrate from object literal warnings to a warning class.
+  protected _warningBrand: never;
+
+  constructor(init: WarningInit) {
+    ({
+      message: this.message,
+      sourceRange: this.sourceRange,
+      severity: this.severity,
+      code: this.code
+    } = init);
+  }
 }
 
 export enum Severity {

@@ -89,14 +89,14 @@ class BehaviorVisitor implements Visitor {
       const prop = node.properties[i];
       const name = esutil.objectKeyToString(prop.key);
       if (!name) {
-        this.currentBehavior.warnings.push({
+        this.currentBehavior.warnings.push(new Warning({
           code: 'cant-determine-name',
           message:
               `Unable to determine property name from expression of type ` +
               `${node.type}`,
           severity: Severity.WARNING,
           sourceRange: this.document.sourceRangeForNode(node)!
-        });
+        }));
         continue;
       }
       if (name in this.propertyHandlers) {
