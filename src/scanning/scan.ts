@@ -91,7 +91,9 @@ scan<AstNode, Visitor, PDoc extends ParsedDocument<AstNode, Visitor>>(
   const warnings: Warning[] = [];
   for (const {features, warnings: w} of nestedResults) {
     nestedFeatures.push(features);
-    warnings.push(...w);
+    if (w !== undefined) {
+      warnings.push(...w);
+    }
   }
 
   return {features: sortFeatures(nestedFeatures), warnings};

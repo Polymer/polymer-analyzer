@@ -26,7 +26,7 @@ import {ParsedDocument} from '../parser/document';
  */
 export interface Scanner<D extends ParsedDocument<A, V>, A, V> {
   scan(document: D, visit: (visitor: V) => Promise<void>):
-      Promise<{features: ScannedFeature[], warnings: Warning[]}>;
+      Promise<{features: ScannedFeature[], warnings?: Warning[]}>;
 }
 
 export interface ScannerConstructor {

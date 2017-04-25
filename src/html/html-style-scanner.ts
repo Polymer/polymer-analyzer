@@ -67,6 +67,6 @@ export class HtmlStyleScanner implements HtmlScanner {
       }
     });
 
-    return {features, warnings: []};
+    return {features};
   }
 }

@@ -31,7 +31,7 @@ export class FunctionScanner implements JavaScriptScanner {
       visit: (visitor: Visitor) => Promise<void>) {
     const visitor = new FunctionVisitor(document);
     await visit(visitor);
-    return {features: Array.from(visitor.functions), warnings: []};
+    return {features: Array.from(visitor.functions)};
   }
 }
 

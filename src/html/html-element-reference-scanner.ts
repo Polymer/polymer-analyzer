@@ -72,7 +72,7 @@ export class HtmlElementReferenceScanner implements HtmlScanner {
 
     await visit(visitor);
 
-    return {features: elements, warnings: []};
+    return {features: elements};
   }
 }
 

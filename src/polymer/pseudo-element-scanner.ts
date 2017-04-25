@@ -70,6 +70,6 @@ export class PseudoElementScanner implements HtmlScanner {
         }
       }
     });
-    return {features: elements, warnings: []};
+    return {features: elements};
   }
 }

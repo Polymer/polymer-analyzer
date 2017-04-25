@@ -46,6 +46,6 @@ export class TypeScriptImportScanner implements
     }
     const visitor = new ImportVisitor();
     await visit(visitor);
-    return {features: imports, warnings: []};
+    return {features: imports};
   }
 }

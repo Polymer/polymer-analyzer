@@ -82,6 +82,6 @@ export class HtmlImportScanner implements HtmlScanner {
         }
       }
     }
-    return {features: imports, warnings: []};
+    return {features: imports};
   }
 }

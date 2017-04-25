@@ -67,6 +67,6 @@ export class HtmlScriptScanner implements HtmlScanner {
 
     await visit(myVisitor);
 
-    return {features, warnings: []};
+    return {features};
   }
 }

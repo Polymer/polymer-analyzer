@@ -156,6 +156,6 @@ export class DomModuleScanner implements HtmlScanner {
             databindings));
       }
     });
-    return {features: domModules, warnings: []};
+    return {features: domModules};
   }
 }
