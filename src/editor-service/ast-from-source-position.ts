@@ -226,7 +226,7 @@ function isElementLocationInfo(location: parse5.LocationInfo|
                                parse5.ElementLocationInfo):
     location is parse5.ElementLocationInfo {
   const loc = location as parse5.ElementLocationInfo;
-  return !!(loc.startTag && loc.endTag);
+  return (loc.startTag && loc.endTag) !== undefined;
 }
 
 type Parse5Location = parse5.LocationInfo|parse5.ElementLocationInfo;

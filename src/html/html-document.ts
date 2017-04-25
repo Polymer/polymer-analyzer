@@ -225,7 +225,7 @@ function isElementLocationInfo(location: parse5.LocationInfo|
                                parse5.ElementLocationInfo):
     location is parse5.ElementLocationInfo {
   const loc = location as Partial<parse5.ElementLocationInfo>;
-  return !!(loc.startTag && loc.endTag);
+  return (loc.startTag && loc.endTag) != null;
 }
 
 function getStartTagLocation(node: parse5.ASTNode): parse5.LocationInfo|
@@ -261,9 +261,9 @@ function getAttributeLocation(
   const location = node.__location;
   const elemLocation = location as Partial<parse5.ElementLocationInfo>;
   const elemStartLocation = location as Partial<parse5.StartTagLocationInfo>;
-  if (elemLocation.startTag && elemLocation.startTag.attrs) {
+  if (elemLocation.startTag !== undefined && elemLocation.startTag.attrs) {
     attrs = elemLocation.startTag.attrs;
-  } else if (elemStartLocation.attrs) {
+  } else if (elemStartLocation.attrs !== undefined) {
     attrs = elemStartLocation.attrs;
   }
   if (!attrs) {

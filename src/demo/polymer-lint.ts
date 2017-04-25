@@ -38,7 +38,7 @@ async function getWarnings(analyzer: Analyzer, localPath: string):
           (await analyzer.analyze([localPath])).getDocument(localPath);
       if (result instanceof Document) {
         return result.getWarnings({imported: false});
-      } else if (result) {
+      } else if (result !== undefined) {
         return [result];
       } else {
         return [];
