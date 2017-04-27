@@ -85,7 +85,7 @@ export interface Options {
 }
 
 export interface ScannedPolymerExtension extends ScannedElementBase {
-  properties: ScannedPolymerProperty[];
+  properties: Map<string, ScannedPolymerProperty>;
   methods: ScannedMethod[];
   observers: Observer[];
   listeners: {event: string, handler: string}[];
@@ -102,7 +102,7 @@ export interface ScannedPolymerExtension extends ScannedElementBase {
 
 export function addProperty(
     target: ScannedPolymerExtension, prop: ScannedPolymerProperty) {
-  target.properties.push(prop);
+  target.properties.set(prop.name, prop);
   const attributeName = propertyToAttributeName(prop.name);
   // Don't produce attributes or events for nonpublic properties, properties
   // that aren't in Polymer's `properties` block (i.e. not published),
@@ -140,7 +140,7 @@ export function addMethod(
  */
 export class ScannedPolymerElement extends ScannedElement implements
     ScannedPolymerExtension {
-  properties: ScannedPolymerProperty[] = [];
+  properties: Map<string, ScannedPolymerProperty> = new Map();
   methods: ScannedMethod[] = [];
   observers: Observer[] = [];
   listeners: {event: string, handler: string}[] = [];
@@ -199,7 +199,7 @@ export class ScannedPolymerElement extends ScannedElement implements
 }
 
 export interface PolymerExtension extends ElementBase {
-  properties: PolymerProperty[];
+  properties: Map<string, PolymerProperty>;
 
   observers: ImmutableArray < {
     javascriptNode: estree.Expression|estree.SpreadElement,
@@ -223,7 +223,7 @@ declare module '../model/queryable' {
 }
 
 export class PolymerElement extends Element implements PolymerExtension {
-  readonly properties: PolymerProperty[];
+  readonly properties: Map<string, PolymerProperty>;
   readonly observers: ImmutableArray<Observer> = [];
   readonly listeners: ImmutableArray<{event: string, handler: string}> = [];
   readonly behaviorAssignments: ImmutableArray<ScannedBehaviorAssignment> = [];

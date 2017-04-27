@@ -224,7 +224,7 @@ class BehaviorVisitor implements Visitor {
       behavior.demos = behavior.demos.concat(newBehavior.demos);
       behavior.events = behavior.events.concat(newBehavior.events);
       behavior.events = dedupe(behavior.events, (e) => e.name);
-      for (const property of newBehavior.properties) {
+      for (const property of newBehavior.properties.values()) {
         behavior.addProperty(property);
       }
       behavior.observers = behavior.observers.concat(newBehavior.observers);

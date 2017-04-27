@@ -115,9 +115,9 @@ suite('PolymerElementScanner', () => {
           features[0].observers.map(
               (o) => o.parsedExpression!.properties.map((p) => p.name)),
           [['_anObserver', 'foo', 'bar'], ['_anotherObserver', 'foo']]);
+      const properties = Array.from(features[0].properties.values());
       assert.deepEqual(
-          features[0]
-              .properties.filter((p) => p.observerExpression)
+          properties.filter((p) => p.observerExpression)
               .map(
                   (p) =>
                       [p.name,
@@ -125,8 +125,7 @@ suite('PolymerElementScanner', () => {
           [['f', ['_observeF']], ['all', ['_observeAll']]]);
 
       assert.deepEqual(
-          features[0]
-              .properties.filter((p) => p.computedExpression)
+          properties.filter((p) => p.computedExpression)
               .map(
                   (p) =>
                       [p.name,
@@ -136,11 +135,10 @@ suite('PolymerElementScanner', () => {
       assert.deepEqual(
           features[0].events.map((e) => e.name), ['e-changed', 'all-changed']);
 
-      assert.equal(features[0].properties.length, 9);
+      assert.equal(properties.length, 9);
 
       assert.deepEqual(
-          features[0]
-              .properties.filter((p) => p.warnings.length > 0)
+          properties.filter((p) => p.warnings.length > 0)
               .map((p) => [p.name, p.warnings.map((w) => w.message)]),
           [[
             'g',
@@ -170,7 +168,7 @@ suite('PolymerElementScanner', () => {
             ['bar', 'number', 'The second argument.'],
           ]);
 
-      assert.deepEqual(features[0].properties.map((p) => [p.name, p.type]), [
+      assert.deepEqual(properties.map((p) => [p.name, p.type]), [
         ['a', 'boolean'],
         ['b', 'string'],
         ['c', 'number'],
@@ -196,18 +194,15 @@ suite('PolymerElementScanner', () => {
           ]);
 
       assert.deepEqual(
-          features[0].properties.filter((p) => p.readOnly).map((p) => p.name),
+          properties.filter((p) => p.readOnly).map((p) => p.name),
           ['c', 'd', 'g']);
 
       assert.deepEqual(
-          features[0]
-              .properties.filter((p) => p.default)
-              .map((p) => [p.name, p.default]),
+          properties.filter((p) => p.default).map((p) => [p.name, p.default]),
           [['a', '5'], ['b', '"test"']]);
 
       assert.deepEqual(
-          features[0].properties.filter((p) => p.notify).map((p) => p.name),
-          ['e', 'all']);
+          properties.filter((p) => p.notify).map((p) => p.name), ['e', 'all']);
 
       assert.deepEqual(features[0].listeners, [
         {event: 'event-a', handler: '_handleA'},
@@ -290,12 +285,12 @@ suite('PolymerElementScanner', () => {
       assert.deepEqual(features.length, 1);
       const element = features[0]!;
       assert.deepEqual(
-          element.properties.map((p) => p.name),
+          Array.from(element.properties.keys()),
           ['parseError', 'badKindOfExpression']);
 
       assert.deepEqual(
-          await Promise.all(
-              element.properties.map((p) => underliner.underline(p.warnings))),
+          await Promise.all(Array.from(element.properties.values())
+                                .map((p) => underliner.underline(p.warnings))),
           [
             [
               `

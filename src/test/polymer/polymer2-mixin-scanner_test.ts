@@ -51,7 +51,7 @@ suite('Polymer2MixinScanner', () => {
   async function getTestProps(mixin: ScannedPolymerElementMixin|
                               PolymerElementMixin) {
     const properties = [];
-    for (const {name} of mixin.properties) {
+    for (const name of mixin.properties.keys()) {
       properties.push({name});
     }
     const attributes = [];
@@ -279,11 +279,11 @@ function TestMixin() {
                        underlinedWarnings: [],
                      }]);
     const underlinedSource = await underliner.underline(mixins[0].sourceRange);
-    assert.equal(underlinedSource, `
+    assert.deepEqual(underlinedSource, `
 Polymer.TestMixin = Polymer.woohoo(function TestMixin(base) {
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  /** 
-~~~~~~
+  /**
+~~~~~
    * @mixinClass
 ~~~~~~~~~~~~~~~~
    * @polymer

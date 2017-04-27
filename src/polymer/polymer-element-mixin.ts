@@ -34,7 +34,7 @@ export interface Options {
 
 export class ScannedPolymerElementMixin extends ScannedElementMixin implements
     ScannedPolymerExtension {
-  readonly properties: ScannedPolymerProperty[] = [];
+  readonly properties: Map<string, ScannedPolymerProperty> = new Map();
   readonly methods: ScannedMethod[] = [];
   readonly observers: Observer[] = [];
   readonly listeners: {event: string, handler: string}[] = [];
@@ -90,7 +90,7 @@ declare module '../model/queryable' {
 }
 export class PolymerElementMixin extends ElementMixin implements
     PolymerExtension {
-  readonly properties: PolymerProperty[];
+  readonly properties: Map<string, PolymerProperty>;
   readonly methods: Method[];
 
   readonly observers: Observer[];

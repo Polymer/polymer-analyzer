@@ -22,7 +22,7 @@ import {Document} from '../../model/model';
 import {PolymerElement} from '../../polymer/polymer-element';
 import {FSUrlLoader} from '../../url-loader/fs-url-loader';
 
-suite('PolymerElement', () => {
+suite('PolymerElement with old jsdoc annotations', () => {
   const testFilesDir = path.resolve(__dirname, '../static/polymer2-old-jsdoc/');
   const urlLoader = new FSUrlLoader(testFilesDir);
   const analyzer = new Analyzer({
@@ -48,10 +48,12 @@ suite('PolymerElement', () => {
       superClass: element.superClass && element.superClass.identifier,
       tagName: element.tagName,
       description: element.description,
-      properties: element.properties.map((p) => ({
-                                           name: p.name,
-                                           inheritedFrom: p.inheritedFrom,
-                                         })),
+      properties:
+          Array.from(element.properties.values()).map((p) => ({
+                                                        name: p.name,
+                                                        inheritedFrom:
+                                                            p.inheritedFrom,
+                                                      })),
       attributes: element.attributes.map((a) => ({
                                            name: a.name,
                                          })),

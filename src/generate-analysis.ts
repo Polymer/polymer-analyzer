@@ -222,8 +222,8 @@ function serializeClass(class_: ResolvedClass, packagePath: string): Class {
   const packageRelativePath =
       pathLib.relative(packagePath, class_.sourceRange!.file);
 
-  const properties =
-      class_.properties.map((p) => serializeProperty(class_, path, p));
+  const properties = Array.from(class_.properties.values())
+                         .map((p) => serializeProperty(class_, path, p));
   const methods = class_.methods.map((m) => serializeMethod(class_, path, m));
 
   const serialized: Class = {

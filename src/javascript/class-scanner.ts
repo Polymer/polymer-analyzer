@@ -408,7 +408,7 @@ class ClassFinder implements Visitor {
         doc,
         (doc.description || '').trim(),
         this._document.sourceRangeForNode(astNode)!,
-        [],
+        new Map(),
         getMethods(astNode, this._document),
         this._getExtends(astNode, doc, warnings, this._document),
         jsdoc.getMixinApplications(this._document, astNode, doc, warnings),

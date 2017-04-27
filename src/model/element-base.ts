@@ -27,7 +27,7 @@ export {Visitor} from '../javascript/estree-visitor';
  * Base class for ScannedElement and ScannedElementMixin.
  */
 export abstract class ScannedElementBase implements Resolvable {
-  properties: ScannedProperty[] = [];
+  properties: Map<string, ScannedProperty> = new Map();
   attributes: ScannedAttribute[] = [];
   description = '';
   summary = '';

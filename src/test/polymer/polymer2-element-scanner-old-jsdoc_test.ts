@@ -25,7 +25,7 @@ import {CodeUnderliner} from '../test-utils';
 
 chaiUse(require('chai-subset'));
 
-suite('Polymer2ElementScanner', () => {
+suite('Polymer2ElementScanner with old jsdoc annotations', () => {
   const testFilesDir = path.resolve(__dirname, '../static/polymer2-old-jsdoc/');
   const urlLoader = new FSUrlLoader(testFilesDir);
   const underliner = new CodeUnderliner(urlLoader);
@@ -52,24 +52,27 @@ suite('Polymer2ElementScanner', () => {
           tagName: element.tagName,
           description: element.description,
           summary: element.summary,
-          properties: await Promise.all(element.properties.map(async(p) => {
-            const result = {name: p.name, description: p.description} as any;
-            if (p.type) {
-              result.type = p.type;
-            }
-            if (p.observerExpression) {
-              result.propertiesInObserver =
-                  p.observerExpression.properties.map((p) => p.name);
-            }
-            if (p.computedExpression) {
-              result.propertiesInComputed =
-                  p.computedExpression.properties.map((p) => p.name);
-            }
-            if (p.warnings.length > 0) {
-              result.warningUnderlines = await underliner.underline(p.warnings);
-            }
-            return result;
-          })),
+          properties: await Promise.all(
+              Array.from(element.properties.values()).map(async(p) => {
+                const result = {name: p.name,
+                                description: p.description} as any;
+                if (p.type) {
+                  result.type = p.type;
+                }
+                if (p.observerExpression) {
+                  result.propertiesInObserver =
+                      p.observerExpression.properties.map((p) => p.name);
+                }
+                if (p.computedExpression) {
+                  result.propertiesInComputed =
+                      p.computedExpression.properties.map((p) => p.name);
+                }
+                if (p.warnings.length > 0) {
+                  result.warningUnderlines =
+                      await underliner.underline(p.warnings);
+                }
+                return result;
+              })),
           attributes: element.attributes.map((a) => ({
                                                name: a.name,
                                              })),

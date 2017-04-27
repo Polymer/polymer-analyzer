@@ -68,9 +68,9 @@ suite('Class', () => {
       description: class_.description,
       privacy: class_.privacy
     };
-    if (class_.properties.length > 0) {
+    if (class_.properties.size > 0) {
       result.properties = [];
-      for (const {name} of class_.properties) {
+      for (const {name} of class_.properties.values()) {
         result.properties.push({name});
       }
     }
