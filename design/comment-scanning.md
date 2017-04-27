@@ -137,7 +137,7 @@ Here is an overview of how the Linter would work using the two comment-types des
 
 For the purpose of this example, we’ll denote a Lint Directive as `LintDirective(command: 'enable'|'disable', rules?: string[])` where rules is a list of rules *or rule sets*. If `rules` is` undefined, all lint rules will be enabled/disabled.
 
-### Scanning / Analysis
+### In the Analyzer...
 
 1. A new pluggable scanner would be added to the analyzer for each language we care to scan for Polymer Lint directives.
 1. That scanner knows to look for two different comment directive IDs:
@@ -148,7 +148,7 @@ For the purpose of this example, we’ll denote a Lint Directive as `LintDirecti
 1. For each "enable" `LintDirective` found, create a new **`LintDirective('enable', rules)`** with the parsed rules (or undefined if none existed).
 1. Return all found `LintDirectives` as scanned features of kind 'directive'.
 
-### Linting
+### In the Linter...
 
 1. The linter gets all `LintDirectives` for a document before linting a given set of rules
 1. It could either:
