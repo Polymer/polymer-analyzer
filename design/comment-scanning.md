@@ -144,7 +144,7 @@ For the purpose of this example, we’ll denote a Lint Directive as `LintDirecti
   - "disable" `LintDirective`: “polymer-lint disable:”
   - "enable" `LintDirective`: “polymer-lint enable:”
 1. That scanner also knows how to parse the arguments for each directive as a comma-separated list of rules.
-1. For each "disable” `LintDirective` found, create a new **`LintDirective('disable', rules)`** with the parsed rules (or undefined if none existed).
+1. For each "disable" `LintDirective` found, create a new **`LintDirective('disable', rules)`** with the parsed rules (or undefined if none existed).
 1. For each "enable" `LintDirective` found, create a new **`LintDirective('enable', rules)`** with the parsed rules (or undefined if none existed).
 1. Return all found `LintDirectives` as scanned features of kind 'directive'.
 
