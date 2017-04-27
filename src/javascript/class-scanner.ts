@@ -184,7 +184,7 @@ export class ClassScanner implements JavaScriptScanner {
 
     let scannedElement: ScannedPolymerElement;
     let properties: ScannedProperty[] = [];
-    let methods: ScannedMethod[] = [];
+    let methods = new Map<string, ScannedMethod>();
     let observers: Observer[] = [];
 
     // This will cover almost all classes, except those defined only by

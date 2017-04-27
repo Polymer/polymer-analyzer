@@ -70,7 +70,7 @@ export interface Options {
   jsdoc: JsDocAnnotation;
   description: string|undefined;
   properties: ScannedProperty[];
-  methods: ScannedMethod[];
+  methods: Map<string, ScannedMethod>;
   attributes: ScannedAttribute[];
   observers: Observer[];
   listeners: {event: string, handler: string}[];
@@ -86,7 +86,7 @@ export interface Options {
 
 export interface ScannedPolymerExtension extends ScannedElementBase {
   properties: Map<string, ScannedPolymerProperty>;
-  methods: ScannedMethod[];
+  methods: Map<string, ScannedMethod>;
   observers: Observer[];
   listeners: {event: string, handler: string}[];
   behaviorAssignments: ScannedBehaviorAssignment[];
@@ -132,7 +132,7 @@ export function addProperty(
 
 export function addMethod(
     target: ScannedPolymerExtension, method: ScannedMethod) {
-  target.methods.push(method);
+  target.methods.set(method.name, method);
 }
 
 /**
@@ -140,8 +140,8 @@ export function addMethod(
  */
 export class ScannedPolymerElement extends ScannedElement implements
     ScannedPolymerExtension {
-  properties: Map<string, ScannedPolymerProperty> = new Map();
-  methods: ScannedMethod[] = [];
+  properties = new Map<string, ScannedPolymerProperty>();
+  methods = new Map<string, ScannedMethod>();
   observers: Observer[] = [];
   listeners: {event: string, handler: string}[] = [];
   behaviorAssignments: ScannedBehaviorAssignment[] = [];

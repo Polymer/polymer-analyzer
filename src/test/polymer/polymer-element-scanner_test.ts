@@ -147,15 +147,16 @@ suite('PolymerElementScanner', () => {
               'Unable to determine type for property.'
             ]
           ]]);
-
-      assert.deepEqual(features[0].methods.map((m) => m.name), [
+      const methods = Array.from(features[0].methods.values());
+      assert.deepEqual(methods.map((m) => m.name), [
         'customPublicMethod',
         '_customPrivateMethod',
         'customPublicMethodWithJsDoc',
         'customPublicMethodWithClassicFunction',
       ]);
 
-      const jsDocMethod = features[0].methods[2];
+      const jsDocMethod =
+          features[0].methods.get('customPublicMethodWithJsDoc')!;
 
       assert.deepEqual(jsDocMethod.return !, {
         type: 'boolean',

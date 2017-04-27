@@ -43,7 +43,7 @@ export class ScannedClass implements ScannedFeature, Resolvable {
   readonly summary: string;
   readonly sourceRange: SourceRange;
   readonly properties: Map<string, ScannedProperty>;
-  readonly methods: ScannedMethod[];
+  readonly methods: ImmutableMap<string, ScannedMethod>;
   readonly superClass: ScannedReference|undefined;
   readonly mixins: ScannedReference[];
   readonly abstract: boolean;
@@ -54,9 +54,9 @@ export class ScannedClass implements ScannedFeature, Resolvable {
       className: string|undefined, localClassName: string|undefined,
       astNode: estree.Node, jsdoc: jsdocLib.Annotation, description: string,
       sourceRange: SourceRange, properties: Map<string, ScannedProperty>,
-      methods: ScannedMethod[], superClass: ScannedReference|undefined,
-      mixins: ScannedReference[], privacy: Privacy, warnings: Warning[],
-      abstract: boolean, demos: Demo[]) {
+      methods: Map<string, ScannedMethod>,
+      superClass: ScannedReference|undefined, mixins: ScannedReference[],
+      privacy: Privacy, warnings: Warning[], abstract: boolean, demos: Demo[]) {
     this.name = className;
     this.localName = localClassName;
     this.astNode = astNode;
@@ -96,8 +96,8 @@ export interface ClassInit {
   readonly className?: string;
   readonly jsdoc?: jsdocLib.Annotation;
   readonly description: string;
-  readonly properties?: Map<string, Property>;
-  readonly methods?: Method[];
+  readonly properties?: ImmutableMap<string, Property>;
+  readonly methods?: ImmutableMap<string, Method>;
   readonly superClass?: ScannedReference|undefined;
   readonly mixins?: ScannedReference[];
   readonly abstract: boolean;
@@ -122,7 +122,7 @@ export class Class implements Feature {
   readonly jsdoc: jsdocLib.Annotation|undefined;
   description: string;
   readonly properties = new Map<string, Property>();
-  readonly methods: Method[] = [];
+  readonly methods: Map<string, Method> = new Map();
   readonly superClass: Reference|undefined;
   /**
    * Mixins that this class declares with `@mixes`.
@@ -167,12 +167,16 @@ export class Class implements Feature {
       this.inheritFrom(superClassLike);
     }
 
-    this._overwriteInheritedMap(
-        this.properties, init.properties || new Map(), undefined, true);
-    this._overwriteInherited(this.methods, init.methods || [], undefined, true);
+    if (init.properties !== undefined) {
+      this._overwriteInheritedMap(
+          this.properties, init.properties, undefined, true);
+    }
+    if (init.methods !== undefined) {
+      this._overwriteInheritedMap(this.methods, init.methods, undefined, true);
+    }
 
 
-    for (const method of this.methods) {
+    for (const method of this.methods.values()) {
       // methods are only public by default if they're documented.
       method.privacy = getOrInferPrivacy(method.name, method.jsdoc);
     }
@@ -181,7 +185,8 @@ export class Class implements Feature {
   protected inheritFrom(superClass: Class) {
     this._overwriteInheritedMap(
         this.properties, superClass.properties, superClass.name);
-    this._overwriteInherited(this.methods, superClass.methods, superClass.name);
+    this._overwriteInheritedMap(
+        this.methods, superClass.methods, superClass.name);
   }
 
   /**

@@ -76,11 +76,12 @@ suite('Polymer2ElementScanner', () => {
           attributes: element.attributes.map((a) => ({
                                                name: a.name,
                                              })),
-          methods: element.methods.map((m) => ({
-                                         name: m.name,
-                                         params: m.params, return: m.return,
-                                         description: m.description
-                                       })),
+          methods: Array.from(element.methods.values())
+                       .map((m) => ({
+                              name: m.name,
+                              params: m.params, return: m.return,
+                              description: m.description
+                            })),
 
           warningUnderlines: await underliner.underline(element.warnings),
 

@@ -18,7 +18,8 @@ import * as jsdoc from '../javascript/jsdoc';
 
 import {Class, ClassInit} from './class';
 import {Privacy} from './feature';
-import {Attribute, Document, Event, Feature, Method, Resolvable, ScannedAttribute, ScannedEvent, ScannedProperty, ScannedReference, SourceRange, Warning} from './model';
+import {ScannedMethod} from './method';
+import {Attribute, Document, Event, Feature, Resolvable, ScannedAttribute, ScannedEvent, ScannedProperty, ScannedReference, SourceRange, Warning} from './model';
 import {Severity} from './warning';
 
 export {Visitor} from '../javascript/estree-visitor';
@@ -34,7 +35,7 @@ export abstract class ScannedElementBase implements Resolvable {
   demos: {desc?: string; path: string}[] = [];
   events: ScannedEvent[] = [];
   sourceRange: SourceRange|undefined;
-  methods: Method[];
+  methods: Map<string, ScannedMethod>;
   astNode: estree.Node|null;
   warnings: Warning[] = [];
   jsdoc?: jsdoc.Annotation;

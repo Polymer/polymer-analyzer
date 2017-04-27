@@ -50,11 +50,12 @@ suite('PolymerElement', () => {
       attributes: element.attributes.map((a) => ({
                                            name: a.name,
                                          })),
-      methods: element.methods.map((m) => ({
-                                     name: m.name,
-                                     params: m.params, return: m.return,
-                                     inheritedFrom: m.inheritedFrom
-                                   })),
+      methods: Array.from(element.methods.values())
+                   .map((m) => ({
+                          name: m.name,
+                          params: m.params, return: m.return,
+                          inheritedFrom: m.inheritedFrom
+                        })),
     };
   }
 

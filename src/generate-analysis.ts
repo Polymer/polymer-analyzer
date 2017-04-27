@@ -224,7 +224,8 @@ function serializeClass(class_: ResolvedClass, packagePath: string): Class {
 
   const properties = Array.from(class_.properties.values())
                          .map((p) => serializeProperty(class_, path, p));
-  const methods = class_.methods.map((m) => serializeMethod(class_, path, m));
+  const methods = Array.from(class_.methods.values())
+                      .map((m) => serializeMethod(class_, path, m));
 
   const serialized: Class = {
     description: class_.description || '',
