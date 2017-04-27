@@ -16,7 +16,7 @@
 
 
 ## Non-Goals
-- Implementing any "attached" comment annotation scanning. It was important to outline so that the scope of comment directives could be explained, but implementation will be left as future work.
+- Implementing any "attached" comment annotation scanning. It was important to outline so that the scope of comment directives could be explained, but implementation will be left as future work. The current `jsdoc` property on JavaScript features is good enough for the moment.
 
 ## Background
 
@@ -112,6 +112,8 @@ const TestMixin = function(superclass) {
 - A comment annotation is always included in the comment "attached" to a feature.
    - Each scanner will decide which comment is considered "attached" if one exists.
 - All features will now have a general `annotations` property containing all scanned annotations in the attached comment.
+   - This would supercede the `jsdoc` property on JavaScript features.
+   - If it helps, think of `annotations` as a general-purpose jsdoc-like format, but for all languages.
 - This will allow 3rd party tooling to add handling for annotations when scanners already exist
 - Format
   - Multiple comment annotations are allowed within a feature's "attached" comment block
@@ -119,7 +121,6 @@ const TestMixin = function(superclass) {
   - Each is of the format `@IDENTIFIER [TEXT...]`, where `IDENTIFIER` is the unique annotation ID
   - Each may have text afterwards, which is considered the annotation "description"
 - An annotation will be consumed directly from the `annotations` Set on a feature
-- *Future Work:* If a separate phase existed after scanning, pluggable resolvers could be added to resolve features based on scanned annotations.
 
 
 Here is a definition for the **Annotation** type interface stored in the `Feature.annotations` Set:
