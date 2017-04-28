@@ -19,7 +19,7 @@ import {Document, Feature, Method, Privacy, Property, Reference, Resolvable, Sca
 
 import {getOrInferPrivacy} from '../polymer/js-utils';
 import {Demo} from './element-base';
-import {ImmutableArray, ImmutableMap} from './immutable';
+import {ImmutableMap} from './immutable';
 
 /**
  * Represents a JS class as encountered in source code.
