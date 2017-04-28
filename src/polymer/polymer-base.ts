@@ -26,11 +26,11 @@ export type Constructor<T> = new (...args: any[]) => T;
 export function PolymerExt<S extends Constructor<ElementBase>>(superClass: S):
     Constructor<PolymerExtension>&S {
   class PolymerExt extends superClass {
-    properties: PolymerProperty[];
-    observers: ImmutableArray<Observer>;
-    listeners: ImmutableArray<{event: string, handler: string}>;
-    behaviorAssignments: ImmutableArray<ScannedBehaviorAssignment>;
-    scriptElement?: dom5.Node;
+    readonly properties: PolymerProperty[];
+    readonly observers: ImmutableArray<Observer>;
+    readonly listeners: ImmutableArray<{event: string, handler: string}>;
+    readonly behaviorAssignments: ImmutableArray<ScannedBehaviorAssignment>;
+    readonly scriptElement?: dom5.Node;
 
     constructor(...args: any[]) {
       const options: {
