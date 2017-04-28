@@ -120,10 +120,10 @@ export abstract class ElementBase extends Class implements Feature {
     this.events = this.events || new Map();
 
     if (attributes !== undefined) {
-      this._overwriteInheritedMap(this.attributes, attributes, undefined, true);
+      this._overwriteInherited(this.attributes, attributes, undefined, true);
     }
     if (events !== undefined) {
-      this._overwriteInheritedMap(this.events, events, undefined, true);
+      this._overwriteInherited(this.events, events, undefined, true);
     }
   }
 
@@ -135,10 +135,9 @@ export abstract class ElementBase extends Class implements Feature {
 
     super.inheritFrom(superClass);
     if (superClass instanceof ElementBase) {
-      this._overwriteInheritedMap(
+      this._overwriteInherited(
           this.attributes, superClass.attributes, superClass.name);
-      this._overwriteInheritedMap(
-          this.events, superClass.events, superClass.name);
+      this._overwriteInherited(this.events, superClass.events, superClass.name);
     }
 
     // TODO(justinfagnani): slots, listeners, observers, dom-module?

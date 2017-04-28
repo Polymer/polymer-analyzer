@@ -168,11 +168,11 @@ export class Class implements Feature {
     }
 
     if (init.properties !== undefined) {
-      this._overwriteInheritedMap(
+      this._overwriteInherited(
           this.properties, init.properties, undefined, true);
     }
     if (init.methods !== undefined) {
-      this._overwriteInheritedMap(this.methods, init.methods, undefined, true);
+      this._overwriteInherited(this.methods, init.methods, undefined, true);
     }
 
 
@@ -183,10 +183,9 @@ export class Class implements Feature {
   }
 
   protected inheritFrom(superClass: Class) {
-    this._overwriteInheritedMap(
+    this._overwriteInherited(
         this.properties, superClass.properties, superClass.name);
-    this._overwriteInheritedMap(
-        this.methods, superClass.methods, superClass.name);
+    this._overwriteInherited(this.methods, superClass.methods, superClass.name);
   }
 
   /**
@@ -205,49 +204,8 @@ export class Class implements Feature {
    *   applying the class's own local members.
    */
   protected _overwriteInherited<P extends PropertyLike>(
-      existing: P[], overriding: ImmutableArray<P>,
-      overridingClassName: string|undefined, applyingSelf = false) {
-    // This exists to treat the arrays as maps.
-    // TODO(rictic): convert these arrays to maps.
-    const existingIndexByName =
-        new Map(existing.map((e, idx) => [e.name, idx] as [string, number]));
-    for (const overridingVal of overriding) {
-      const newVal = Object.assign({}, overridingVal, {
-        inheritedFrom: overridingVal['inheritedFrom'] || overridingClassName
-      });
-      if (existingIndexByName.has(overridingVal.name)) {
-        /**
-         * TODO(rictic): if existingVal.privacy is protected, newVal should be
-         *    protected unless an explicit privacy was specified.
-         *    https://github.com/Polymer/polymer-analyzer/issues/631
-         */
-        const existingIndex = existingIndexByName.get(overridingVal.name)!;
-        const existingValue = existing[existingIndex]!;
-        if (existingValue.privacy === 'private') {
-          let warningSourceRange = this.sourceRange!;
-          if (applyingSelf) {
-            warningSourceRange = newVal.sourceRange || this.sourceRange!;
-          }
-          this.warnings.push({
-            code: 'overriding-private',
-            message: `Overriding private member '${overridingVal.name}' ` +
-                `inherited from ${existingValue.inheritedFrom || 'parent'}`,
-            sourceRange: warningSourceRange,
-            severity: Severity.WARNING
-          });
-        }
-        existing[existingIndex] = newVal;
-        continue;
-      }
-      existing.push(newVal);
-    }
-  }
-
-  protected _overwriteInheritedMap<P extends PropertyLike>(
       existing: Map<string, P>, overriding: ImmutableMap<string, P>,
       overridingClassName: string|undefined, applyingSelf = false) {
-    // This exists to treat the arrays as maps.
-    // TODO(rictic): convert these arrays to maps.
     for (const [key, overridingVal] of overriding) {
       const newVal = Object.assign({}, overridingVal, {
         inheritedFrom: overridingVal['inheritedFrom'] || overridingClassName
