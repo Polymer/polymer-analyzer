@@ -55,7 +55,7 @@ suite('Polymer2MixinScanner', () => {
       properties.push({name});
     }
     const attributes = [];
-    for (const {name} of mixin.attributes) {
+    for (const name of mixin.attributes.keys()) {
       attributes.push({name});
     }
     const methods = [];

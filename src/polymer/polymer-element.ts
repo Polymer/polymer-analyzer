@@ -71,7 +71,7 @@ export interface Options {
   description: string|undefined;
   properties: ScannedProperty[];
   methods: Map<string, ScannedMethod>;
-  attributes: ScannedAttribute[];
+  attributes: Map<string, ScannedAttribute>;
   observers: Observer[];
   listeners: {event: string, handler: string}[];
   behaviors: ScannedBehaviorAssignment[];
@@ -111,7 +111,7 @@ export function addProperty(
       !prop.published) {
     return;
   }
-  target.attributes.push({
+  target.attributes.set(attributeName, {
     name: attributeName,
     sourceRange: prop.sourceRange,
     description: prop.description,

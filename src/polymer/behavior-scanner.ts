@@ -155,7 +155,7 @@ class BehaviorVisitor implements Visitor {
       sourceRange: this.document.sourceRangeForNode(node),
       privacy: getOrInferPrivacy(symbol, parsedJsdocs),
       abstract: jsdoc.hasTag(parsedJsdocs, 'abstract'),
-      attributes: [],
+      attributes: new Map(),
       properties: [],
       behaviors: [],
       className: undefined,

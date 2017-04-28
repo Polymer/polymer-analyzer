@@ -54,9 +54,9 @@ suite('PolymerElement with old jsdoc annotations', () => {
                                                         inheritedFrom:
                                                             p.inheritedFrom,
                                                       })),
-      attributes: element.attributes.map((a) => ({
-                                           name: a.name,
-                                         })),
+      attributes: Array.from(element.attributes.values()).map((a) => ({
+                                                                name: a.name,
+                                                              })),
       methods: Array.from(element.methods.values())
                    .map((m) => ({
                           name: m.name,

@@ -182,7 +182,9 @@ suite('PolymerElementScanner', () => {
       ]);
 
       assert.deepEqual(
-          features[0].attributes.map((p) => [p.name, p.changeEvent]), [
+          Array.from(features[0].attributes.values())
+              .map((p) => [p.name, p.changeEvent]),
+          [
             ['a', undefined],
             ['b', undefined],
             ['c', undefined],

@@ -250,8 +250,9 @@ function serializeElementLike(
   const class_ = serializeClass(elementOrMixin, packagePath) as ElementLike;
   const path = elementOrMixin.sourceRange!.file;
 
-  class_.attributes = elementOrMixin.attributes.map(
-      (a) => serializeAttribute(elementOrMixin, path, a));
+  class_.attributes =
+      Array.from(elementOrMixin.attributes.values())
+          .map((a) => serializeAttribute(elementOrMixin, path, a));
   class_.events =
       elementOrMixin.events.map((e) => serializeEvent(elementOrMixin, path, e));
 

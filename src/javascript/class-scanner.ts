@@ -213,7 +213,7 @@ export class ClassScanner implements JavaScriptScanner {
       methods,
       observers,
       events: esutil.getEventComments(astNode),
-      attributes: [],
+      attributes: new Map(),
       behaviors: [],
       extends: extends_,
       listeners: [],
@@ -229,13 +229,16 @@ export class ClassScanner implements JavaScriptScanner {
 
     if (astNode.type === 'ClassExpression' ||
         astNode.type === 'ClassDeclaration') {
-      // If a class defines observedAttributes, it overrides what the base
-      // classes defined.
-      // TODO(justinfagnani): define and handle composition patterns.
       const observedAttributes = this._getObservedAttributes(astNode, document);
 
       if (observedAttributes != null) {
-        scannedElement.attributes = observedAttributes;
+        // If a class defines observedAttributes, it overrides what the base
+        // classes defined.
+        // TODO(justinfagnani): define and handle composition patterns.
+        scannedElement.attributes.clear();
+        for (const attr of observedAttributes) {
+          scannedElement.attributes.set(attr.name, attr);
+        }
       }
     }
 

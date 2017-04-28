@@ -28,8 +28,8 @@ export {Visitor} from '../javascript/estree-visitor';
  * Base class for ScannedElement and ScannedElementMixin.
  */
 export abstract class ScannedElementBase implements Resolvable {
-  properties: Map<string, ScannedProperty> = new Map();
-  attributes: ScannedAttribute[] = [];
+  properties = new Map<string, ScannedProperty>();
+  attributes = new Map<string, ScannedAttribute>();
   description = '';
   summary = '';
   demos: {desc?: string; path: string}[] = [];
@@ -90,16 +90,16 @@ export interface Demo {
 }
 
 export interface ElementBaseInit extends ClassInit {
-  events?: Event[];
-  attributes?: Attribute[];
-  slots?: Slot[];
+  readonly events?: Event[];
+  readonly attributes?: Map<string, Attribute>;
+  readonly slots?: Slot[];
 }
 
 /**
  * Base class for Element and ElementMixin.
  */
 export abstract class ElementBase extends Class implements Feature {
-  attributes: Attribute[];
+  attributes: Map<string, Attribute>;
   events: Event[];
   'slots': Slot[] = [];
 
@@ -107,7 +107,7 @@ export abstract class ElementBase extends Class implements Feature {
     super(init, document);
     const {
       events = [],
-      attributes = [],
+      attributes,
       slots = [],
     } = init;
     this.slots = Array.from(slots);
@@ -115,22 +115,24 @@ export abstract class ElementBase extends Class implements Feature {
     // Initialization of these attributes is kinda awkward, as they're part
     // of the inheritance system. See `inheritFrom` below which *may* be
     // called by our superclass, but may not be.
-    this.attributes = this.attributes || [];
+    this.attributes = this.attributes || new Map();
     this.events = this.events || [];
 
-    this._overwriteInherited(this.attributes, attributes, undefined, true);
+    if (attributes !== undefined) {
+      this._overwriteInheritedMap(this.attributes, attributes, undefined, true);
+    }
     this._overwriteInherited(this.events, events, undefined, true);
   }
 
   protected inheritFrom(superClass: Class) {
     // This may run as part of the call to the super constructor, so we need
     // to validate initialization.
-    this.attributes = this.attributes || [];
+    this.attributes = this.attributes || new Map();
     this.events = this.events || [];
 
     super.inheritFrom(superClass);
     if (superClass instanceof ElementBase) {
-      this._overwriteInherited(
+      this._overwriteInheritedMap(
           this.attributes, superClass.attributes, superClass.name);
       this._overwriteInherited(this.events, superClass.events, superClass.name);
     }
