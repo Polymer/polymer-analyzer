@@ -76,7 +76,7 @@ export interface Options {
   listeners: {event: string, handler: string}[];
   behaviors: ScannedBehaviorAssignment[];
 
-  events: ScannedEvent[];
+  events: Map<string, ScannedEvent>;
 
   abstract: boolean;
   privacy: Privacy;
@@ -119,8 +119,9 @@ export function addProperty(
     changeEvent: prop.notify ? `${attributeName}-changed` : undefined
   });
   if (prop.notify) {
-    target.events.push({
-      name: `${attributeName}-changed`,
+    const name = `${attributeName}-changed`;
+    target.events.set(name, {
+      name,
       description: `Fired when the \`${prop.name}\` property changes.`,
       sourceRange: prop.sourceRange,
       astNode: prop.astNode,
@@ -257,7 +258,7 @@ export class PolymerElement extends Element implements PolymerExtension {
     if (domModule) {
       this.description = this.description || domModule.comment || '';
       this.domModule = domModule.node;
-      this.slots = domModule.slots.slice();
+      this.slots = this.slots.concat(domModule.slots);
       this.localIds = domModule.localIds.slice();
     }
 

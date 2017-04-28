@@ -106,7 +106,6 @@ export class PolymerElementMixin extends ElementMixin implements
     this.domModule = scannedMixin.domModule;
     this.pseudo = scannedMixin.pseudo;
     this.scriptElement = scannedMixin.scriptElement;
-    this.slots = scannedMixin.slots;
     this.behaviorAssignments = Array.from(scannedMixin.behaviorAssignments);
     this.observers = Array.from(scannedMixin.observers);
   }

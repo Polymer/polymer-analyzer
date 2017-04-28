@@ -53,7 +53,7 @@ export class PseudoElementScanner implements HtmlScanner {
 
             properties: [],
             attributes: new Map(),
-            events: [],
+            events: new Map(),
             listeners: [],
             behaviors: [],
             className: undefined,

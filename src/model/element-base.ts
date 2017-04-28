@@ -18,6 +18,7 @@ import * as jsdoc from '../javascript/jsdoc';
 
 import {Class, ClassInit} from './class';
 import {Privacy} from './feature';
+import {ImmutableArray} from './immutable';
 import {ScannedMethod} from './method';
 import {Attribute, Document, Event, Feature, Resolvable, ScannedAttribute, ScannedEvent, ScannedProperty, ScannedReference, SourceRange, Warning} from './model';
 import {Severity} from './warning';
@@ -33,7 +34,7 @@ export abstract class ScannedElementBase implements Resolvable {
   description = '';
   summary = '';
   demos: {desc?: string; path: string}[] = [];
-  events: ScannedEvent[] = [];
+  events: Map<string, ScannedEvent> = new Map();
   sourceRange: SourceRange|undefined;
   methods: Map<string, ScannedMethod>;
   astNode: estree.Node|null;
@@ -90,7 +91,7 @@ export interface Demo {
 }
 
 export interface ElementBaseInit extends ClassInit {
-  readonly events?: Event[];
+  readonly events?: Map<string, Event>;
   readonly attributes?: Map<string, Attribute>;
   readonly slots?: Slot[];
 }
@@ -100,13 +101,13 @@ export interface ElementBaseInit extends ClassInit {
  */
 export abstract class ElementBase extends Class implements Feature {
   attributes: Map<string, Attribute>;
-  events: Event[];
-  'slots': Slot[] = [];
+  events: Map<string, Event>;
+  'slots': ImmutableArray<Slot> = [];
 
   constructor(init: ElementBaseInit, document: Document) {
     super(init, document);
     const {
-      events = [],
+      events,
       attributes,
       slots = [],
     } = init;
@@ -116,25 +117,28 @@ export abstract class ElementBase extends Class implements Feature {
     // of the inheritance system. See `inheritFrom` below which *may* be
     // called by our superclass, but may not be.
     this.attributes = this.attributes || new Map();
-    this.events = this.events || [];
+    this.events = this.events || new Map();
 
     if (attributes !== undefined) {
       this._overwriteInheritedMap(this.attributes, attributes, undefined, true);
     }
-    this._overwriteInherited(this.events, events, undefined, true);
+    if (events !== undefined) {
+      this._overwriteInheritedMap(this.events, events, undefined, true);
+    }
   }
 
   protected inheritFrom(superClass: Class) {
     // This may run as part of the call to the super constructor, so we need
     // to validate initialization.
     this.attributes = this.attributes || new Map();
-    this.events = this.events || [];
+    this.events = this.events || new Map();
 
     super.inheritFrom(superClass);
     if (superClass instanceof ElementBase) {
       this._overwriteInheritedMap(
           this.attributes, superClass.attributes, superClass.name);
-      this._overwriteInherited(this.events, superClass.events, superClass.name);
+      this._overwriteInheritedMap(
+          this.events, superClass.events, superClass.name);
     }
 
     // TODO(justinfagnani): slots, listeners, observers, dom-module?

@@ -253,8 +253,8 @@ function serializeElementLike(
   class_.attributes =
       Array.from(elementOrMixin.attributes.values())
           .map((a) => serializeAttribute(elementOrMixin, path, a));
-  class_.events =
-      elementOrMixin.events.map((e) => serializeEvent(elementOrMixin, path, e));
+  class_.events = Array.from(elementOrMixin.events.values())
+                      .map((e) => serializeEvent(elementOrMixin, path, e));
 
   Object.assign(class_, {
     styling: {

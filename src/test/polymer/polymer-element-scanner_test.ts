@@ -133,7 +133,8 @@ suite('PolymerElementScanner', () => {
           [['d', ['_computeD', 'c']], ['g', ['_computeG', 'a', 'b']]]);
 
       assert.deepEqual(
-          features[0].events.map((e) => e.name), ['e-changed', 'all-changed']);
+          Array.from(features[0].events.values()).map((e) => e.name),
+          ['e-changed', 'all-changed']);
 
       assert.equal(properties.length, 9);
 

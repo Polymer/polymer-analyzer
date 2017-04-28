@@ -27,18 +27,6 @@ import {declarationPropertyHandlers, PropertyHandlers} from './declaration-prope
 import * as docs from './docs';
 import {getOrInferPrivacy, toScannedPolymerProperty} from './js-utils';
 
-function dedupe<T, K>(array: T[], keyFunc: (value: T) => K): T[] {
-  const map = new Map<K, T>();
-  array.forEach((el) => {
-    const key = keyFunc(el);
-    if (map.has(key)) {
-      return;
-    }
-    map.set(key, el);
-  });
-  return Array.from(map.values());
-}
-
 const templatizer = 'Polymer.Templatizer';
 
 export class BehaviorScanner implements JavaScriptScanner {
@@ -222,8 +210,9 @@ class BehaviorVisitor implements Visitor {
       }
       // TODO(justinfagnani): move into ScannedBehavior
       behavior.demos = behavior.demos.concat(newBehavior.demos);
-      behavior.events = behavior.events.concat(newBehavior.events);
-      behavior.events = dedupe(behavior.events, (e) => e.name);
+      for (const [key, val] of newBehavior.events) {
+        behavior.events.set(key, val);
+      }
       for (const property of newBehavior.properties.values()) {
         behavior.addProperty(property);
       }
