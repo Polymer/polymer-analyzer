@@ -62,13 +62,11 @@ class Directive extends Feature {
 - Each comment directive will have a pluggable scanner responsible for scanning for it.
 - That scanner must be able to detect and parse the comment directive format, and return a set of general **Directive** instances.
 - Because of the wide range of possible features these could support, specific comment syntax is lax. However they should follow these guidelines:
-  - it is unique enough to never collide with other directive formats
-  - it is formal enough to be matched by substring or RegEx matching
-  - if it takes arguments they should be parsed in the scanning phase
-Here is a definition for the **Directive** class:
+  - it is unique enough to never collide with other directive formats.
+  - it is formal enough to be matched by substring or RegEx matching.
+  - if it takes arguments they should be parsed in the scanning phase.
 
-
-And here are how those example comment directive's above would be parsed:
+Here is an example of how the comment directives above could be parsed by their scanners:
 
 ```
 /* polymer-lint disable */
@@ -83,7 +81,7 @@ Directive({identifier: 'lazy-import', args: ['../some-url/some-file.html']})
 Directive({identifier: 'polymer-build:register-service-worker-here', args: null})
 ```
 
-> Note: `enable`/`disable` is the first argument and not a part of the identifier. It will be common to have a single identifier for all related directives so that consumers can get all relevant directives by identifier. For example, the linter should be able to call `document.getFeatures({kind: 'directive', id: 'polymer-lint'});` and get both "enable" & "disable" directives.
+> Note: `enable`/`disable` is the first argument of the "polymer-lint" directive and not a part of the identifier. It will be common to have a single identifier for all related directives so that consumers can get all relevant directives by identifier. For example, the linter should be able to call `document.getFeatures({kind: 'directive', id: 'polymer-lint'});` and get both "enable" & "disable" directives.
 
 ### What About Attached Comments?
 
