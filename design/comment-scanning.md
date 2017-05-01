@@ -1,36 +1,25 @@
 # Polymer Analyzer - Comment Directives & Comment Annotations
-> Author @FredKSchott
-> Status: Draft
-> Last Update: 2017-04-26
+> Author [@FredKSchott](github.com/FredKSchott)  
+> Status: Draft  
+> Last Update: 2017-05-01  
 
 ## Objective
-- To analyze standalone comments (directives) for instructions.
-- To analyze "attached" comments (annotations) for information/metadata about an existing feature.
+- To support the analysis of certain instructions documented within source code ("comment directives").
+- To support the analysis of polymer-lint comment directives that can enable/disable certain lint rules within a file.
 
 
 ## Goals
-- To scan & analyze polymer-lint directives so that the linter can properly report & ignore warnings in a document.
-- Create an extensible system for analyzing and surfacing standalone comments in a document.
-- Create an extensible system for analyzing and surfacing "attached" comments in a document that describe/signal features that may already have scanners.
-- Documentation (README, docs/ entry, docs site entry, etc) that communicates this new system.
+- Define a format for comment directives that is as general as possible while still providing some basic parsing & structure (for arguments, etc).
+- Define an implementation for scanning that is extensible. Some scanners may be included by default, but consumers should be able to add and distribute their own.
+- Documentation (README, docs/ entry, docs site entry, etc) that communicates our directive support, and how a 3rd-party developer could add support for analyzing their own directive.
 
 
 ## Non-Goals
-- Implementing any "attached" comment annotation scanning. It was important to outline so that the scope of comment directives could be explained, but implementation will be left as future work. The current `jsdoc` property on JavaScript features is good enough for the moment.
-
+- Define a format for comment directives that are "attached" to existing features. See "What About Attached Comments?" below.
+
 ## Background
 
-Currently, our analyzer scans for explicit documentation to detect features & feature characteristics that would otherwise be missed. For example, the `@customElement` tag is used to signify that the following class definition is a custom element.
-
-However, scanning for each of these annotations is hard-coded into the responsibility of each feature's scanner. That means that there is currently no way to add support for new annotations without replacing the entire scanner for that feature.
-
-There is a second class of documentation that our analyzer currently doesn’t support. Our linter needs to be able to understand documentation that doesn’t describe already existing features. For example, the user may want to send an instruction to some analyzer-powered tool in its build chain:
-
-```html
-<!-- @registerServiceWorkerHere -->
-```
-
-Or, a user may want to describe some behavior across an entire source range, including any number of other existing features (including zero). For example:
+Our tooling needs the ability to read configuration written into the source code. This is important for a tool like polymer-lint, which needs to be able to support enabling & disabling of rules within individual files:
 
 ```js
 /* polymer-lint disable: undefined-elements */
@@ -40,17 +29,16 @@ customElements.define('vanilla-element3', SeriouslyLinterDontBeMad);
 /* polymer-lint enable: undefined-elements */
 ```
 
-Instead of building one-off support for this into the analyzer, we’d like to also think about how the analyzer should analyze all comment-based information so that future features don’t need to reinvent the wheel when it comes to how comments should be scanned.
+Other tools will also benefit from this ability. For example, right now polymer-build asks the user to create and register an empty service worker in development. This way the the auto-generated service worker can overwrite the empty one during build and be loaded instead in production. Instead of all that, the user could just do this:
+
+```html
+<!-- @registerServiceWorkerHere -->
+```
+
+... and the library would inject the service worker registration in to the production application automatically. No more empty dev-only service worker needed.
 
 
 ## Design Overview
-
-This design groups all analysis-related comments into two supported formats: **Comment Directives** & **Comment Annotations**. **Comment Directives** are standalone features represented by standalone code comments. **Comment Annotations** are additional information/metadata that always describe the existing feature they are "attached" to.
-
-Each supports a different use-case for analysis-related documentation. Together they cover most use cases for passing instructions and metadata to the analyzer in a way that is easy for the user to extend with 3rd party support.
-
-
-### Comment Directive
 
 ```
 /* polymer-lint disable */
@@ -60,16 +48,7 @@ Each supports a different use-case for analysis-related documentation. Together 
 <!-- polymer-build:register-service-worker-here -->
 ```
 
-- A comment directive represents a single new **Directive** feature type within a document
-- A comment directive may include "arguments", which will be parsed by the scanner
-- A comment directive must exist within its own comment so that the analyzer can properly create a feature that matches that comment node's location
-- Because of the wide range of possible features these could support, specific comment syntax is lax. However they should follow these guidelines:
-  - it is unique enough to never collide with other directive formats
-  - it is formal enough to be matched by substring or RegEx matching
-  - if it takes arguments they should be parsed in the scanning phase
-- Each comment directive will have a scanner responsible for scanning for it.
-  - A scanner may be responsible for scanning multiple directives (ex: `polymer-lint enable`, `polymer-lint disable`)
-Here is a definition for the **Directive** class:
+A comment directive is represented by a single new **Directive** feature type within a document.
 
 ```
 class Directive extends Feature {
@@ -78,82 +57,72 @@ class Directive extends Feature {
 }
 ```
 
+- A comment directive may include "arguments", which will be parsed by the scanner.
+- A comment directive must exist within its own comment so that the analyzer can properly create a feature that matches that comment node's location.
+- Each comment directive will have a pluggable scanner responsible for scanning for it.
+- That scanner must be able to detect and parse the comment directive format, and return a set of general **Directive** instances.
+- Because of the wide range of possible features these could support, specific comment syntax is lax. However they should follow these guidelines:
+  - it is unique enough to never collide with other directive formats
+  - it is formal enough to be matched by substring or RegEx matching
+  - if it takes arguments they should be parsed in the scanning phase
+Here is a definition for the **Directive** class:
+
+
 And here are how those example comment directive's above would be parsed:
 
 ```
 /* polymer-lint disable */
-Directive({identifier: 'polymer-lint disable', args: null})
+Directive({identifier: 'polymer-lint', args: ['disable']})
 /* polymer-lint disable: undefined-elements, rule-2 */
-Directive({identifier: 'polymer-lint disable', args: ['undefined-elements', 'rule-2']})
+Directive({identifier: 'polymer-lint', args: ['disable', 'undefined-elements', 'rule-2']})
 /* polymer-lint enable: undefined-elements */
-Directive({identifier: 'polymer-lint enable', args: ['undefined-elements']})
+Directive({identifier: 'polymer-lint', args: ['enable', 'undefined-elements']})
 /* lazy-import: '../some-url/some-file.html' */
 Directive({identifier: 'lazy-import', args: ['../some-url/some-file.html']})
 <!-- polymer-build:register-service-worker-here -->
 Directive({identifier: 'polymer-build:register-service-worker-here', args: null})
 ```
 
+> Note: `enable`/`disable` is the first argument and not a part of the identifier. It will be common to have a single identifier for all related directives so that consumers can get all relevant directives by identifier. For example, the linter should be able to call `document.getFeatures({kind: 'directive', id: 'polymer-lint'});` and get both "enable" & "disable" directives.
 
-### Comment Annotation
+### What About Attached Comments?
 
-```js
-/**
- * @polymer
- * @mixinFunction
- */
-const TestMixin = function(superclass) {
-```
-```html
-<!-- @demo demo/index.html -->
-<dom-module id="some-element">
-```
+It is worth reiterating that comment directives are standalone features, and do not support direct "attachment" to some adjacent feature. This is an intentional design decision to make directive behavior more explicit and easier to use properly.
 
-- A comment annotation describes a separate feature in a document. It is not the feature itself.
-- A comment annotation is always included in the comment "attached" to a feature.
-   - Each scanner will decide which comment is considered "attached" if one exists.
-- All features will now have a general `annotations` property containing all scanned annotations in the attached comment.
-   - This would supercede the `jsdoc` property on JavaScript features.
-   - If it helps, think of `annotations` as a general-purpose jsdoc-like format, but for all languages.
-- This will allow 3rd party tooling to add handling for annotations when scanners already exist
-- Format
-  - Multiple comment annotations are allowed within a feature's "attached" comment block
-  - Each requires a new line
-  - Each is of the format `@IDENTIFIER [TEXT...]`, where `IDENTIFIER` is the unique annotation ID
-  - Each may have text afterwards, which is considered the annotation "description"
-- An annotation will be consumed directly from the `annotations` Set on a feature
+By requiring comment directives to be standalone features, we are able to leverage the current, pluggable scanner system of the analyzer. Support for scanning directives that are not their own features introduces the following problems:
 
+- Adding a scanner that doesn't return features -- and instead modifies existing features -- would require some amount of modifications to the current analyzer design. We would need to add a new kind of scanner that ran after all others and that could modify existing features.
+- Moving the responsibility for scanning attached comments into the already-existing scanners would also require a new concept of "attached" comment and a new system of comment parsers that attached to our already pluggable scanners. This would be a new thing that each scanner author would need to worry about applying properly.
+- Moving the responsibility for scanning attached comments completely out of the analyzer and onto consumers would require that each feature includes the full text of its comments for the consumer to analyze.
 
-Here is a definition for the **Annotation** type interface stored in the `Feature.annotations` Set:
+Disregarding implementation concerns, there are also usability concerns for attached comment directives:
 
-```
-interface Annotation {
-  identifier: string;
-  desc?: string;
-}
-```
+- The source range for a comment directive would be decided by the analyzer, not the code author. The user would have no way of knowing the exact source range they were attaching a directive to until analysis. 3rd-party scanners would make this especially hard to define at scale.
+- Supporting multiple behaviors for directives would make them harder to use properly. It would be unclear by reading the code whether a directive was standalone or applied to the source range of some attached feature.
+
+Ultimately, "attached" comment directives would be more work to implement, more difficult to use correctly, and would still be strictly less powerful than standalone directives (there is nothing attached directives could do that standalone directives cold not also do).
+
+If I'm incorrect in this assessment and we later decide that we absolutely need to support attached directives, there should be nothing stopping us from adding that support later on down the road.
+
 
 ## Implementation Example: Polymer Lint
 
-Here is an overview of how the Linter would work using the two comment-types described above.
+Here is an overview of how the Linter would work using the comment directive design outlined above.
 
 For the purpose of this example, we’ll denote a Lint Directive as `LintDirective(command: 'enable'|'disable', rules?: string[])` where rules is a list of rules *or rule sets*. If `rules` is` undefined, all lint rules will be enabled/disabled.
 
 ### In the Analyzer...
 
-1. A new pluggable scanner would be added to the analyzer for each language we care to scan for Polymer Lint directives.
-1. That scanner knows to look for two different comment directive IDs:
-  - "disable" `LintDirective`: “polymer-lint disable:”
-  - "enable" `LintDirective`: “polymer-lint enable:”
+1. A new pluggable scanner is added to the analyzer for each language we care to scan for Polymer Lint directives.
+1. That scanner knows to look for and match with polymer-lint directives based on its own internal regex.
 1. That scanner also knows how to parse the arguments for each directive as a comma-separated list of rules.
 1. For each "disable" `LintDirective` found, create a new **`LintDirective('disable', rules)`** with the parsed rules (or undefined if none existed).
 1. For each "enable" `LintDirective` found, create a new **`LintDirective('enable', rules)`** with the parsed rules (or undefined if none existed).
-1. Return all found `LintDirectives` as scanned features of kind 'directive'.
+1. Return all found `LintDirectives` as scanned features of kind 'directive' and identifier 'polymer-lint'.
 
 ### In the Linter...
 
-1. The linter gets all `LintDirectives` for a document before linting a given set of rules
-1. It could either:
-  1. Look at all `LintDirectives` and create source ranges for each enabled/disabled override before linting a document.
-  1. Lint for all configured rules + any included in "enable" `LintDirectives` for a document. For each warning, check the `LintDirectives` before it for whether it should be reported or not.
+1. The linter gets all `LintDirectives` for a document before linting a given set of rules.
+1. The linter reads those directives and reports warnings correctly based on their configuration.
 
-> This design document focuses on the analysis side of directive analysis, so I'll stop myself from commenting on which of these possible linting solutions is best and leave that up to future work.
+> This design document focuses on the analysis side of directive analysis, so I'll stop myself from commenting on how the linter will do this internally. There are several possible implementations, and discussing them is outside the scope of this design doc.
