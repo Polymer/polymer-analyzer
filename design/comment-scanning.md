@@ -3,16 +3,19 @@
 > Status: Draft  
 > Last Update: 2017-05-01  
 
+## Prototype aka Straw Man
+- Analyzer: https://github.com/Polymer/polymer-analyzer/compare/comment-directives
+- Linter: https://github.com/Polymer/polymer-linter/compare/comment-directives
+
+
 ## Objective
 - To support the analysis of certain instructions documented within source code ("comment directives").
 - To support the analysis of polymer-lint comment directives that can enable/disable certain lint rules within a file.
-
 
 ## Goals
 - Define a format for comment directives that is as general as possible while still providing some basic parsing & structure (for arguments, etc).
 - Define an implementation for scanning that is extensible. Some scanners may be included by default, but consumers should be able to add and distribute their own.
 - Documentation (README, docs/ entry, docs site entry, etc) that communicates our directive support, and how a 3rd-party developer could add support for analyzing their own directive.
-
 
 ## Non-Goals
 - Define a format for comment directives that are "attached" to existing features. See "What About Attached Comments?" below.
