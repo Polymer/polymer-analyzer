@@ -83,25 +83,6 @@ Directive({identifier: 'polymer-build:register-service-worker-here', args: null}
 
 > Note: `enable`/`disable` is the first argument of the "polymer-lint" directive and not a part of the identifier. It will be common to have a single identifier for all related directives so that consumers can get all relevant directives by identifier. For example, the linter should be able to call `document.getFeatures({kind: 'directive', id: 'polymer-lint'});` and get both "enable" & "disable" directives.
 
-### What About Attached Comments?
-
-It is worth reiterating that comment directives are standalone features, and do not support direct "attachment" to some adjacent feature. This is an intentional design decision to make directive behavior more explicit and easier to use properly.
-
-By requiring comment directives to be standalone features, we are able to leverage the current, pluggable scanner system of the analyzer. Support for scanning directives that are not their own features introduces the following problems:
-
-- Adding a scanner that doesn't return features -- and instead modifies existing features -- would require some amount of modifications to the current analyzer design. We would need to add a new kind of scanner that ran after all others and that could modify existing features.
-- Moving the responsibility for scanning attached comments into the already-existing scanners would also require a new concept of "attached" comment and a new system of comment parsers that attached to our already pluggable scanners. This would be a new thing that each scanner author would need to worry about applying properly.
-- Moving the responsibility for scanning attached comments completely out of the analyzer and onto consumers would require that each feature includes the full text of its comments for the consumer to analyze.
-
-Disregarding implementation concerns, there are also usability concerns for attached comment directives:
-
-- The source range for a comment directive would be decided by the analyzer, not the code author. The user would have no way of knowing the exact source range they were attaching a directive to until analysis. 3rd-party scanners would make this especially hard to define at scale.
-- Supporting multiple behaviors for directives would make them harder to use properly. It would be unclear by reading the code whether a directive was standalone or applied to the source range of some attached feature.
-
-Ultimately, "attached" comment directives would be more work to implement, more difficult to use correctly, and would still be strictly less powerful than standalone directives (there is nothing attached directives could do that standalone directives cold not also do).
-
-If I'm incorrect in this assessment and we later decide that we absolutely need to support attached directives, there should be nothing stopping us from adding that support later on down the road.
-
 
 ## Implementation Example: Polymer Lint
 
@@ -124,3 +105,23 @@ For the purpose of this example, we’ll denote a Lint Directive as `LintDirecti
 1. The linter reads those directives and reports warnings correctly based on their configuration.
 
 > This design document focuses on the analysis side of directive analysis, so I'll stop myself from commenting on how the linter will do this internally. There are several possible implementations, and discussing them is outside the scope of this design doc.
+
+
+## What About Attached Comments?
+
+It is worth highlighting again that comment directives are standalone features, and do not support direct "attachment" to some adjacent feature. This is an intentional design decision to make directive behavior more explicit and easier to use properly.
+
+By requiring comment directives to be standalone features, we are able to leverage the current, pluggable scanner system of the analyzer. Support for scanning directives that are not their own features introduces the following problems:
+
+- Adding a scanner that doesn't return features -- and instead modifies existing features -- would require some amount of modifications to the current analyzer design. We would need to add a new kind of scanner that ran after all others and that could modify existing features.
+- Moving the responsibility for scanning attached comments into the already-existing scanners would also require a new concept of "attached" comment and a new system of comment parsers that attached to our already pluggable scanners. This would be a new thing that each scanner author would need to worry about applying properly.
+- Moving the responsibility for scanning attached comments completely out of the analyzer and onto consumers would require that each feature includes the full text of its comments for the consumer to analyze.
+
+Disregarding implementation concerns, there are also usability concerns for attached comment directives:
+
+- The source range for a comment directive would be decided by the analyzer, not the code author. The user would have no way of knowing the exact source range they were attaching a directive to until analysis. 3rd-party scanners would make this especially hard to define at scale.
+- Supporting multiple behaviors for directives would make them harder to use properly. It would be unclear by reading the code whether a directive was standalone or applied to the source range of some attached feature.
+
+Ultimately, "attached" comment directives would be more work to implement, more difficult to use correctly, and would still be strictly less powerful than standalone directives (there is nothing attached directives could do that standalone directives cold not also do).
+
+If I'm incorrect in this assessment and we later decide that we absolutely need to support attached directives, there should be nothing stopping us from adding that support later on down the road.
