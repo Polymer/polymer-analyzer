@@ -180,3 +180,12 @@ export function extractDemos(jsdoc: Annotation|undefined, baseUrl: string):
       });
   return demos;
 }
+
+export function join(...jsdocs: Annotation[]): Annotation {
+  return {
+    description:
+        jsdocs.map((jsdoc) => jsdoc.description || '').join('\n\n').trim(),
+    tags: jsdocs.map((jsdoc) => jsdoc.tags)
+              .reduce((acc, tags) => acc.concat(tags)),
+  };
+}

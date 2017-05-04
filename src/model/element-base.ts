@@ -44,7 +44,15 @@ export abstract class ScannedElementBase implements Resolvable {
   superClass?: ScannedReference = undefined;
 
   applyHtmlComment(commentText: string|undefined) {
-    this.description = this.description || commentText || '';
+    if (commentText) {
+      const commentJsdoc = jsdoc.parseJsdoc(commentText);
+      this.jsdoc =
+          this.jsdoc ? jsdoc.join(this.jsdoc, commentJsdoc) : commentJsdoc;
+      this.description = [
+        commentJsdoc.description || '',
+        this.description || ''
+      ].join('\n\n').trim();
+    }
   }
 
   applyJsdocDemoTags(baseUrl: string): void {
