@@ -171,13 +171,19 @@ export function extractDemos(jsdoc: Annotation|undefined, baseUrl: string):
     return [];
   }
   const demos: Array<{desc: string | undefined, path: string}> = [];
-  jsdoc.tags.filter((tag) => tag.title === 'demo' && tag.name)
-      .forEach((tag) => {
-        demos.push({
-          desc: tag.description || undefined,
-          path: url.resolve(baseUrl, tag.name!)
-        });
-      });
+  const demoUrls = new Set<string>();
+  for (const tag of jsdoc.tags.filter(
+           (tag) => tag.title === 'demo' && tag.name)) {
+    const demoUrl = url.resolve(baseUrl, tag.name!);
+    if (demoUrls.has(demoUrl)) {
+      continue;
+    }
+    demoUrls.add(demoUrl);
+    demos.push({
+      desc: tag.description || undefined,
+      path: demoUrl,
+    });
+  }
   return demos;
 }
 
