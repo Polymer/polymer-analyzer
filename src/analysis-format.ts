@@ -384,7 +384,7 @@ export interface Slot extends Feature {
   // Something about fallback perhaps?
 }
 
-export interface Demo extends Feature {
+export interface Demo {
   /** A markdown description of the demo. */
   description?: string;
 
