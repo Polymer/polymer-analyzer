@@ -218,15 +218,32 @@ suite('PolymerElement', () => {
     ]);
   });
 
-  test('Elements with more than one doc comment have warning', async() => {
-    const elements = await getElements('test-element-15.html');
-    const element = [...elements][0]!;
-    const warning = element.warnings.find(
-        (w: Warning) => w.code === 'multiple-doc-comments')!;
-    assert.equal(warning.severity, Severity.WARNING);
-    assert.equal(
-        warning.message,
-        'More than one doc comment found for ScannedPolymerElement');
-    assert.deepEqual(warning.sourceRange, element.sourceRange);
+  suite('multiple-doc-comments', () => {
+
+    async function getElement(filename: string) {
+      const elements = await getElements(filename);
+      assert.equal(
+          elements.size, 1, `${filename} contained ${elements.size} elements`);
+      return [...elements][0]!;
+    }
+
+    test('Elements with only one doc comment have no warning', async() => {
+      const element = await getElement('test-element-14.html');
+      const warning = element.warnings.find(
+          (w: Warning) => w.code === 'multiple-doc-comments');
+      assert.isUndefined(warning);
+    });
+
+    test('Elements with more than one doc comment have warning', async() => {
+      const element = await getElement('test-element-15.html');
+      const warning = element.warnings.find(
+          (w: Warning) => w.code === 'multiple-doc-comments')!;
+      assert.isDefined(warning);
+      assert.equal(warning.severity, Severity.WARNING);
+      assert.equal(
+          warning.message,
+          'More than one doc comment found for ScannedPolymerElement');
+      assert.deepEqual(warning.sourceRange, element.sourceRange);
+    });
   });
 });
