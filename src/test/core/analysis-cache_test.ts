@@ -23,9 +23,12 @@ suite('AnalysisCache', () => {
 
   function addFakeDocumentToCache(
       cache: AnalysisCache, path: string, dependencies: string[]) {
-    cache.parsedDocumentPromises.set(path, `parsed ${path} promise` as any);
-    cache.scannedDocumentPromises.set(path, `scanned ${path} promise` as any);
-    cache.analyzedDocumentPromises.set(path, `analyzed ${path} promise` as any);
+    cache.parsedDocumentPromises['_keyToResultMap'].set(
+        path, `parsed ${path} promise` as any);
+    cache.scannedDocumentPromises['_keyToResultMap'].set(
+        path, `scanned ${path} promise` as any);
+    cache.analyzedDocumentPromises['_keyToResultMap'].set(
+        path, `analyzed ${path} promise` as any);
     cache.scannedDocuments.set(path, `scanned ${path}` as any);
     cache.analyzedDocuments.set(path, `analyzed ${path}` as any);
     cache.dependencyGraph.addDocument(path, dependencies);
@@ -46,8 +49,8 @@ suite('AnalysisCache', () => {
   }
 
   function assertNotHasDocument(cache: AnalysisCache, path: string) {
-    assert.isFalse(cache.parsedDocumentPromises.has(path));
-    assert.isFalse(cache.scannedDocumentPromises.has(path));
+    assert.isFalse(cache.parsedDocumentPromises['_keyToResultMap'].has(path));
+    assert.isFalse(cache.scannedDocumentPromises['_keyToResultMap'].has(path));
     // caller must assert on cache.analyzedDocumentPromises themselves
     assert.isFalse(cache.scannedDocuments.has(path));
     assert.isFalse(cache.analyzedDocuments.has(path));
@@ -66,7 +69,7 @@ suite('AnalysisCache', () => {
         `scanned ${path} promise`);
     assert.equal(cache.scannedDocuments.get(path) as any, `scanned ${path}`);
     assert.isFalse(cache.analyzedDocuments.has(path));
-    assert.isFalse(cache.analyzedDocumentPromises.has(path));
+    assert.isFalse(cache.analyzedDocumentPromises['_keyToResultMap'].has(path));
   }
 
   test('it invalidates a path when asked to', async() => {

@@ -15,7 +15,7 @@
 import {Document, ScannedDocument, Warning} from '../model/model';
 import {ParsedDocument} from '../parser/document';
 
-import {AsyncWorkCache} from './async-work-cache';
+import {AsyncWorkCache, SetOnlyMap} from './async-work-cache';
 import {DependencyGraph} from './dependency-graph';
 
 export class AnalysisCache {
@@ -33,8 +33,8 @@ export class AnalysisCache {
    * TODO(rictic): These synchronous caches need to be kept in sync with their
    *     async work cache analogues above.
    */
-  readonly scannedDocuments: Map<string, ScannedDocument>;
-  readonly analyzedDocuments: Map<string, Document>;
+  readonly scannedDocuments: SetOnlyMap<string, ScannedDocument>;
+  readonly analyzedDocuments: SetOnlyMap<string, Document>;
   readonly failedDocuments: Map<string, Warning>;
 
   readonly dependencyGraph: DependencyGraph;
@@ -46,8 +46,8 @@ export class AnalysisCache {
    * @param newDependencyGraph If given, use this dependency graph. We pass
    *   this in like this purely as an optimization. See `invalidatePaths`.
    */
-  constructor(from?: AnalysisCache, newDependencyGraph?: DependencyGraph) {
-    const f: Partial<AnalysisCache> = from || {};
+  constructor(from?: Options) {
+    const f: Partial<Options> = from || {};
     this.parsedDocumentPromises = new AsyncWorkCache(f.parsedDocumentPromises);
     this.scannedDocumentPromises =
         new AsyncWorkCache(f.scannedDocumentPromises);
@@ -59,7 +59,7 @@ export class AnalysisCache {
     this.failedDocuments = new Map(f.failedDocuments!);
     this.scannedDocuments = new Map(f.scannedDocuments!);
     this.analyzedDocuments = new Map(f.analyzedDocuments!);
-    this.dependencyGraph = newDependencyGraph || new DependencyGraph();
+    this.dependencyGraph = f.dependencyGraph || new DependencyGraph();
   }
 
   /**
@@ -75,49 +75,78 @@ export class AnalysisCache {
     //     Could end up saving some work in the editor case.
     //     On the other hand, copying a half dozen maps with maybe 200 entries
     //     each should be pretty cheap, maybe not worth the effort.
-    const newCache = new AnalysisCache(
-        this, this.dependencyGraph.invalidatePaths(documentPaths));
+    // const newCache = new AnalysisCache(
+    //   this, this.dependencyGraph.invalidatePaths(documentPaths));
+    const dependencyGraph = this.dependencyGraph.invalidatePaths(documentPaths);
+
+    const parsedDocumentPromises = this.parsedDocumentPromises.fork();
+    const scannedDocumentPromises = this.scannedDocumentPromises.fork();
+    const dependenciesScannedPromises = this.dependenciesScannedPromises.fork();
+    const analyzedDocumentPromises = this.analyzedDocumentPromises.fork();
+
+    const scannedDocuments = new Map(this.scannedDocuments);
+    const analyzedDocuments = new Map(this.analyzedDocuments);
+    const failedDocuments = new Map(this.failedDocuments);
+
     for (const path of documentPaths) {
       // Note that we must calculate the dependency graph based on the parent,
       // not the forked newCache.
       const dependants = this.dependencyGraph.getAllDependantsOf(path);
-      newCache.parsedDocumentPromises.delete(path);
-      newCache.scannedDocumentPromises.delete(path);
-      newCache.dependenciesScannedPromises.delete(path);
-      newCache.scannedDocuments.delete(path);
-      newCache.analyzedDocuments.delete(path);
-      newCache.failedDocuments.delete(path);
+      parsedDocumentPromises.delete(path);
+      scannedDocumentPromises.delete(path);
+      dependenciesScannedPromises.delete(path);
+      scannedDocuments.delete(path);
+      analyzedDocuments.delete(path);
+      failedDocuments.delete(path);
 
       // Analyzed documents need to be treated more carefully, because they have
       // relationships with other documents. So first we remove all documents
       // which transitively import the changed document. We also need to mark
       // all of those docs as needing to rescan their dependencies.
       for (const partiallyInvalidatedPath of dependants) {
-        newCache.dependenciesScannedPromises.delete(partiallyInvalidatedPath);
-        newCache.analyzedDocuments.delete(partiallyInvalidatedPath);
+        dependenciesScannedPromises.delete(partiallyInvalidatedPath);
+        analyzedDocuments.delete(partiallyInvalidatedPath);
       }
 
       // Then we clear out the analyzed document promises, which could have
       // in-progress results that don't cohere with the state of the new cache.
       // Only populate the new analyzed promise cache with results that are
       // definite, and not invalidated.
-      newCache.analyzedDocumentPromises.clear();
-      for (const keyValue of newCache.analyzedDocuments) {
-        newCache.analyzedDocumentPromises.set(keyValue[0], keyValue[1]);
+      analyzedDocumentPromises.clear();
+      for (const keyValue of analyzedDocuments) {
+        analyzedDocumentPromises.set(keyValue[0], Promise.resolve(keyValue[1]));
       }
     }
 
-    return newCache;
+    return new AnalysisCache({
+      parsedDocumentPromises,
+      scannedDocumentPromises,
+      dependenciesScannedPromises,
+      scannedDocuments,
+      analyzedDocuments,
+      failedDocuments,
+      analyzedDocumentPromises,
+      dependencyGraph
+    });
   }
 
   toString() {
     return `<AnalysisCache
         scannedDocuments:
-            ${Array.from(this.scannedDocuments.keys())
-        .join('\n            ')}
+            ${Array.from(this.scannedDocuments.keys()).join('\n            ')}
         analyzedDocuments:
-            ${Array.from(this.analyzedDocuments.keys())
-        .join('\n            ')}
+            ${Array.from(this.analyzedDocuments.keys()).join('\n            ')}
       >`;
   }
+}
+
+export interface Options {
+  parsedDocumentPromises: Map<string, Promise<ParsedDocument<any, any>>>;
+  scannedDocumentPromises: Map<string, Promise<ScannedDocument>>;
+  dependenciesScannedPromises: Map<string, Promise<ScannedDocument>>;
+  analyzedDocumentPromises: Map<string, Promise<Document>>;
+  scannedDocuments: Map<string, ScannedDocument>;
+  analyzedDocuments: Map<string, Document>;
+  failedDocuments: Map<string, Warning>;
+  dependencyGraph: DependencyGraph;
 }

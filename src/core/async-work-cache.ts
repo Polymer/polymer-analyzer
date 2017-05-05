@@ -14,12 +14,26 @@
 
 /**
  * A map from keys to promises of values. Used for caching asynchronous work.
+ *
+ * This cache is write-only and can only be queried by also providing a function
+ * to compute the given key if it does not exist. To delete entries from the
+ * cache you must fork it.
+ *
+ * This design is useful in the analyzer, as later stages of analysis can
+ * assume that earlier stages have finished. When a file is changed, we must
+ * remove it from the cache that future requests will use, but existing requests
+ * should be unaffected.
  */
 export class AsyncWorkCache<K, V> {
-  private _keyToResultMap: Map<K, Promise<V>>;
-  constructor(from?: AsyncWorkCache<K, V>) {
-    if (from) {
-      this._keyToResultMap = new Map(from._keyToResultMap);
+  private _keyToResultMap: SetOnlyMap<K, Promise<V>>;
+
+  /**
+   * @param startingMap Initial values of the cache. This must not be modified
+   *     by anything other than the AsyncWorkCache after it's been passed in.
+   */
+  constructor(startingMap?: Map<K, Promise<V>>) {
+    if (startingMap) {
+      this._keyToResultMap = startingMap;
     } else {
       this._keyToResultMap = new Map();
     }
@@ -50,19 +64,21 @@ export class AsyncWorkCache<K, V> {
     return promise;
   }
 
-  delete (key: K) {
-    this._keyToResultMap.delete(key);
+  /**
+   * Returns a copy of the underlying map which can be mutated as necessary
+   * and then used to create another cache.
+   */
+  fork(): Map<K, Promise<V>> {
+    return new Map(this._keyToResultMap);
   }
+}
 
-  clear() {
-    this._keyToResultMap.clear();
-  }
-
-  set(key: K, value: V) {
-    this._keyToResultMap.set(key, Promise.resolve(value));
-  }
-
-  has(key: K) {
-    return this._keyToResultMap.has(key);
-  }
+/**
+ * A map whose entries may not be deleted.
+ */
+export interface SetOnlyMap<K, V> extends ReadonlyMap<K, V> {
+  [Symbol.iterator](): IterableIterator<[K, V]>;
+  keys(): IterableIterator<K>;
+  values(): IterableIterator<V>;
+  set(key: K, value: V): void;
 }
