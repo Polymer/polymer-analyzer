@@ -25,6 +25,10 @@ analyzer.analyze('/path-to-polymer-element.html')
   });
 ```
 
+## More information
+
+For a deeper look at the design and implementation of the analyzer, see [./doc/overview.md](./doc/overview.md);
+
 ## Developing
 
 Polymer Analyzer is supported on Node LTS (4.4) and stable (6.3). It is written

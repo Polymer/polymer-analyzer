@@ -57,6 +57,11 @@ export type LazyEdgeMap = Map<string, string[]>;
  * arbitrary information from the documents, and transitively load
  * dependencies. An Analyzer instance is configured with parsers, and scanners
  * which do the actual work of understanding different file types.
+ *
+ * > *Note:* results should not be mutated, as the analyzer does a lot of
+ *   caching and object reuse. If you modify the result of one call to
+ *   `analyze()` the modified value may be returned from other calls to
+ *   `analyze()`.
  */
 export class Analyzer {
   private _analysisComplete: Promise<AnalysisContext>;
@@ -77,8 +82,7 @@ export class Analyzer {
   }
 
   /**
-   * Loads, parses and analyzes the root document of a dependency graph and its
-   * transitive dependencies.
+   * Loads, parses and analyzes the given documents and their dependencies.
    */
   async analyze(urls: string[]): Promise<Analysis> {
     const previousAnalysisComplete = this._analysisComplete;
@@ -93,6 +97,9 @@ export class Analyzer {
     return new Analysis(results);
   }
 
+  /**
+   * Loads, parses, and analyzes all documents in the project.
+   */
   async analyzePackage(): Promise<Analysis> {
     const previousAnalysisComplete = this._analysisComplete;
     let _package: Analysis|null = null;
@@ -127,8 +134,8 @@ export class Analyzer {
    * Clears all information about the given files from our caches, such that
    * future calls to analyze() will reload these files if they're needed.
    *
-   * The analyzer assumes that if this method isn't called with a file's url,
-   * then that file has not changed and does not need to be reloaded.
+   * The analyzer assumes that files don't change unless it's been told
+   * otherwise.
    *
    * @param urls The urls of files which may have changed.
    */
