@@ -63,12 +63,14 @@ At resolution time the ScannedClass is able to follow the reference, assuming th
 
 ### Caching
 
-The key to the analyzer's performance, and the only way that it can work fast enough to be useful in an interactive editor is through extensive automatic caching.
+The key to the analyzer's performance in interactive scenarios like text editing is extensive automatic caching.
 
 Taking the example above, what needs to be recalculated when `polymer.html` has changed? Well, because `progress-bar.html` depends on it, we'll need to do some work beyond just `polymer.html`. Maybe, the `Polymer.Element` class got a new method which we'll want to add to our representation of the `ProgressBar` class. But crucially, we don't need to load, parse, or scan `progress-bar.html` because all of those steps are entirely file-local. We just need to re-resolve it. So `polymer.html` will need to be reloaded, parsed, scanned, and resolved, but `progress-bar.html` just needs to be re-resolved.
 
 What needs to be recalculated when `progress-bar.html` has changed? Even less! We don't need to do anything about `polymer.html`†. We only need to process `progress-bar.html`.
 
 Doing dependency-aware caching is a big deal for larger projects because after the initial analysis, we only need to load, parse, and scan just those files that changed, and we only need to re-resolve files that depend on the changed files. A large project that takes 5 seconds to analyze initially can be re-analyzed in only 30ms, **150 times faster** than without caching. See `npm run benchmark` for details.
+
+For details on the implementation, see [../src/core/async-work-cache.ts](../src/core/async-work-cache.ts), [../src/core/dependency-graph.ts](../src/core/dependency-graph.ts), and [../src/core/analysis-cache.ts](../src/core/analysis-cache.ts).
 
 > † assuming `polymer.html` doesn't have a cyclic dependency on `progress-bar.html`, which is legal for some kinds of imports, like ES6 and HTML.
