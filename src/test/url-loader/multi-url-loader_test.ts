@@ -16,6 +16,7 @@ import {assert} from 'chai';
 
 import {MultiUrlLoader} from '../../url-loader/multi-url-loader';
 import {UrlLoader} from '../../url-loader/url-loader';
+import {invertPromise} from '../test-utils';
 
 class MockLoader implements UrlLoader {
   canLoadCount: number;
@@ -52,7 +53,6 @@ suite('MultiUrlLoader', () => {
 
     test('canLoad is true if the first loader is true', () => {
       const loaders = mockLoaderArray(['loader 1', null, null]);
-      console.log(loaders);
       const loader = new MultiUrlLoader(loaders);
       assert.isTrue(loader.canLoad('test.html'));
       // Verify only the first loader is called
@@ -117,12 +117,7 @@ suite('MultiUrlLoader', () => {
     test('throws an error if no loader can be found to load', async() => {
       const loaders = mockLoaderArray([null, null, null]);
       const loader = new MultiUrlLoader(loaders);
-      let error;
-      try {
-        await loader.load('test.html');
-      } catch (e) {
-        error = e;
-      }
+      const error = await invertPromise(loader.load('test.html'));
       assert.instanceOf(error, Error);
       assert.include(error.message, 'Unable to load test.html');
       // Verify load is not called on any loader
