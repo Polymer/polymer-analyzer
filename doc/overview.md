@@ -1,4 +1,4 @@
-polymer-analyzer is a static code analyzer for the web. It reads code and understands features like imports, classes, mixins, and custom element declarations.
+`polymer-analyzer` is a static code analyzer for the web. It reads code and understands features like imports, classes, mixins, and custom element declarations.
 
 Use cases:
  * documentation generation
@@ -11,11 +11,11 @@ Use cases:
 
  * Extensible: feature recognition is broken out into independent scanners. Teaching the analyzer to recognize new features is as easy as adding a new scanner.
 
- * Fast: the analyzer walks each document as few times as possible. We use dependency-aware caching to do the minimum amount of work to re-analyze when a file changes.
+ * Fast: the analyzer walks each document as few times as possible. We use dependency-aware caching to do the minimum amount of work when a file changes.
 
- * Standards-based: the analyzer ships with a set of scanners that are able to parse and analyzer standards-based web sites.
+ * Standards-based: the analyzer ships with a set of scanners that are able to parse and analyze standards-based web sites.
 
- * Loading agnostic: the user specifies both how to load files, and how URLs map into paths for the loader. This enables use cases like loading files over a network and where the filesystem does not map 1:1 onto the url space.
+ * Loading agnostic: the user specifies both how to load files, and how URLs map into paths for the loader. This enables use cases like loading files over a network, as well as cases where the filesystem does not map 1:1 onto the url space as the source code sees it.
 
 ## Design
 
@@ -23,24 +23,23 @@ Use cases:
 
 From a high level, the analyzer's work is broken up into phases.
 
-  Loading -> Parsing -> Scanning -> Resolving
+    Loading ➡ Parsing ➡ Scanning ➡ Resolving
 
-Loading is the process of turning a URL into the file's contents as a string.
+*Loading* is the process of turning a URL into the file's contents as a string.
 
-Parsing is turning that string into an abstract syntax tree that represents the raw syntax of the code.
+*Parsing* is turning that string into an abstract syntax tree that represents the raw syntax of the code.
 
-Scanning turns that AST into higher-level, more semantically meaningful features, but without referencing any information that wasn't found in that specific file.
+*Scanning* turns that AST into higher-level, more semantically meaningful features, but without referencing any information that wasn't found in that specific file. While scanning, we may encounter inline documents and imports, which will cause them to be loaded, parsed, and scanned as well. A document isn't finished scanned until all of its dependencies are also scanned.
 
-> Note: While scanning, we may encounter inline documents and imports, which will cause them to be loaded, parsed, and scanned as well. A document isn't finished scanned until all of its dependencies are also scanned.
+*Resolving* uses information across all reachable files to understand potentially cross-file information.
 
-Resolving uses information across all reachable files to understand potentially cross-file information.
 
 ### Example
 
 Let's walk through those steps using this file as an example:
 
-`resettable-progress-bar.html`
 ```html
+  <!-- resettable-progress-bar.html -->
   <link rel="import" href="./base.html">
 
   <script>
@@ -68,7 +67,7 @@ The key to the analyzer's performance, and the only way that it can work fast en
 
 Taking the example above, what needs to be recalculated when `base.html` has changed? Well, because `resettable-progress-bar.html` depends on it, we'll need to do some work beyond just `base.html`. Maybe, e.g. the `Base` class got a new method. But crucially, we don't need to load, parse, or scan `resettable-progress-bar.html` because all of those steps are entirely file-local. We just need to re-resolve it. So `base.html` will need to be reloaded, parsed, scanned, and resolved, but `resettable-progress-bar.html` just needs to be re-resolved.
 
-What needs to be recalculated when `resettable-progress-bar.html` has changed? Even less! We don't need to do anything about `base.html`<sup>†</sup> . We only need to process `resettable-progress-bar.html`.
+What needs to be recalculated when `resettable-progress-bar.html` has changed? Even less! We don't need to do anything about `base.html`†. We only need to process `resettable-progress-bar.html`.
 
 This is a big deal for larger projects because after the initial analysis, we only need to load, parse, and scan just those files that changed, and we only need to re-resolve files that depend on the changed files.
 
