@@ -85,7 +85,7 @@ suite('MultiUrlLoader', () => {
       const loaders = mockLoaderArray([null, null, null]);
       const loader = new MultiUrlLoader(loaders);
       assert.isFalse(loader.canLoad('test.html'));
-      // Verify only the first resolver is called
+      // Verify only the first loader is called
       assert.equal(loaders[0].canLoadCount, 1);
       assert.equal(loaders[1].canLoadCount, 1);
       assert.equal(loaders[2].canLoadCount, 1);
