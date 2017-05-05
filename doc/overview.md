@@ -25,13 +25,13 @@ From a high level, the analyzer's work is broken up into phases.
 
     Loading ➡ Parsing ➡ Scanning ➡ Resolving
 
-*Loading* is the process of turning a URL into the file's contents as a string.
+*Loading* takes a URL and returns a string representing the file's contents.
 
-*Parsing* is turning that string into an abstract syntax tree that represents the raw syntax of the code.
+*Parsing* takes that string and returns an abstract syntax tree that represents the raw syntax of the code.
 
-*Scanning* turns that AST into higher-level, more semantically meaningful features, but without referencing any information that wasn't found in that specific file. While scanning, we may encounter inline documents and imports, which will cause them to be loaded, parsed, and scanned as well. A document isn't finished scanned until all of its dependencies are also scanned.
+*Scanning* takes that AST and returns higher-level, more semantically meaningful, file-local features. While scanning, we may encounter inline documents and imports, which will cause them to be loaded, parsed, and scanned as well. A document isn't finished being scanned until all of its dependencies are also scanned.
 
-*Resolving* uses information across all reachable files to understand potentially cross-file information.
+*Resolving* takes a scanned feature and all resolved features found up until that point and returns a resolved feature. Resolving can use information defined earlier in the file, or in files imported earlier in the file. It's the only point in the analysis process that can use cross-file information.
 
 
 ### Example
@@ -39,36 +39,36 @@ From a high level, the analyzer's work is broken up into phases.
 Let's walk through those steps using this file as an example:
 
 ```html
-  <!-- resettable-progress-bar.html -->
-  <link rel="import" href="./base.html">
+  <!-- progress-bar.html -->
+  <link rel="import" href="../polymer/polymer.html">
 
   <script>
-    class ResettableProgressBar extends Base {
-      reset() {
-        this.value = 0;
+    class ProgressBar extends Polymer.Element {
+      doSomethingCool() {
+        /** ... */
       }
     }
   </script>
 ```
 
-Loading is just the process of turning `'resettable-progress-bar.html'` into the source code above as a string.
+Loading is just the process of turning `'progress-bar.html'` into the source code above as a string.
 
 Parsing will convert that into an HTML document with two elements and some whitespace text nodes.
 
-The scanning process will convert that into a ScannedImport and a ScannedInlineDocument. The analyzer will kick off loading, parsing, and scanning of `base.html` as well as parsing and scanning the inline javascript document.
+The scanning process will convert that into a ScannedImport and a ScannedInlineDocument. The analyzer will kick off loading, parsing, and scanning of `polymer.html` as well as parsing and scanning the inline javascript document.
 
-The inline JS is parsed into an AST containing a class declaration statement. The scanners will extract a ScannedClass. This ScannedClass will have a reference to the super class `Base`, but the reference will just note the name `Base`, it won't have any more info than that because scanning is file-local. The ScannedClass will also note that `ResettableProgressBar` has a method called `reset` that takes no parameters.
+The inline JS is parsed into an AST containing a class declaration statement. The scanners will extract a ScannedClass. This ScannedClass will have a reference to the super class `Polymer.Element`, but the reference will just note the name `Polymer.Element`, it won't have any more info than that because scanning is file-local. The ScannedClass will also note that `ProgressBar` has a method called `doSomethingCool` that takes no parameters.
 
-At resolution time the ScannedClass is able to follow the reference, assuming that `base.html` defines a class named `Base`. `ScannedClass.resolve()` models javascript inheritance, starting with the methods and properties of `Base` and then overriding and augmenting them with those on `ResettableProgressBar`.
+At resolution time the ScannedClass is able to follow the reference, assuming that `polymer.html` defines a class named `Polymer.Element`. `ScannedClass.resolve()` models javascript inheritance, starting with the methods and properties of `Polymer.Element` and then overriding and augmenting them with those on `ProgressBar` before returning a resolved `Class` feature.
 
 ### Caching
 
 The key to the analyzer's performance, and the only way that it can work fast enough to be useful in an interactive editor is through extensive automatic caching.
 
-Taking the example above, what needs to be recalculated when `base.html` has changed? Well, because `resettable-progress-bar.html` depends on it, we'll need to do some work beyond just `base.html`. Maybe, e.g. the `Base` class got a new method. But crucially, we don't need to load, parse, or scan `resettable-progress-bar.html` because all of those steps are entirely file-local. We just need to re-resolve it. So `base.html` will need to be reloaded, parsed, scanned, and resolved, but `resettable-progress-bar.html` just needs to be re-resolved.
+Taking the example above, what needs to be recalculated when `polymer.html` has changed? Well, because `progress-bar.html` depends on it, we'll need to do some work beyond just `polymer.html`. Maybe, the `Polymer.Element` class got a new method which we'll want to add to our representation of the `ProgressBar` class. But crucially, we don't need to load, parse, or scan `progress-bar.html` because all of those steps are entirely file-local. We just need to re-resolve it. So `polymer.html` will need to be reloaded, parsed, scanned, and resolved, but `progress-bar.html` just needs to be re-resolved.
 
-What needs to be recalculated when `resettable-progress-bar.html` has changed? Even less! We don't need to do anything about `base.html`†. We only need to process `resettable-progress-bar.html`.
+What needs to be recalculated when `progress-bar.html` has changed? Even less! We don't need to do anything about `polymer.html`†. We only need to process `progress-bar.html`.
 
-This is a big deal for larger projects because after the initial analysis, we only need to load, parse, and scan just those files that changed, and we only need to re-resolve files that depend on the changed files.
+Doing dependency-aware caching is a big deal for larger projects because after the initial analysis, we only need to load, parse, and scan just those files that changed, and we only need to re-resolve files that depend on the changed files. A large project that takes 5 seconds to analyze initially can be re-analyzed in only 30ms, **150 times faster** than without caching. See `npm run benchmark` for details.
 
-> † assuming `base.html` doesn't have a cyclic dependency on `resettable-progress-bar.html`, which is legal for some kinds of imports, like ES6 and HTML.
+> † assuming `polymer.html` doesn't have a cyclic dependency on `progress-bar.html`, which is legal for some kinds of imports, like ES6 and HTML.
