@@ -19,6 +19,7 @@ import * as jsdoc from '../javascript/jsdoc';
 import {Class, ClassInit} from './class';
 import {Privacy} from './feature';
 import {Attribute, Document, Event, Feature, Method, Resolvable, ScannedAttribute, ScannedEvent, ScannedProperty, ScannedReference, SourceRange, Warning} from './model';
+import {Severity} from './warning';
 
 export {Visitor} from '../javascript/estree-visitor';
 
@@ -46,8 +47,20 @@ export abstract class ScannedElementBase implements Resolvable {
   applyHtmlComment(commentText: string|undefined) {
     if (commentText) {
       const commentJsdoc = jsdoc.parseJsdoc(commentText);
+      // Add a Warning if there are already jsdoc tags or a description for this
+      // element.
+      if (this.sourceRange &&
+          (this.description || this.jsdoc && this.jsdoc.tags.length > 0)) {
+        this.warnings.push({
+          severity: Severity.WARNING,
+          code: 'multiple-doc-comments',
+          message:
+              `More than one doc comment found for ${this.constructor.name}`,
+          sourceRange: this.sourceRange,
+        });
+      }
       this.jsdoc =
-          this.jsdoc ? jsdoc.join(this.jsdoc, commentJsdoc) : commentJsdoc;
+          this.jsdoc ? jsdoc.join(commentJsdoc, this.jsdoc) : commentJsdoc;
       this.description = [
         commentJsdoc.description || '',
         this.description || ''

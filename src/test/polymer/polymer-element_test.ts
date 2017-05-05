@@ -17,9 +17,11 @@ import {assert} from 'chai';
 import * as path from 'path';
 
 import {Analyzer} from '../../analyzer';
+import {HtmlScriptScanner} from '../../html/html-script-scanner';
 import {ClassScanner} from '../../javascript/class-scanner';
-import {Document} from '../../model/model';
+import {Document, Severity, Warning} from '../../model/model';
 import {PolymerElement} from '../../polymer/polymer-element';
+import {PolymerElementScanner} from '../../polymer/polymer-element-scanner';
 import {FSUrlLoader} from '../../url-loader/fs-url-loader';
 
 suite('PolymerElement', () => {
@@ -27,12 +29,21 @@ suite('PolymerElement', () => {
   const urlLoader = new FSUrlLoader(testFilesDir);
   const analyzer = new Analyzer({
     urlLoader: urlLoader,
-    scanners: new Map([[
-      'js',
+    scanners: new Map<string, any[]>([
       [
-        new ClassScanner(),
+        'js',
+        [
+          new ClassScanner(),
+          new PolymerElementScanner(),
+        ]
+      ],
+      [
+        'html',
+        [
+          new HtmlScriptScanner(),
+        ]
       ]
-    ]])
+    ])
   });
 
   async function getElements(filename: string): Promise<Set<PolymerElement>> {
@@ -205,5 +216,16 @@ suite('PolymerElement', () => {
         ],
       },
     ]);
+  });
+
+  test('Elements with more than one doc comment have warning', async() => {
+    const elements = await getElements('test-element-15.html');
+    const element = [...elements][0]!;
+    const warning = element.warnings.find(
+        (w: Warning) => w.code === 'multiple-doc-comments')!;
+    assert.equal(warning.severity, Severity.WARNING);
+    assert.deepEqual(
+        warning.message,
+        'More than one doc comment found for ScannedPolymerElement');
   });
 });

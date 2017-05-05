@@ -17,12 +17,12 @@
             },
             "demos": [
                 {
-                    "description": "are intergalactic space pants",
-                    "url": "pants-demo.html"
-                },
-                {
                     "description": "a tour of the solar system",
                     "url": "space-demo.html"
+                },
+                {
+                    "description": "are intergalactic space pants",
+                    "url": "pants-demo.html"
                 }
             ],
             "slots": [],
