@@ -12,7 +12,7 @@
  * http://polymer.github.io/PATENTS.txt
  */
 
-/// <reference path="../../node_modules/@types/mocha/index.d.ts" />
+/// <reference path="../../../node_modules/@types/mocha/index.d.ts" />
 
 import {assert, use} from 'chai';
 import * as clone from 'clone';
@@ -20,19 +20,19 @@ import * as estree from 'estree';
 import * as path from 'path';
 import * as shady from 'shady-css-parser';
 
-import {Analyzer} from '../analyzer';
-import {ParsedCssDocument} from '../css/css-document';
-import {ParsedHtmlDocument} from '../html/html-document';
-import {HtmlParser} from '../html/html-parser';
-import {ScriptTagImport} from '../html/html-script-tag';
-import {JavaScriptDocument} from '../javascript/javascript-document';
-import {Document, Import, ScannedImport, ScannedInlineDocument, Severity} from '../model/model';
-import {FSUrlLoader} from '../url-loader/fs-url-loader';
-import {InMemoryOverlayUrlLoader} from '../url-loader/overlay-loader';
-import {UrlLoader} from '../url-loader/url-loader';
-import {Deferred} from '../utils';
+import {Analyzer} from '../../core/analyzer';
+import {Deferred} from '../../core/utils';
+import {ParsedCssDocument} from '../../css/css-document';
+import {ParsedHtmlDocument} from '../../html/html-document';
+import {HtmlParser} from '../../html/html-parser';
+import {ScriptTagImport} from '../../html/html-script-tag';
+import {JavaScriptDocument} from '../../javascript/javascript-document';
+import {Document, Import, ScannedImport, ScannedInlineDocument, Severity} from '../../model/model';
+import {FSUrlLoader} from '../../url-loader/fs-url-loader';
+import {InMemoryOverlayUrlLoader} from '../../url-loader/overlay-loader';
+import {UrlLoader} from '../../url-loader/url-loader';
 
-import {CodeUnderliner} from './test-utils';
+import {CodeUnderliner} from '../test-utils';
 
 import chaiAsPromised = require('chai-as-promised');
 import chaiSubset = require('chai-subset');
@@ -1001,13 +1001,15 @@ var DuplicateNamespace = {};
         assert.deepEqual(document.url, 'base.html');
         const localFeatures = document.getFeatures({imported: false});
         const kinds = Array.from(localFeatures).map((f) => Array.from(f.kinds));
-        const message = `localFeatures: ${
-        JSON.stringify(
-            Array.from(localFeatures).map((f) => ({
-                                            kinds: Array.from(f.kinds),
-                                            ids: Array.from(f.identifiers)
-                                          })))
-        }`;
+        const message =
+            `localFeatures: ${
+                              JSON.stringify(
+                                  Array.from(localFeatures)
+                                      .map((f) => ({
+                                             kinds: Array.from(f.kinds),
+                                             ids: Array.from(f.identifiers)
+                                           })))
+                            }`;
         assert.deepEqual(
             kinds,
             [

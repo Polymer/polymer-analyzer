@@ -16,12 +16,12 @@ import {assert} from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
 
-import {Analysis} from '../analysis-format';
-import {Analyzer} from '../analyzer';
-import {generateAnalysis, validateAnalysis, ValidationError} from '../generate-analysis';
-import {Analysis as AnalysisResult} from '../model/analysis';
-import {FSUrlLoader} from '../url-loader/fs-url-loader';
-import {PackageUrlResolver} from '../url-loader/package-url-resolver';
+import {Analysis} from '../../analysis-format/analysis-format';
+import {generateAnalysis, validateAnalysis, ValidationError} from '../../analysis-format/generate-analysis';
+import {Analyzer} from '../../core/analyzer';
+import {Analysis as AnalysisResult} from '../../model/analysis';
+import {FSUrlLoader} from '../../url-loader/fs-url-loader';
+import {PackageUrlResolver} from '../../url-loader/package-url-resolver';
 
 const onlyTests = new Set<string>([]);  // Should be empty when not debugging.
 
