@@ -17,11 +17,8 @@ import {assert} from 'chai';
 import * as path from 'path';
 
 import {Analyzer} from '../../analyzer';
-import {HtmlScriptScanner} from '../../html/html-script-scanner';
-import {ClassScanner} from '../../javascript/class-scanner';
 import {Document, Severity, Warning} from '../../model/model';
 import {PolymerElement} from '../../polymer/polymer-element';
-import {PolymerElementScanner} from '../../polymer/polymer-element-scanner';
 import {FSUrlLoader} from '../../url-loader/fs-url-loader';
 
 suite('PolymerElement', () => {
@@ -29,21 +26,6 @@ suite('PolymerElement', () => {
   const urlLoader = new FSUrlLoader(testFilesDir);
   const analyzer = new Analyzer({
     urlLoader: urlLoader,
-    scanners: new Map<string, any[]>([
-      [
-        'js',
-        [
-          new ClassScanner(),
-          new PolymerElementScanner(),
-        ]
-      ],
-      [
-        'html',
-        [
-          new HtmlScriptScanner(),
-        ]
-      ]
-    ])
   });
 
   async function getElements(filename: string): Promise<Set<PolymerElement>> {
@@ -239,10 +221,10 @@ suite('PolymerElement', () => {
       const warning = element.warnings.find(
           (w: Warning) => w.code === 'multiple-doc-comments')!;
       assert.isDefined(warning);
-      assert.equal(warning.severity, Severity.WARNING);
-      assert.equal(
+      assert.deepEqual(warning.severity, Severity.WARNING);
+      assert.deepEqual(
           warning.message,
-          'More than one doc comment found for ScannedPolymerElement');
+          'ScannedPolymerElement has both HTML doc and JSDoc comments.');
       assert.deepEqual(warning.sourceRange, element.sourceRange);
     });
   });

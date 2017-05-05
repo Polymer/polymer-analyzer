@@ -55,7 +55,7 @@ export abstract class ScannedElementBase implements Resolvable {
           severity: Severity.WARNING,
           code: 'multiple-doc-comments',
           message:
-              `More than one doc comment found for ${this.constructor.name}`,
+              `${this.constructor.name} has both HTML doc and JSDoc comments.`,
           sourceRange: this.sourceRange,
         });
       }
