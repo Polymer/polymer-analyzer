@@ -14,7 +14,7 @@
 
 import * as path from 'path';
 
-import {ForkOptions, LazyEdgeMap, NoKnownParserError, Options, ScannerTable} from '../analyzer';
+import {ForkOptions, LazyEdgeMap, NoKnownParserError, Options, ScannerTable} from '../core/analyzer';
 import {CssParser} from '../css/css-parser';
 import {HtmlCustomElementReferenceScanner} from '../html/html-element-reference-scanner';
 import {HtmlImportScanner} from '../html/html-import-scanner';
