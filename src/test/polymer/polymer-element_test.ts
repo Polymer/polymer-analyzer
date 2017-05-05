@@ -224,8 +224,9 @@ suite('PolymerElement', () => {
     const warning = element.warnings.find(
         (w: Warning) => w.code === 'multiple-doc-comments')!;
     assert.equal(warning.severity, Severity.WARNING);
-    assert.deepEqual(
+    assert.equal(
         warning.message,
         'More than one doc comment found for ScannedPolymerElement');
+    assert.deepEqual(warning.sourceRange, element.sourceRange);
   });
 });
