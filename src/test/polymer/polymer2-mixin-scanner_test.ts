@@ -16,7 +16,7 @@
 import {assert} from 'chai';
 import * as path from 'path';
 
-import {Analyzer} from '../../analyzer';
+import {Analyzer} from '../../core/analyzer';
 import {PolymerElementMixin} from '../../index';
 import {ClassScanner} from '../../javascript/class-scanner';
 import {Visitor} from '../../javascript/estree-visitor';
