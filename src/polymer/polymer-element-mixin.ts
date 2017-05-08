@@ -68,6 +68,7 @@ export class ScannedPolymerElementMixin extends ScannedElementMixin implements
     this.mixins = mixins;
     this.astNode = astNode;
     this.classAstNode = classAstNode;
+    this.applyJsdocDemoTags();
   }
 
   addProperty(prop: ScannedPolymerProperty) {

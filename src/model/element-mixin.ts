@@ -23,10 +23,10 @@ export class ScannedElementMixin extends ScannedElementBase {
   constructor({name}: {name: string}) {
     super();
     this.name = name;
+    this.applyJsdocDemoTags();
   }
 
   resolve(document: Document): ElementMixin {
-    this.applyJsdocDemoTags(document.url);
     return new ElementMixin(this, document);
   }
 }
