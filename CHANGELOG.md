@@ -11,7 +11,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
    Unreleased section, uncommenting the header as necessary.
 -->
 
-## Unreleased
+<!-- ## Unreleased -->
+
+## [2.0.0-alpha.42] -2017-05-09
 
 * [minor breaking change] The paths in `@demo` annotations are no longer resolved.
 
