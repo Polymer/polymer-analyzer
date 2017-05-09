@@ -17,10 +17,10 @@ import * as estree from 'estree';
 import * as parse5 from 'parse5';
 
 import {ParsedHtmlDocument} from '../html/html-document';
-import {ParsedDocument} from '../index';
 import {JavaScriptDocument} from '../javascript/javascript-document';
 import {parseJs} from '../javascript/javascript-parser';
 import {correctSourceRange, LocationOffset, Severity, SourceRange, Warning} from '../model/model';
+import {ParsedDocument} from '../parser/document';
 
 
 const p = dom5.predicates;

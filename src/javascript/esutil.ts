@@ -15,8 +15,8 @@
 import * as estraverse from 'estraverse';
 import * as estree from 'estree';
 
-import {ParsedDocument} from '../index';
 import {ScannedEvent, Severity, SourceRange, Warning, WarningCarryingException} from '../model/model';
+import {ParsedDocument} from '../parser/document';
 import {annotateEvent} from '../polymer/docs';
 
 import * as jsdoc from './jsdoc';

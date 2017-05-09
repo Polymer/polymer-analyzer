@@ -44,7 +44,10 @@ export class WarningPrinter {
    */
   async printWarnings(warnings: Iterable<Warning>) {
     for (const warning of warnings) {
-      await this.printWarning(warning);
+      if (this._options.verbosity === 'full') {
+        this._outStream.write('\n\n');
+      }
+      this._outStream.write(warning.toString(this._options));
     }
   }
 

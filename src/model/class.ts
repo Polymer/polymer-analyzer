@@ -14,9 +14,9 @@
 
 import * as estree from 'estree';
 
-import {ParsedDocument} from '../index';
 import * as jsdocLib from '../javascript/jsdoc';
-import {Document, ElementMixin, Feature, Method, Privacy, Property, Reference, Resolvable, ScannedFeature, ScannedMethod, ScannedProperty, ScannedReference, Severity, SourceRange, Warning} from '../model/model';
+import {Document, Feature, Method, Privacy, Property, Reference, Resolvable, ScannedFeature, ScannedMethod, ScannedProperty, ScannedReference, Severity, SourceRange, Warning} from '../model/model';
+import {ParsedDocument} from '../parser/document';
 import {getOrInferPrivacy} from '../polymer/js-utils';
 
 import {Demo} from './element-base';

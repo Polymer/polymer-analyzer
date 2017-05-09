@@ -16,10 +16,10 @@ import * as doctrine from 'doctrine';
 import * as escodegen from 'escodegen';
 import * as estree from 'estree';
 
-import {ParsedDocument} from '../index';
 import {closureType, getAttachedComment, objectKeyToString} from '../javascript/esutil';
 import * as jsdoc from '../javascript/jsdoc';
 import {Privacy, ScannedMethod, Severity, SourceRange, Warning} from '../model/model';
+import {ParsedDocument} from '../parser/document';
 
 import {ScannedPolymerProperty} from './polymer-element';
 

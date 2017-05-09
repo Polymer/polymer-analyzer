@@ -14,13 +14,21 @@
 
 import {assert} from 'chai';
 import * as chalk from 'chalk';
+import * as fs from 'fs';
 import * as memoryStreams from 'memory-streams';
 import * as path from 'path';
 
 import {Analyzer} from '../../core/analyzer';
+import {JavaScriptParser} from '../../javascript/javascript-parser';
 import {Severity, Warning} from '../../model/model';
 import {FSUrlLoader} from '../../url-loader/fs-url-loader';
 import {WarningPrinter} from '../../warning/warning-printer';
+
+const parser = new JavaScriptParser();
+const staticTestDir = path.join(__dirname, '../static');
+const vanillaSources =
+    fs.readFileSync(path.join(staticTestDir, 'vanilla-elements.js'), 'utf-8');
+const parsedDocument = parser.parse(vanillaSources, 'vanilla-elements.js');
 
 const dumbNameWarning = new Warning({
   message: 'This is a dumb name for an element.',
@@ -31,7 +39,7 @@ const dumbNameWarning = new Warning({
     start: {column: 6, line: 0},
     end: {column: 22, line: 0}
   },
-  parsedDocument: null
+  parsedDocument
 });
 
 const goodJobWarning = new Warning({
@@ -43,21 +51,26 @@ const goodJobWarning = new Warning({
     start: {line: 22, column: 2},
     end: {line: 29, column: 3}
   },
-  parsedDocument: null
+  parsedDocument
 });
-
-const staticTestDir = path.join(__dirname, '../static');
 
 suite('WarningPrinter', () => {
   let output: NodeJS.WritableStream;
   let printer: WarningPrinter;
   let analyzer: Analyzer;
+  let originalChalkEnabled: boolean;
 
   setup(() => {
     output = new memoryStreams.WritableStream();
     const urlLoader = new FSUrlLoader(staticTestDir);
     analyzer = new Analyzer({urlLoader});
     printer = new WarningPrinter(output, {analyzer, color: false});
+    originalChalkEnabled = chalk.enabled;
+    (chalk as any).enabled = true;
+  });
+
+  teardown(() => {
+    (chalk as any).enabled = originalChalkEnabled;
   });
 
   test('can handle printing no warnings', async() => {
@@ -92,7 +105,6 @@ vanilla-elements.js(0,6) warning [dumb-element-name] - This is a dumb name for a
     printer = new WarningPrinter(output, {analyzer, color: true});
     await printer.printWarnings([dumbNameWarning]);
     const actual = output.toString();
-    assert.isTrue(chalk.hasColor(actual));
     const expected = `
 
 class ClassDeclaration extends HTMLElement {}

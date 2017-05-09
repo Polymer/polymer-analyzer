@@ -14,8 +14,8 @@
 
 import * as estree from 'estree';
 
-import {ParsedDocument} from '../index';
 import * as jsdoc from '../javascript/jsdoc';
+import {ParsedDocument} from '../parser/document';
 
 import {Class, ClassInit} from './class';
 import {Privacy} from './feature';
