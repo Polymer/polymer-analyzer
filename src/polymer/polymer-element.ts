@@ -152,7 +152,6 @@ export class ScannedPolymerElement extends ScannedElement implements
   // Indicates if an element is a pseudo element
   pseudo: boolean = false;
   abstract: boolean = false;
-  demos: {desc: string; path: string}[];
 
   constructor(options: Options) {
     super();
