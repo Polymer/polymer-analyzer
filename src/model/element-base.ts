@@ -61,16 +61,11 @@ export abstract class ScannedElementBase implements Resolvable {
       }
       this.jsdoc =
           this.jsdoc ? jsdoc.join(commentJsdoc, this.jsdoc) : commentJsdoc;
-      this.applyJsdocDemoTags();
       this.description = [
         commentJsdoc.description || '',
         this.description || ''
       ].join('\n\n').trim();
     }
-  }
-
-  applyJsdocDemoTags(): void {
-    this.demos = jsdoc.extractDemos(this.jsdoc);
   }
 
   resolve(_document: Document): any {

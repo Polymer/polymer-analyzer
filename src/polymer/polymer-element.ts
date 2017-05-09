@@ -183,7 +183,6 @@ export class ScannedPolymerElement extends ScannedElement implements
         (summaryTag !== undefined && summaryTag.description != null) ?
         summaryTag.description :
         '';
-    this.applyJsdocDemoTags();
   }
 
   addProperty(prop: ScannedPolymerProperty) {
