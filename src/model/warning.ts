@@ -13,7 +13,9 @@
  */
 
 import * as chalk from 'chalk';
+
 import {ParsedDocument} from '../parser/document';
+import {underlineCode} from '../warning/code-printer';
 
 import {SourceRange} from './source-range';
 
@@ -45,34 +47,40 @@ export class Warning {
     } = init);
   }
 
-  private _getRelavantSourceCode(relativeRange: SourceRange): string|undefined {
-    if (this._parsedDocument === null) {
-      return;
-    }
-    const startOffset = this._parsedDocument.sourcePositionToOffset(
-        {column: 0, line: relativeRange.start.line});
-    const endOffset = this._parsedDocument.sourcePositionToOffset(
-        {column: 0, line: relativeRange.end.line + 1});
-    return this._parsedDocument.contents.slice(startOffset, endOffset);
-  }
+  toString(options: Partial<WarningStringifyOptions> = {}): string {
+    const opts:
+        WarningStringifyOptions = {...defaultPrinterOptions, ...options};
+    const colorize = opts.color ? this._severityToColorFunction(this.severity) :
+                                  (s: string) => s;
+    const severity = this._severityToString(colorize);
 
-  private _getUnderlinedText(
-      colorize: (s: string) => string, relativeRange: SourceRange): string
-      |undefined {
-    const code = this._getRelavantSourceCode(relativeRange);
-    if (!code) {
-      return undefined;
+    if (!this.sourceRange || !this._parsedDocument) {
+      return `INTERNAL ERROR: Tried to print a '${this.code}' ` +
+          `warning without a source range and/or parsed document. ` +
+          `Please report this!\n` +
+          `     https://github.com/Polymer/polymer-analyzer/issues/new\n` +
+          `${this._severityToString(colorize)} ` +
+          `[${this.code}] - ${this.message}\n`;
     }
-    const outputLines: string[] = [];
-    const lines = code.split('\n');
-    let lineNum = relativeRange.start.line;
-    for (const line of lines) {
-      outputLines.push(line);
-      outputLines.push(
-          colorize(getSquiggleUnderline(line, lineNum, relativeRange)));
-      lineNum++;
+    let result = '';
+    if (options.verbosity !== 'one-line') {
+      const underlined =
+          underlineCode(this.sourceRange, this._parsedDocument, colorize);
+      if (underlined) {
+        result += underlined;
+      }
+      if (options.verbosity === 'code-only') {
+        return result;
+      }
+      result += '\n\n';
     }
-    return outputLines.join('\n');
+
+    result +=
+        (`${this.sourceRange.file}` +
+         `(${this.sourceRange.start.line},${this.sourceRange.start.column}) ` +
+         `${severity} [${this.code}] - ${this.message}\n`);
+
+    return result;
   }
 
   private _severityToColorFunction(severity: Severity) {
@@ -89,39 +97,6 @@ export class Warning {
             `Unknown severity value - ${never}` +
             ` - encountered while printing warning.`);
     }
-  }
-
-  toString(options: Partial<WarningStringifyOptions> = {}): string {
-    const opts:
-        WarningStringifyOptions = {...defaultPrinterOptions, ...options};
-    const colorize = opts.color ? this._severityToColorFunction(this.severity) :
-                                  (s: string) => s;
-    const severity = this._severityToString(colorize);
-
-    if (!this.sourceRange || !this._parsedDocument) {
-      return `INTERNAL ERROR: Tried to print a '${this.code}' ` +
-          `warning without a source range and/or parsed document. ` +
-          `Please report this!\n` +
-          `     https://github.com/Polymer/polymer-analyzer/issues/new\n` +
-          `${this._severityToString(colorize)} ` +
-          `[${this.code}] - ${this.message}\n`;
-    }
-    const relativeRange =
-        this._parsedDocument.absoluteToRelativeSourceRange(this.sourceRange);
-    let result = '';
-    if (options.verbosity === 'full') {
-      const underlined = this._getUnderlinedText(colorize, relativeRange);
-      if (underlined) {
-        result += underlined;
-      }
-    }
-
-    result +=
-        (`${this.sourceRange.file}` +
-         `(${this.sourceRange.start.line},${this.sourceRange.start.column}) ` +
-         `${severity} [${this.code}] - ${this.message}\n`);
-
-    return result;
   }
 
   private _severityToString(colorize: (s: string) => string) {
@@ -165,32 +140,7 @@ export class WarningCarryingException extends Error {
   }
 }
 
-function getSquiggleUnderline(
-    lineText: string, lineNum: number, sourceRange: SourceRange) {
-  // We're on a middle line of a multiline range. Squiggle the entire line.
-  if (lineNum !== sourceRange.start.line && lineNum !== sourceRange.end.line) {
-    return '~'.repeat(lineText.length);
-  }
-  // The tricky case. Might be the start of a multiline range, or it might just
-  // be a one-line range.
-  if (lineNum === sourceRange.start.line) {
-    const startColumn = sourceRange.start.column;
-    const endColumn = sourceRange.end.line === sourceRange.start.line ?
-        sourceRange.end.column :
-        lineText.length;
-    const prefix = lineText.slice(0, startColumn).replace(/[^\t]/g, ' ');
-    if (startColumn === endColumn) {
-      return prefix + '~';  // always draw at least one squiggle
-    }
-    return prefix + '~'.repeat(endColumn - startColumn);
-  }
-
-  // We're on the end line of a multiline range. Just squiggle up to the end
-  // column.
-  return '~'.repeat(sourceRange.end.column);
-}
-
-export type Verbosity = 'one-line' | 'full';
+export type Verbosity = 'one-line' | 'full' | 'code-only';
 
 export interface WarningStringifyOptions {
   readonly verbosity: Verbosity;

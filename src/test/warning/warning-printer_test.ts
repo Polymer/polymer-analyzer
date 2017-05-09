@@ -64,7 +64,7 @@ suite('WarningPrinter', () => {
     output = new memoryStreams.WritableStream();
     const urlLoader = new FSUrlLoader(staticTestDir);
     analyzer = new Analyzer({urlLoader});
-    printer = new WarningPrinter(output, {analyzer, color: false});
+    printer = new WarningPrinter(output, {color: false});
     originalChalkEnabled = chalk.enabled;
     (chalk as any).enabled = true;
   });
@@ -92,8 +92,7 @@ vanilla-elements.js(0,6) warning [dumb-element-name] - This is a dumb name for a
   });
 
   test('can format and print one-line warnings', async() => {
-    printer = new WarningPrinter(
-        output, {analyzer, verbosity: 'one-line', color: false});
+    printer = new WarningPrinter(output, {verbosity: 'one-line', color: false});
     await printer.printWarnings([dumbNameWarning]);
     const actual = output.toString();
     const expected =
@@ -102,7 +101,7 @@ vanilla-elements.js(0,6) warning [dumb-element-name] - This is a dumb name for a
   });
 
   test('it adds color if configured to do so', async() => {
-    printer = new WarningPrinter(output, {analyzer, color: true});
+    printer = new WarningPrinter(output, {color: true});
     await printer.printWarnings([dumbNameWarning]);
     const actual = output.toString();
     const expected = `
