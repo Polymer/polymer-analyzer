@@ -443,6 +443,7 @@ class ClassFinder implements Visitor {
           code: 'class-extends-annotation-no-id',
           message: '@extends annotation with no identifier',
           severity: Severity.WARNING, sourceRange,
+          parsedDocument: this._document
         }));
       } else {
         return new ScannedReference(extendsId, sourceRange);
@@ -537,7 +538,8 @@ class CustomElementsDefineCallFinder implements Visitor {
           `Unable to evaluate this expression down to a definitive string ` +
           `tagname.`,
       severity: Severity.WARNING,
-      sourceRange: this._document.sourceRangeForNode(expression)!
+      sourceRange: this._document.sourceRangeForNode(expression)!,
+      parsedDocument: this._document
     }));
     return undefined;
   }
@@ -562,7 +564,8 @@ class CustomElementsDefineCallFinder implements Visitor {
       code: 'cant-determine-element-class',
       message: `Unable to evaluate this expression down to a class reference.`,
       severity: Severity.WARNING,
-      sourceRange: this._document.sourceRangeForNode(elementDefn)!
+      sourceRange: this._document.sourceRangeForNode(elementDefn)!,
+      parsedDocument: this._document,
     }));
     return null;
   }

@@ -327,7 +327,8 @@ export function getBehaviors(
             `@polymerBehavior?`,
         severity: Severity.ERROR,
         code: 'unknown-polymer-behavior',
-        sourceRange: behavior.sourceRange
+        sourceRange: behavior.sourceRange,
+        parsedDocument: document.parsedDocument
       }));
       // Skip processing this behavior.
       continue;
@@ -337,7 +338,8 @@ export function getBehaviors(
         message: `Found more than one behavior named ${behavior.name}.`,
         severity: Severity.WARNING,
         code: 'multiple-polymer-behaviors',
-        sourceRange: behavior.sourceRange
+        sourceRange: behavior.sourceRange,
+        parsedDocument: document.parsedDocument
       }));
       // Don't skip processing this behavior, just take the most recently
       // declared instance.

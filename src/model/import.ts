@@ -76,7 +76,8 @@ export class ScannedImport implements Resolvable {
         code: 'could-not-load',
         message: `Unable to load import: ${error}`,
         sourceRange: (this.urlSourceRange || this.sourceRange)!,
-        severity: Severity.ERROR
+        severity: Severity.ERROR,
+        parsedDocument: document.parsedDocument,
       }));
       return undefined;
     }

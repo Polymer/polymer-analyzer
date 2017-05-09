@@ -30,7 +30,8 @@ const dumbNameWarning = new Warning({
     file: 'vanilla-elements.js',
     start: {column: 6, line: 0},
     end: {column: 22, line: 0}
-  }
+  },
+  parsedDocument: null
 });
 
 const goodJobWarning = new Warning({
@@ -41,7 +42,8 @@ const goodJobWarning = new Warning({
     file: 'vanilla-elements.js',
     start: {line: 22, column: 2},
     end: {line: 29, column: 3}
-  }
+  },
+  parsedDocument: null
 });
 
 const staticTestDir = path.join(__dirname, '../static');

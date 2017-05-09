@@ -12,6 +12,8 @@
  * http://polymer.github.io/PATENTS.txt
  */
 
+import {ParsedDocument} from '../index';
+
 import {SourceRange} from './source-range';
 
 export interface WarningInit {
@@ -19,6 +21,7 @@ export interface WarningInit {
   readonly sourceRange: SourceRange;
   readonly severity: Severity;
   readonly code: string;
+  readonly parsedDocument: ParsedDocument<any, any>|null;
 }
 export class Warning {
   readonly code: string;
@@ -26,6 +29,7 @@ export class Warning {
   readonly sourceRange: SourceRange;
   readonly severity: Severity;
 
+  private readonly _parsedDocument: ParsedDocument<any, any>|null;
 
   // Useful while we migrate from object literal warnings to a warning class.
   protected _warningBrand: never;
@@ -35,8 +39,33 @@ export class Warning {
       message: this.message,
       sourceRange: this.sourceRange,
       severity: this.severity,
-      code: this.code
+      code: this.code,
+      parsedDocument: this._parsedDocument,
     } = init);
+  }
+
+  getRelavantSourceCode(): string|undefined {
+    if (this._parsedDocument === null) {
+      return;
+    }
+    const startLineIndex =
+        this._parsedDocument.newlineIndexes[this.sourceRange.start.line];
+    const endLineIndex =
+        this._parsedDocument.newlineIndexes[this.sourceRange.end.line + 1] ||
+        this._parsedDocument.contents.length - 1;
+    if (startLineIndex === undefined) {
+      return;
+    }
+    return this._parsedDocument.contents.slice(startLineIndex, endLineIndex);
+  }
+
+  toJson() {
+    return {
+      code: this.code,
+      message: this.message,
+      severity: this.severity,
+      sourceRange: this.sourceRange,
+    };
   }
 }
 

@@ -14,6 +14,7 @@
 
 import * as estree from 'estree';
 
+import {ParsedDocument} from '../index';
 import * as jsdocLib from '../javascript/jsdoc';
 import {Document, ElementMixin, Feature, Method, Privacy, Property, Reference, Resolvable, ScannedFeature, ScannedMethod, ScannedProperty, ScannedReference, Severity, SourceRange, Warning} from '../model/model';
 import {getOrInferPrivacy} from '../polymer/js-utils';
@@ -136,6 +137,7 @@ export class Class implements Feature {
   readonly abstract: boolean;
   readonly privacy: Privacy;
   readonly demos: Demo[];
+  private readonly _parsedDocument: ParsedDocument<any, any>;
 
   constructor(init: ClassInit, document: Document) {
     ({
@@ -147,6 +149,8 @@ export class Class implements Feature {
       astNode: this.astNode,
       sourceRange: this.sourceRange
     } = init);
+
+    this._parsedDocument = document.parsedDocument;
 
     this.warnings =
         init.warnings === undefined ? [] : Array.from(init.warnings);
@@ -227,7 +231,8 @@ export class Class implements Feature {
             message: `Overriding private member '${overridingVal.name}' ` +
                 `inherited from ${existingValue.inheritedFrom || 'parent'}`,
             sourceRange: warningSourceRange,
-            severity: Severity.WARNING
+            severity: Severity.WARNING,
+            parsedDocument: this._parsedDocument,
           }));
         }
       }
@@ -279,6 +284,7 @@ export class Class implements Feature {
         severity: Severity.ERROR,
         code: 'unknown-superclass',
         sourceRange: reference.sourceRange!,
+        parsedDocument: this._parsedDocument,
       }));
       return undefined;
     } else if (superElements.size > 1) {
@@ -287,6 +293,7 @@ export class Class implements Feature {
         severity: Severity.ERROR,
         code: 'unknown-superclass',
         sourceRange: reference.sourceRange!,
+        parsedDocument: this._parsedDocument,
       }));
       return undefined;
     }

@@ -43,7 +43,7 @@ export function analyzeProperties(
 
   for (const property of node.properties) {
     const prop = toScannedPolymerProperty(
-        property, document.sourceRangeForNode(property)!);
+        property, document.sourceRangeForNode(property)!, document);
 
     // toScannedPolymerProperty does the wrong thing for us with type. We want
     // type to be undefined unless there's a positive signal for the type.
@@ -93,7 +93,8 @@ export function analyzeProperties(
                   code: 'invalid-property-type',
                   message: 'Invalid type in property object.',
                   severity: Severity.ERROR,
-                  sourceRange: document.sourceRangeForNode(propertyArg)!
+                  sourceRange: document.sourceRangeForNode(propertyArg)!,
+                  parsedDocument: document
                 }));
               }
             }
@@ -148,7 +149,9 @@ export function analyzeProperties(
         code: 'no-type-for-property',
         message: 'Unable to determine type for property.',
         severity: Severity.WARNING,
-        sourceRange: document.sourceRangeForNode(property)!
+        sourceRange: document.sourceRangeForNode(property)!,
+        parsedDocument: document
+
       }));
     }
 

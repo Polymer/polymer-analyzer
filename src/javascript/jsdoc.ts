@@ -156,6 +156,7 @@ export function getMixinApplications(
             message:
                 '@appliesMixin annotation with no identifier. Usage `@appliesMixin MixinName`',
             severity: Severity.WARNING, sourceRange,
+            parsedDocument: document
           }));
           return;
         }

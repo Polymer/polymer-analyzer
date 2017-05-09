@@ -78,6 +78,7 @@ class PolymerCoreFeatureVisitor implements Visitor {
         severity: Severity.ERROR,
         code: 'invalid-polymer-base-assignment',
         sourceRange: this.document.sourceRangeForNode(assignment)!,
+        parsedDocument: this.document
       }));
       return;
     }
@@ -112,6 +113,7 @@ class PolymerCoreFeatureVisitor implements Visitor {
         severity: Severity.ERROR,
         code: 'invalid-polymer-core-feature-call',
         sourceRange: this.document.sourceRangeForNode(call)!,
+        parsedDocument: this.document
       }));
       return;
     }
@@ -124,6 +126,7 @@ class PolymerCoreFeatureVisitor implements Visitor {
         severity: Severity.ERROR,
         code: 'invalid-polymer-core-feature-call',
         sourceRange: this.document.sourceRangeForNode(call)!,
+        parsedDocument: this.document
       }));
       return;
     }
@@ -143,10 +146,11 @@ class PolymerCoreFeatureVisitor implements Visitor {
         continue;
       }
       if (esutil.isFunctionType(prop.value)) {
-        const method = toScannedMethod(prop, sourceRange);
+        const method = toScannedMethod(prop, sourceRange, this.document);
         feature.methods.set(method.name, method);
       } else {
-        const property = toScannedPolymerProperty(prop, sourceRange);
+        const property =
+            toScannedPolymerProperty(prop, sourceRange, this.document);
         feature.properties.set(property.name, property);
       }
       // TODO(aomarks) Are there any getters/setters on Polymer.Base?

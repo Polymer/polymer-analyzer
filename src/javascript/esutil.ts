@@ -15,6 +15,7 @@
 import * as estraverse from 'estraverse';
 import * as estree from 'estree';
 
+import {ParsedDocument} from '../index';
 import {ScannedEvent, Severity, SourceRange, Warning, WarningCarryingException} from '../model/model';
 import {annotateEvent} from '../polymer/docs';
 
@@ -88,7 +89,9 @@ export const CLOSURE_CONSTRUCTOR_MAP = new Map(
  * @return {string} The type of that expression, in Closure terms.
  */
 export function closureType(
-    node: estree.Node, sourceRange: SourceRange): string {
+    node: estree.Node,
+    sourceRange: SourceRange,
+    document: ParsedDocument<any, any>): string {
   if (node.type.match(/Expression$/)) {
     return node.type.substr(0, node.type.length - 10);
   } else if (node.type === 'Literal') {
@@ -98,11 +101,10 @@ export function closureType(
   } else {
     throw new WarningCarryingException(new Warning({
       code: 'no-closure-type',
-      message:
-          `Unable to determine closure type for expression of type ${
-                                                                     node.type
-                                                                   }`,
-      severity: Severity.WARNING, sourceRange
+      message: `Unable to determine closure type for expression of type ` +
+          `${node.type}`,
+      severity: Severity.WARNING, sourceRange,
+      parsedDocument: document,
     }));
   }
 }

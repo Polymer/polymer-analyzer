@@ -16,6 +16,7 @@ import * as doctrine from 'doctrine';
 import * as escodegen from 'escodegen';
 import * as estree from 'estree';
 
+import {ParsedDocument} from '../index';
 import {closureType, getAttachedComment, objectKeyToString} from '../javascript/esutil';
 import * as jsdoc from '../javascript/jsdoc';
 import {Privacy, ScannedMethod, Severity, SourceRange, Warning} from '../model/model';
@@ -27,7 +28,8 @@ import {ScannedPolymerProperty} from './polymer-element';
  */
 export function toScannedPolymerProperty(
     node: estree.Property|estree.MethodDefinition,
-    sourceRange: SourceRange): ScannedPolymerProperty {
+    sourceRange: SourceRange,
+    document: ParsedDocument<any, any>): ScannedPolymerProperty {
   const parsedJsdoc = jsdoc.parseJsdoc(getAttachedComment(node) || '');
   const description = parsedJsdoc.description.trim();
   const maybeName = objectKeyToString(node.key);
@@ -40,10 +42,11 @@ export function toScannedPolymerProperty(
           `Could not determine name of property from expression of type: ` +
           `${node.key.type}`,
       sourceRange: sourceRange,
-      severity: Severity.WARNING
+      severity: Severity.WARNING,
+      parsedDocument: document
     }));
   }
-  let type = closureType(node.value, sourceRange);
+  let type = closureType(node.value, sourceRange, document);
   const typeTag = jsdoc.getTag(parsedJsdoc, 'type');
   if (typeTag) {
     type = doctrine.type.stringify(typeTag.type!) || type;
@@ -93,9 +96,10 @@ const configurationProperties = new Set([
  */
 export function toScannedMethod(
     node: estree.Property|estree.MethodDefinition,
-    sourceRange: SourceRange): ScannedMethod {
+    sourceRange: SourceRange,
+    document: ParsedDocument<any, any>): ScannedMethod {
   const scannedMethod: ScannedMethod =
-      toScannedPolymerProperty(node, sourceRange);
+      toScannedPolymerProperty(node, sourceRange, document);
 
   if (scannedMethod.type === 'Function' ||
       scannedMethod.type === 'ArrowFunction') {

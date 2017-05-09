@@ -95,7 +95,8 @@ class BehaviorVisitor implements Visitor {
               `Unable to determine property name from expression of type ` +
               `${node.type}`,
           severity: Severity.WARNING,
-          sourceRange: this.document.sourceRangeForNode(node)!
+          sourceRange: this.document.sourceRangeForNode(node)!,
+          parsedDocument: this.document
         }));
         continue;
       }
@@ -103,7 +104,7 @@ class BehaviorVisitor implements Visitor {
         this.propertyHandlers[name](prop.value);
       } else {
         this.currentBehavior.addProperty(toScannedPolymerProperty(
-            prop, this.document.sourceRangeForNode(prop)!));
+            prop, this.document.sourceRangeForNode(prop)!, this.document));
       }
     }
     this._finishBehavior();

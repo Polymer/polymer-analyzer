@@ -40,7 +40,8 @@ export function getBehaviorAssignmentOrWarning(
         message: `Could not determine behavior name from expression of type ` +
             `${argNode.type}`,
         severity: Severity.WARNING,
-        sourceRange: document.sourceRangeForNode(argNode)!
+        sourceRange: document.sourceRangeForNode(argNode)!,
+        parsedDocument: document
       })
     };
   }
@@ -104,7 +105,8 @@ export function declarationPropertyHandlers(
           code: 'invalid-listeners-declaration',
           message: '`listeners` property should be an object expression',
           severity: Severity.ERROR,
-          sourceRange: document.sourceRangeForNode(node)!
+          sourceRange: document.sourceRangeForNode(node)!,
+          parsedDocument: document
         }));
         return;
       }
