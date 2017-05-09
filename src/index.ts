@@ -40,6 +40,8 @@ export {PackageUrlResolver} from './url-loader/package-url-resolver';
 export {RedirectResolver} from './url-loader/redirect-resolver';
 export {UrlLoader} from './url-loader/url-loader';
 export {UrlResolver} from './url-loader/url-resolver';
+export {MultiUrlLoader} from './url-loader/multi-url-loader';
+export {PrefixedUrlLoader} from './url-loader/prefixed-url-loader';
 
 // Polymer
 export {PolymerElement} from './polymer/polymer-element';

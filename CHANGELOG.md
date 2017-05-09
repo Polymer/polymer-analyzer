@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [2.0.0-alpha.42] -2017-05-09
 
 * [minor breaking change] The paths in `@demo` annotations are no longer resolved.
+* Added `MultiUrlLoader` and `PrefixedUrlLoader` to support analysis of more complicated project layouts.
 
 ## [2.0.0-alpha.41] - 2017-05-08
 
