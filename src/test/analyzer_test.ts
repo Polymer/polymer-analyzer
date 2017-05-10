@@ -741,6 +741,43 @@ var DuplicateNamespace = {};
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~`]);
       });
 
+  test('analyzes a document with directives', async() => {
+    const document =
+        await analyzeDocument('static/directives/mixed-lint-directives.html');
+
+    const directives = Array.from(
+        document.getFeatures({kind: 'directive', id: 'polymer-lint'}));
+    assert.deepEqual(
+        directives.map(
+            ({identifiers, args}) =>
+                ({identifiers: Array.from(identifiers), args})),
+        [
+          {identifiers: ['polymer-lint'], args: ['disable', 'rule-1']},
+          {identifiers: ['polymer-lint'], args: ['enable', 'rule-1']},
+          {identifiers: ['polymer-lint'], args: ['disable', 'rule-2']},
+          {identifiers: ['polymer-lint'], args: ['enable', 'rule-2']},
+        ]);
+  });
+
+  test('analyzes a document with inter-woven directives', async() => {
+    const document = await analyzeDocument(
+        'static/directives/interwoven-lint-directives.html');
+
+    const directives = Array.from(
+        document.getFeatures({kind: 'directive', id: 'polymer-lint'}));
+    assert.deepEqual(
+        directives.map(
+            ({identifiers, args}) =>
+                ({identifiers: Array.from(identifiers), args})),
+        [
+          {identifiers: ['polymer-lint'], args: ['disable', 'rule-1']},
+          {identifiers: ['polymer-lint'], args: ['disable', 'rule-2']},
+          {identifiers: ['polymer-lint'], args: ['enable', 'rule-1']},
+          {identifiers: ['polymer-lint'], args: ['enable', 'rule-2']},
+        ]);
+  });
+
+
   suite('analyzePackage', () => {
 
     test('produces a package with the right documents', async() => {
@@ -749,8 +786,8 @@ var DuplicateNamespace = {};
       });
       const pckage = await analyzer.analyzePackage();
 
-      // The root documents of the package are a minimal set of documents whose
-      // imports touch every document in the package.
+      // The root documents of the package are a minimal set of documents
+      // whose imports touch every document in the package.
       assert.deepEqual(
           Array.from(pckage['_searchRoots']).map((d) => d.url).sort(),
           ['cyclic-a.html', 'root.html', 'subdir/root-in-subdir.html'].sort());
