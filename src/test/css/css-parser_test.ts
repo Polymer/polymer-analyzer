@@ -16,8 +16,8 @@ import {assert} from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
 
+import {ParsedCssDocument} from '../../css/css-document';
 import {CssParser} from '../../css/css-parser';
-import {ParsedCssDocument} from '../../index';
 
 suite('CssParser', () => {
 

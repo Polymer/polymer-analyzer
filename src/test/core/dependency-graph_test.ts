@@ -19,7 +19,7 @@ import * as path from 'path';
 
 import {Analyzer} from '../../core/analyzer';
 import {DependencyGraph} from '../../core/dependency-graph';
-import {FSUrlLoader} from '../../index';
+import {FSUrlLoader} from '../../url-loader/fs-url-loader';
 
 import chaiAsPromised = require('chai-as-promised');
 use(chaiAsPromised);
