@@ -1,6 +1,7 @@
 # Polymer Analyzer - Comment Directives & Comment Annotations
 > Author @FredKSchott
 > Status: Partial Implementation
+> Discussion: https://github.com/Polymer/polymer-analyzer/pull/644
 > Last Update: 2017-05-09
 
 > **Update: 05-02-2017 Design Review** After an in-person review session we decided to move forward and implement the polymer-lint directive piece of the design and hold off on the more general-purpose directive scanning. Instead of creating a new general-purpose `Directive` class, the analyzer will have a built in scanner that returns `PolymerLintDirective`s. We can return to this design document in the future when there is a need for scanning/analyzing a second directive type.
