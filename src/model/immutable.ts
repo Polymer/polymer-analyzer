@@ -52,6 +52,13 @@ export declare interface ImmutableMap<K, V> {
   [Symbol.iterator](): Iterator<[K, V]>;
 }
 
+/**
+ * A map whose entries may not be deleted.
+ */
+export interface SetOnlyMap<K, V> extends ImmutableMap<K, V> {
+  set(key: K, value: V): void;
+}
+
 export function asImmutable<V>(array: Array<V>): ImmutableArray<V>;
 export function asImmutable<V>(set: Set<V>): ImmutableSet<V>;
 export function asImmutable<K, V>(map: Map<K, V>): ImmutableMap<K, V>;
@@ -59,6 +66,8 @@ export function asImmutable<O extends object>(object: O): Readonly<O>;
 export function asImmutable(x: any) {
   return x;
 }
+
+
 
 /**
  * Take care, this function is inherently unsafe.

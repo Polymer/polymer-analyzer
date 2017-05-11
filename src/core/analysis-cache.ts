@@ -12,10 +12,11 @@
  * http://polymer.github.io/PATENTS.txt
  */
 
+import {SetOnlyMap} from '../model/immutable';
 import {Document, ScannedDocument, Warning} from '../model/model';
 import {ParsedDocument} from '../parser/document';
 
-import {AsyncWorkCache, SetOnlyMap} from './async-work-cache';
+import {AsyncWorkCache} from './async-work-cache';
 import {DependencyGraph} from './dependency-graph';
 
 export class AnalysisCache {
@@ -26,6 +27,11 @@ export class AnalysisCache {
   readonly parsedDocumentPromises:
       AsyncWorkCache<string, ParsedDocument<any, any>>;
   readonly scannedDocumentPromises: AsyncWorkCache<string, ScannedDocument>;
+
+  /**
+   * An entry is in this cache when all the path and all its dependencies have
+   * been scanned.
+   */
   readonly dependenciesScannedPromises: AsyncWorkCache<string, ScannedDocument>;
   readonly analyzedDocumentPromises: AsyncWorkCache<string, Document>;
 
@@ -75,29 +81,27 @@ export class AnalysisCache {
     //     Could end up saving some work in the editor case.
     //     On the other hand, copying a half dozen maps with maybe 200 entries
     //     each should be pretty cheap, maybe not worth the effort.
-    // const newCache = new AnalysisCache(
-    //   this, this.dependencyGraph.invalidatePaths(documentPaths));
-    const dependencyGraph = this.dependencyGraph.invalidatePaths(documentPaths);
 
-    const parsedDocumentPromises = this.parsedDocumentPromises.fork();
-    const scannedDocumentPromises = this.scannedDocumentPromises.fork();
-    const dependenciesScannedPromises = this.dependenciesScannedPromises.fork();
-    const analyzedDocumentPromises = this.analyzedDocumentPromises.fork();
+    const pathSet = new Set(documentPaths);
 
-    const scannedDocuments = new Map(this.scannedDocuments);
-    const analyzedDocuments = new Map(this.analyzedDocuments);
-    const failedDocuments = new Map(this.failedDocuments);
+    const parsedDocumentPromises =
+        new Map(filterOutByKey(this.parsedDocumentPromises, pathSet));
+    const scannedDocumentPromises =
+        new Map(filterOutByKey(this.scannedDocumentPromises, pathSet));
+    const dependenciesScannedPromises =
+        new Map(filterOutByKey(this.dependenciesScannedPromises, pathSet));
+
+    const scannedDocuments =
+        new Map(filterOutByKey(this.scannedDocuments, pathSet));
+    const analyzedDocuments =
+        new Map(filterOutByKey(this.analyzedDocuments, pathSet));
+    const failedDocuments =
+        new Map(filterOutByKey(this.failedDocuments, pathSet));
 
     for (const path of documentPaths) {
-      // Note that we must calculate the dependency graph based on the parent,
-      // not the forked newCache.
+      // Note that we must calculate dependants using the pre-fork dependency
+      // graph.
       const dependants = this.dependencyGraph.getAllDependantsOf(path);
-      parsedDocumentPromises.delete(path);
-      scannedDocumentPromises.delete(path);
-      dependenciesScannedPromises.delete(path);
-      scannedDocuments.delete(path);
-      analyzedDocuments.delete(path);
-      failedDocuments.delete(path);
 
       // Analyzed documents need to be treated more carefully, because they have
       // relationships with other documents. So first we remove all documents
@@ -107,15 +111,15 @@ export class AnalysisCache {
         dependenciesScannedPromises.delete(partiallyInvalidatedPath);
         analyzedDocuments.delete(partiallyInvalidatedPath);
       }
+    }
 
-      // Then we clear out the analyzed document promises, which could have
-      // in-progress results that don't cohere with the state of the new cache.
-      // Only populate the new analyzed promise cache with results that are
-      // definite, and not invalidated.
-      analyzedDocumentPromises.clear();
-      for (const keyValue of analyzedDocuments) {
-        analyzedDocumentPromises.set(keyValue[0], Promise.resolve(keyValue[1]));
-      }
+    // The cache of promises of analyzed documents shouldn't be forked, as it
+    // could have in-progress results that don't cohere with the state of the
+    // new cache. Only populate the new analyzed promise cache with results
+    // that are definite, and not invalidated.
+    const analyzedDocumentPromises = new Map<string, Promise<Document>>();
+    for (const [path, document] of analyzedDocuments) {
+      analyzedDocumentPromises.set(path, Promise.resolve(document));
     }
 
     return new AnalysisCache({
@@ -126,7 +130,7 @@ export class AnalysisCache {
       analyzedDocuments,
       failedDocuments,
       analyzedDocumentPromises,
-      dependencyGraph
+      dependencyGraph: this.dependencyGraph.invalidatePaths(documentPaths),
     });
   }
 
@@ -137,6 +141,14 @@ export class AnalysisCache {
         analyzedDocuments:
             ${Array.from(this.analyzedDocuments.keys()).join('\n            ')}
       >`;
+  }
+}
+
+function* filterOutByKey<K, V>(entries: Iterable<[K, V]>, filterOut: Set<K>) {
+  for (const keyValue of entries) {
+    if (!filterOut.has(keyValue[0])) {
+      yield keyValue;
+    }
   }
 }
 

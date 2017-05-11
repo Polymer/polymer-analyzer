@@ -24,6 +24,8 @@
  * remove it from the cache that future requests will use, but existing requests
  * should be unaffected.
  */
+import {SetOnlyMap} from '../model/immutable';
+
 export class AsyncWorkCache<K, V> {
   private _keyToResultMap: SetOnlyMap<K, Promise<V>>;
 
@@ -65,20 +67,12 @@ export class AsyncWorkCache<K, V> {
   }
 
   /**
-   * Returns a copy of the underlying map which can be mutated as necessary
-   * and then used to create another cache.
+   * Yields entries from the underlying map which can be filtered as necessary
+   * to use in creating another cache.
+   *
+   * Not valid for reading a particular value from the cache.
    */
-  fork(): Map<K, Promise<V>> {
-    return new Map(this._keyToResultMap);
+  * [Symbol.iterator]() {
+    yield* this._keyToResultMap;
   }
-}
-
-/**
- * A map whose entries may not be deleted.
- */
-export interface SetOnlyMap<K, V> extends ReadonlyMap<K, V> {
-  [Symbol.iterator](): IterableIterator<[K, V]>;
-  keys(): IterableIterator<K>;
-  values(): IterableIterator<V>;
-  set(key: K, value: V): void;
 }
