@@ -85,7 +85,7 @@ export class CodeUnderliner {
       return 'No source range given.';
     }
     if (isWarning(reference)) {
-      return '\n' + reference.toString({verbosity: 'code-only'});
+      return '\n' + reference.toString({verbosity: 'code-only', color: false});
     }
     // We have a reference without its parsed document. Go get it.
     const parsedDocument = await this._parsedDocumentGetter(reference.file);
