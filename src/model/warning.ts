@@ -34,9 +34,6 @@ export class Warning {
 
   private readonly _parsedDocument: ParsedDocument<any, any>|null;
 
-  // Useful while we migrate from object literal warnings to a warning class.
-  protected _warningBrand: never;
-
   constructor(init: WarningInit) {
     ({
       message: this.message,
