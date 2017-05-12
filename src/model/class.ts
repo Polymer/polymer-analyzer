@@ -122,7 +122,7 @@ export class Class implements Feature {
   readonly jsdoc: jsdocLib.Annotation|undefined;
   description: string;
   readonly properties = new Map<string, Property>();
-  readonly methods: Map<string, Method> = new Map();
+  readonly methods = new Map<string, Method>();
   readonly superClass: Reference|undefined;
   /**
    * Mixins that this class declares with `@mixes`.

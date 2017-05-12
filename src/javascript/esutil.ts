@@ -126,12 +126,10 @@ export function getEventComments(node: estree.Node): Map<string, ScannedEvent> {
           .forEach((comment) => eventComments.add(comment));
     }
   });
-  const events = Array.from(eventComments)
-                     .map(function(comment) {
-                       const annotation = jsdoc.parseJsdoc(
-                           jsdoc.removeLeadingAsterisks(comment).trim());
-                       return annotateEvent(annotation);
-                     })
+  const events = [...eventComments]
+                     .map(
+                         (comment) => annotateEvent(jsdoc.parseJsdoc(
+                             jsdoc.removeLeadingAsterisks(comment).trim())))
                      .filter((ev) => !!ev)
                      .sort((ev1, ev2) => ev1.name.localeCompare(ev2.name));
   return new Map(events.map((e) => [e.name, e] as [string, ScannedEvent]));
