@@ -21,11 +21,13 @@ import {HtmlImportScanner} from '../html/html-import-scanner';
 import {HtmlParser} from '../html/html-parser';
 import {HtmlScriptScanner} from '../html/html-script-scanner';
 import {HtmlStyleScanner} from '../html/html-style-scanner';
+import {HtmlPolymerLintDirectiveScanner} from '../html/polymer-lint-directive-scanner';
 import {Severity} from '../index';
 import {ClassScanner} from '../javascript/class-scanner';
 import {FunctionScanner} from '../javascript/function-scanner';
 import {JavaScriptParser} from '../javascript/javascript-parser';
 import {NamespaceScanner} from '../javascript/namespace-scanner';
+import {JavaScriptPolymerLintDirectiveScanner} from '../javascript/polymer-lint-directive-scanner';
 import {JsonParser} from '../json/json-parser';
 import {Document, InlineDocInfo, LocationOffset, ScannedDocument, ScannedElement, ScannedImport, ScannedInlineDocument, Warning, WarningCarryingException} from '../model/model';
 import {ParsedDocument} from '../parser/document';
@@ -106,6 +108,7 @@ export class AnalysisContext {
           new CssImportScanner(),
           new HtmlCustomElementReferenceScanner(),
           new PseudoElementScanner(),
+          new HtmlPolymerLintDirectiveScanner(),
         ]
       ],
       [
@@ -116,7 +119,8 @@ export class AnalysisContext {
           new BehaviorScanner(),
           new NamespaceScanner(),
           new FunctionScanner(),
-          new ClassScanner()
+          new ClassScanner(),
+          new JavaScriptPolymerLintDirectiveScanner(),
         ]
       ],
     ]);

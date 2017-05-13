@@ -37,6 +37,7 @@
 export * from './attribute';
 export * from './class';
 export {Document, ScannedDocument} from './document';
+export {PolymerLintDirective, ScannedPolymerLintDirective} from './directive';
 export * from './element';
 export * from './element-base';
 export {ElementReference, ScannedElementReference} from './element-reference';
