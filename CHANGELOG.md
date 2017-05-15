@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [2.0.0] - 2017-05-15
 
-* Stable release of the polymer analyzer, the foundation of all of our tooling.
+* Stable release of the Polymer Analyzer.
 
 
 #### Changes since the previous prerelease version:
