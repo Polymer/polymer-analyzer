@@ -24,7 +24,7 @@ export interface WarningInit {
   readonly sourceRange: SourceRange;
   readonly severity: Severity;
   readonly code: string;
-  readonly parsedDocument: ParsedDocument<any, any>|null;
+  readonly parsedDocument: ParsedDocument<any, any>;
 }
 export class Warning {
   readonly code: string;
@@ -32,7 +32,7 @@ export class Warning {
   readonly sourceRange: SourceRange;
   readonly severity: Severity;
 
-  private readonly _parsedDocument: ParsedDocument<any, any>|null;
+  private readonly _parsedDocument: ParsedDocument<any, any>;
 
   constructor(init: WarningInit) {
     ({
@@ -42,6 +42,17 @@ export class Warning {
       code: this.code,
       parsedDocument: this._parsedDocument,
     } = init);
+
+    if (!this.sourceRange) {
+      throw new Error(
+          `Attempted to construct a ${this.code} ` +
+          `warning without a source range.`);
+    }
+    if (!this._parsedDocument) {
+      throw new Error(
+          `Attempted to construct a ${this.code} ` +
+          `warning without a parsed document.`);
+    }
   }
 
   toString(options: Partial<WarningStringifyOptions> = {}): string {
@@ -51,14 +62,6 @@ export class Warning {
                                   (s: string) => s;
     const severity = this._severityToString(colorize);
 
-    if (!this.sourceRange || !this._parsedDocument) {
-      return `INTERNAL ERROR: Tried to print a '${this.code}' ` +
-          `warning without a source range and/or parsed document. ` +
-          `Please report this!\n` +
-          `     https://github.com/Polymer/polymer-analyzer/issues/new\n` +
-          `${this._severityToString(colorize)} ` +
-          `[${this.code}] - ${this.message}\n`;
-    }
     let result = '';
     if (options.verbosity !== 'one-line') {
       const underlined =
