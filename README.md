@@ -43,6 +43,7 @@ analyzer.analyze(['./my-element.html']).then((analysis) => {
 
 ## What's it used for?
 
+* [webcomponents.org](https://webcomponents.org) - discovery, demos, and docs for web components
 * [polymer-linter](https://github.com/Polymer/polymer-linter) - lints the web
 * [polymer-build](https://github.com/Polymer/polymer-build) - performs HTML-aware buildtime optimization
 * [polymer-editor-service](https://github.com/Polymer/polymer-editor-service) - IDE plugin, provides live as-you-type help
