@@ -16,26 +16,36 @@ npm install polymer-analyzer
 const {Analyzer, FSUrlLoader} = require('polymer-analyzer');
 
 let analyzer = new Analyzer({
-  urlLoader: new FSUrlLoader(pathToPackageRoot),
+  urlLoader: new FSUrlLoader('/path/to/package/root'),
 });
 
 // This path is relative to the package root
-analyzer.analyze(['./my-element.html'])
-  .then((analysis) => {
-    // Gets all elements reachable from the file above, including imports.
-    for (const element of analysis.getFeatures({kind: 'element'})) {
-      console.log(element);
+analyzer.analyze(['./my-element.html']).then((analysis) => {
+  // Print the name of every property on paper-button, and where it was
+  // inherited from.
+  const [paperButton, ] = analysis.getFeatures(
+      {kind: 'element', id: 'paper-button', externalPackages: true});
+  if (paperButton) {
+    for (const [name, property] of paperButton.properties) {
+      let message = `${name}`;
+      if (property.inheritedFrom) {
+        message += ` inherited from ${property.inheritedFrom}`;
+      } else {
+        message += ` was defined directly on paper-button`;
+      }
+      console.log(message);
     }
-    
-    // To look just in my-element.html
-    const document = analysis.getDocument('my-element.html');
-    // Note, document could be null if it wasn't found, 
-    // or a Warning if it had a parse error.
-    for (const element of maybeDocument.getFeatures({kind: 'element'})) {
-      console.log(element);
-    }
-  });
+  } else {
+    console.log(`my-element.html didn't define or import paper-button.`);
+  }
+});
 ```
+
+## What's it used for?
+
+* [polymer-linter](https://github.com/Polymer/polymer-linter) - lints the web
+* [polymer-build](https://github.com/Polymer/polymer-build) - performs HTML-aware buildtime optimization
+* [polymer-editor-service](https://github.com/Polymer/polymer-editor-service) - IDE plugin, provides live as-you-type help
 
 ## Developing
 
