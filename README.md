@@ -19,7 +19,7 @@ let analyzer = new Analyzer({
   urlLoader: new FSUrlLoader(pathToPackageRoot),
 });
 
-analyzer.analyze('/path-to-polymer-element.html')
+analyzer.analyze(['/path-to-polymer-element.html'])
   .then((document) => {
     for (const element of document.getFeatures({kind: 'element'})) {
       console.log(element);
