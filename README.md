@@ -19,9 +19,19 @@ let analyzer = new Analyzer({
   urlLoader: new FSUrlLoader(pathToPackageRoot),
 });
 
-analyzer.analyze('/path-to-polymer-element.html')
-  .then((document) => {
-    for (const element of document.getFeatures({kind: 'element'})) {
+// This path is relative to the package root
+analyzer.analyze(['./my-element.html'])
+  .then((analysis) => {
+    // Gets all elements reachable from the file above, including imports.
+    for (const element of analysis.getFeatures({kind: 'element'})) {
+      console.log(element);
+    }
+    
+    // To look just in my-element.html
+    const document = analysis.getDocument('my-element.html');
+    // Note, document could be null if it wasn't found, 
+    // or a Warning if it had a parse error.
+    for (const element of maybeDocument.getFeatures({kind: 'element'})) {
       console.log(element);
     }
   });
