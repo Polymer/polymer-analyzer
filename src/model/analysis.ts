@@ -46,7 +46,7 @@ export class Analysis implements Queryable {
 
     this._results = results;
     const documents = Array.from(results.values())
-                          .filter((r) => r instanceof Document) as Document[];
+                          .filter((r) => Document.isDocument(r)) as Document[];
     const potentialRoots = new Set(documents);
 
     // We trim down the set of documents as a performance optimization. We only
@@ -108,7 +108,7 @@ export class Analysis implements Queryable {
    */
   getWarnings(options?: Query): Warning[] {
     const warnings = Array.from(this._results.values())
-                         .filter((r) => !(r instanceof Document)) as Warning[];
+                         .filter((r) => !Document.isDocument(r)) as Warning[];
     const result = new Set(warnings);
     const docQuery = this._getDocumentQuery(options);
     for (const doc of this._searchRoots) {
@@ -152,7 +152,7 @@ function addAll<T>(set1: Set<T>, set2: Set<T>): Set<T> {
 function workAroundDuplicateJsScriptsBecauseOfHtmlScriptTags(
     results: Map<string, Document|Warning>) {
   const documents = Array.from(results.values())
-                        .filter((r) => r instanceof Document) as Document[];
+                        .filter((r) => Document.isDocument(r)) as Document[];
   // TODO(rictic): handle JS imported via script src from HTML better than
   //     this.
   const potentialDuplicates =
