@@ -45,8 +45,8 @@ export class Analysis implements Queryable {
     workAroundDuplicateJsScriptsBecauseOfHtmlScriptTags(results);
 
     this._results = results;
-    const documents = Array.from(results.values())
-                          .filter((r) => Document.isDocument(r)) as Document[];
+    const documents =
+        Array.from(results.values()).filter(Document.isDocument) as Document[];
     const potentialRoots = new Set(documents);
 
     // We trim down the set of documents as a performance optimization. We only
@@ -151,8 +151,8 @@ function addAll<T>(set1: Set<T>, set2: Set<T>): Set<T> {
  */
 function workAroundDuplicateJsScriptsBecauseOfHtmlScriptTags(
     results: Map<string, Document|Warning>) {
-  const documents = Array.from(results.values())
-                        .filter((r) => Document.isDocument(r)) as Document[];
+  const documents =
+      Array.from(results.values()).filter(Document.isDocument) as Document[];
   // TODO(rictic): handle JS imported via script src from HTML better than
   //     this.
   const potentialDuplicates =
