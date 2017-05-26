@@ -139,7 +139,7 @@ export class Document implements Feature, Queryable {
   }
 
   static isDocument(value: any): value is Document {
-    return typeof value === 'object' && !!value.constructor.isDocument;
+    return value && value.constructor && !!value.constructor.isDocument;
   }
 
   get url(): string {
