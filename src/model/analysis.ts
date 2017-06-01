@@ -65,6 +65,12 @@ export class Analysis implements Queryable {
     this._searchRoots = potentialRoots;
   }
 
+  /**
+   * Returns a `Document` for the given url, if one was analyzed.
+   * Returns a `Warning`, if one was generated when analyzing the URL.
+   * Returns `undefined` if the URL does not reference an analyzed
+   * document at all.
+   */
   getDocument(url: string): Document|Warning|undefined {
     const result = this._results.get(url);
     if (result != null) {
@@ -79,6 +85,22 @@ export class Analysis implements Queryable {
       return undefined;
     }
     return documents[0]!;
+  }
+
+  /**
+   * Simplified version of getDocument which simply throws an error when asked
+   * for a missing document.
+   */
+  getDocumentOrDie(url: string): Document {
+    const maybeDocument = this.getDocument(url);
+    if (maybeDocument instanceof Document) {
+      return maybeDocument;
+    }
+    let suffix = '';
+    if (maybeDocument) {
+      suffix = `: ${maybeDocument.message}`;
+    }
+    throw new Error(`Unable to get document ${url}${suffix}`);
   }
 
   /**
