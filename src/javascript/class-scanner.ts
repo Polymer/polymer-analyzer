@@ -15,21 +15,21 @@
 import * as doctrine from 'doctrine';
 import * as estree from 'estree';
 
-import * as astValue from '../javascript/ast-value';
-import {getIdentifierName, getNamespacedIdentifier} from '../javascript/ast-value';
-import {Visitor} from '../javascript/estree-visitor';
-import * as esutil from '../javascript/esutil';
-import {JavaScriptDocument} from '../javascript/javascript-document';
-import {JavaScriptScanner} from '../javascript/javascript-scanner';
-import * as jsdoc from '../javascript/jsdoc';
 import {ScannedClass, ScannedFeature, ScannedMethod, ScannedProperty, ScannedReference, Severity, SourceRange, Warning} from '../model/model';
-
 import {extractObservers} from '../polymer/declaration-property-handlers';
-import {getOrInferPrivacy} from '../polymer/js-utils';
 import {Observer, ScannedPolymerElement} from '../polymer/polymer-element';
 import {ScannedPolymerElementMixin} from '../polymer/polymer-element-mixin';
-import {getIsValue, getMethods, getPolymerProperties, getStaticGetterValue, getStaticMethods} from '../polymer/polymer2-config';
+import {getIsValue, getPolymerProperties, getStaticGetterValue} from '../polymer/polymer2-config';
 import {MixinVisitor} from '../polymer/polymer2-mixin-scanner';
+
+import * as astValue from './ast-value';
+import {getIdentifierName, getNamespacedIdentifier} from './ast-value';
+import {Visitor} from './estree-visitor';
+import * as esutil from './esutil';
+import {getMethods, getOrInferPrivacy, getStaticMethods} from './esutil';
+import {JavaScriptDocument} from './javascript-document';
+import {JavaScriptScanner} from './javascript-scanner';
+import * as jsdoc from './jsdoc';
 
 
 /**

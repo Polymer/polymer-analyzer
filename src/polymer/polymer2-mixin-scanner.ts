@@ -17,13 +17,13 @@ import * as estree from 'estree';
 import {getIdentifierName, getNamespacedIdentifier} from '../javascript/ast-value';
 import {Visitor} from '../javascript/estree-visitor';
 import * as esutil from '../javascript/esutil';
+import {getMethods, getOrInferPrivacy, getStaticMethods} from '../javascript/esutil';
 import {JavaScriptDocument} from '../javascript/javascript-document';
 import * as jsdoc from '../javascript/jsdoc';
 import {Warning} from '../model/model';
 
-import {getOrInferPrivacy} from './js-utils';
 import {ScannedPolymerElementMixin} from './polymer-element-mixin';
-import {getMethods, getPolymerProperties, getStaticMethods} from './polymer2-config';
+import {getPolymerProperties} from './polymer2-config';
 
 export class MixinVisitor implements Visitor {
   mixins: ScannedPolymerElementMixin[] = [];

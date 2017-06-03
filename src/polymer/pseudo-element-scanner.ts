@@ -17,10 +17,10 @@ import {ASTNode} from 'parse5';
 
 import {HtmlVisitor, ParsedHtmlDocument} from '../html/html-document';
 import {HtmlScanner} from '../html/html-scanner';
+import {getOrInferPrivacy} from '../javascript/esutil';
 import * as jsdoc from '../javascript/jsdoc';
 
 import {annotateElementHeader} from './docs';
-import {getOrInferPrivacy} from './js-utils';
 import {ScannedPolymerElement} from './polymer-element';
 
 /**

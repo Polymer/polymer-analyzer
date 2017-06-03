@@ -16,11 +16,8 @@ import * as estree from 'estree';
 
 import {getIdentifierName} from '../javascript/ast-value';
 import {JavaScriptDocument} from '../javascript/javascript-document';
-import {ScannedMethod} from '../model/model';
 
 import {analyzeProperties} from './analyze-properties';
-import * as docs from './docs';
-import {toScannedMethod} from './js-utils';
 import {ScannedPolymerProperty} from './polymer-element';
 
 export function getStaticGetterValue(
@@ -71,44 +68,4 @@ export function getPolymerProperties(
   }
   const propertiesNode = getStaticGetterValue(node, 'properties');
   return propertiesNode ? analyzeProperties(propertiesNode, document) : [];
-}
-
-export function getMethods(node: estree.Node, document: JavaScriptDocument):
-    Map<string, ScannedMethod> {
-  const methods = new Map<string, ScannedMethod>();
-  for (const statement of _getMethods(node)) {
-    if (statement.static === false) {
-      const method = toScannedMethod(
-          statement, document.sourceRangeForNode(statement)!, document);
-      docs.annotate(method);
-      methods.set(method.name, method);
-    }
-  }
-  return methods;
-}
-
-export function getStaticMethods(
-    node: estree.Node,
-    document: JavaScriptDocument): Map<string, ScannedMethod> {
-  const methods = new Map<string, ScannedMethod>();
-  for (const method of _getMethods(node)) {
-    if (method.static === true) {
-      const scannedMethod = toScannedMethod(
-          method, document.sourceRangeForNode(method)!, document);
-      docs.annotate(scannedMethod);
-      methods.set(scannedMethod.name, scannedMethod);
-    }
-  }
-  return methods;
-}
-
-function* _getMethods(node: estree.Node) {
-  if (node.type !== 'ClassDeclaration' && node.type !== 'ClassExpression') {
-    return;
-  }
-  for (const statement of node.body.body) {
-    if (statement.type === 'MethodDefinition' && statement.kind === 'method') {
-      yield statement;
-    }
-  }
 }
