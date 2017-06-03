@@ -301,6 +301,9 @@ export const configurationProperties: ImmutableSet<string> = new Set([
   'registered',
 ]);
 
+/**
+ * Scan any methods on the given node, if it's a class expression/declaration.
+ */
 export function getMethods(node: estree.Node, document: JavaScriptDocument):
     Map<string, ScannedMethod> {
   const methods = new Map<string, ScannedMethod>();
@@ -315,6 +318,10 @@ export function getMethods(node: estree.Node, document: JavaScriptDocument):
   return methods;
 }
 
+/**
+ * Scan any static methods on the given node, if it's a class
+ * expression/declaration.
+ */
 export function getStaticMethods(
     node: estree.Node,
     document: JavaScriptDocument): Map<string, ScannedMethod> {
