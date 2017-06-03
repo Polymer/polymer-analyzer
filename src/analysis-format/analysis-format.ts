@@ -171,7 +171,7 @@ export interface Class extends Feature {
   privacy: Privacy;
 
   /**
-   * The class, if any, that this element extends.
+   * The class, if any, that this class extends.
    */
   superclass?: string;
 }
