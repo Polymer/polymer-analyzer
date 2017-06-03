@@ -156,6 +156,7 @@ class BehaviorVisitor implements Visitor {
       jsdoc: parsedJsdocs,
       listeners: [],
       methods: new Map(),
+      staticMethods: new Map(),
       mixins: [],
       observers: [],
       superClass: undefined,

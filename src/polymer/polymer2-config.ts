@@ -75,13 +75,9 @@ export function getPolymerProperties(
 
 export function getMethods(node: estree.Node, document: JavaScriptDocument):
     Map<string, ScannedMethod> {
-  if (node.type !== 'ClassDeclaration' && node.type !== 'ClassExpression') {
-    return new Map();
-  }
   const methods = new Map<string, ScannedMethod>();
-  for (const statement of node.body.body) {
-    if (statement.type === 'MethodDefinition' && statement.static === false &&
-        statement.kind === 'method') {
+  for (const statement of _getMethods(node)) {
+    if (statement.static === false) {
       const method = toScannedMethod(
           statement, document.sourceRangeForNode(statement)!, document);
       docs.annotate(method);
@@ -89,4 +85,30 @@ export function getMethods(node: estree.Node, document: JavaScriptDocument):
     }
   }
   return methods;
+}
+
+export function getStaticMethods(
+    node: estree.Node,
+    document: JavaScriptDocument): Map<string, ScannedMethod> {
+  const methods = new Map<string, ScannedMethod>();
+  for (const method of _getMethods(node)) {
+    if (method.static === true) {
+      const scannedMethod = toScannedMethod(
+          method, document.sourceRangeForNode(method)!, document);
+      docs.annotate(scannedMethod);
+      methods.set(scannedMethod.name, scannedMethod);
+    }
+  }
+  return methods;
+}
+
+function* _getMethods(node: estree.Node) {
+  if (node.type !== 'ClassDeclaration' && node.type !== 'ClassExpression') {
+    return;
+  }
+  for (const statement of node.body.body) {
+    if (statement.type === 'MethodDefinition' && statement.kind === 'method') {
+      yield statement;
+    }
+  }
 }

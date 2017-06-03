@@ -23,7 +23,7 @@ import {Warning} from '../model/model';
 
 import {getOrInferPrivacy} from './js-utils';
 import {ScannedPolymerElementMixin} from './polymer-element-mixin';
-import {getMethods, getPolymerProperties} from './polymer2-config';
+import {getMethods, getPolymerProperties, getStaticMethods} from './polymer2-config';
 
 export class MixinVisitor implements Visitor {
   mixins: ScannedPolymerElementMixin[] = [];
@@ -202,6 +202,8 @@ export class MixinVisitor implements Visitor {
     getPolymerProperties(node, this._document)
         .forEach((p) => mixin.addProperty(p));
     getMethods(node, this._document).forEach((m) => mixin.addMethod(m));
+    getStaticMethods(node, this._document)
+        .forEach((m) => mixin.staticMethods.set(m.name, m));
 
     mixin.events = esutil.getEventComments(node);
     // mixin.sourceRange = this._document.sourceRangeForNode(node);
