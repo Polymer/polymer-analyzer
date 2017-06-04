@@ -202,22 +202,7 @@ export class ParsedHtmlDocument extends ParsedDocument<ASTNode, HtmlVisitor> {
       }) + '  '.repeat(expectedIndentation - 1));
     }
 
-    removeFakeNodes(selfClone.ast);
     return parse5.serialize(selfClone.ast);
-  }
-}
-
-const injectedTagNames = new Set(['html', 'head', 'body']);
-function removeFakeNodes(ast: dom5.Node) {
-  const children = (ast.childNodes || []).slice();
-  if (ast.parentNode && !ast.__location && injectedTagNames.has(ast.nodeName)) {
-    for (const child of children) {
-      dom5.insertBefore(ast.parentNode, ast, child);
-    }
-    dom5.remove(ast);
-  }
-  for (const child of children) {
-    removeFakeNodes(child);
   }
 }
 

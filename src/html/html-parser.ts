@@ -12,7 +12,7 @@
  * http://polymer.github.io/PATENTS.txt
  */
 
-import {getAttribute, predicates as p, query} from 'dom5';
+import {getAttribute, insertBefore, Node, predicates as p, query, remove} from 'dom5';
 import {parse as parseHtml} from 'parse5';
 import {resolve as resolveUrl} from 'url';
 
@@ -31,6 +31,7 @@ export class HtmlParser implements Parser<ParsedHtmlDocument> {
   parse(contents: string, url: string, inlineInfo?: InlineDocInfo<any>):
       ParsedHtmlDocument {
     const ast = parseHtml(contents, {locationInfo: true});
+    removeFakeNodes(ast);
 
     // There should be at most one <base> tag and it must be inside <head> tag.
     const baseTag = query(
@@ -52,5 +53,19 @@ export class HtmlParser implements Parser<ParsedHtmlDocument> {
       locationOffset: inlineInfo.locationOffset,
       astNode: inlineInfo.astNode, isInline,
     });
+  }
+}
+
+const injectedTagNames = new Set(['html', 'head', 'body']);
+function removeFakeNodes(ast: Node) {
+  const children = (ast.childNodes || []).slice();
+  if (ast.parentNode && !ast.__location && injectedTagNames.has(ast.nodeName)) {
+    for (const child of children) {
+      insertBefore(ast.parentNode, ast, child);
+    }
+    remove(ast);
+  }
+  for (const child of children) {
+    removeFakeNodes(child);
   }
 }
