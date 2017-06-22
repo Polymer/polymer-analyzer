@@ -70,7 +70,7 @@ export class ScannedImport implements Resolvable {
     }
     const importedDocumentOrWarning =
         document._analysisContext.getDocument(this.url);
-    if (!(importedDocumentOrWarning instanceof Document)) {
+    if (!Document.isDocument(importedDocumentOrWarning)) {
       const error = this.error ? (this.error.message || this.error) : '';
       document.warnings.push(new Warning({
         code: 'could-not-load',

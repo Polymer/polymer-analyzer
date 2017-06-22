@@ -138,6 +138,10 @@ export class Document implements Feature, Queryable {
     this.warnings = Array.from(base.warnings);
   }
 
+  static isDocument(value: any): value is Document {
+    return value && value.constructor && !!value.constructor.isDocument;
+  }
+
   get url(): string {
     return this._scannedDocument.url;
   }
@@ -372,19 +376,16 @@ export class Document implements Feature, Queryable {
     documentsWalked.add(this);
 
     for (const localFeature of this._localFeatures) {
-      if (localFeature instanceof Document) {
+      if (Document.isDocument(localFeature)) {
         result = result.concat(
             localFeature._toString(documentsWalked).map((line) => `  ${line}`));
       } else {
         let subResult = localFeature.toString();
         if (subResult === '[object Object]') {
-          subResult = `<${
-          localFeature.constructor.name
-          } kinds="${
-          Array.from(localFeature.kinds).join(', ')
-          }" ids="${
-          Array.from(localFeature.identifiers).join(',')
-          }">}`;
+          const name = localFeature.constructor.name;
+          const kinds = [...localFeature.kinds].join(', ');
+          const ids = [...localFeature.identifiers].join(', ');
+          subResult = `<${name} kinds="${kinds}" ids="${ids}">`;
         }
         result.push(`  ${subResult}`);
       }
@@ -396,7 +397,7 @@ export class Document implements Feature, Queryable {
   stringify(): string {
     const inlineDocuments =
         (Array.from(this._localFeatures)
-             .filter((f) => f instanceof Document && f.isInline) as Document[])
+             .filter((f) => Document.isDocument(f) && f.isInline) as Document[])
             .map((d) => d.parsedDocument);
     return this.parsedDocument.stringify({inlineDocuments: inlineDocuments});
   }

@@ -36,7 +36,7 @@ async function getWarnings(analyzer: Analyzer, localPath: string):
     Promise<Warning[]> {
       const result =
           (await analyzer.analyze([localPath])).getDocument(localPath);
-      if (result instanceof Document) {
+      if (Document.isDocument(result)) {
         return result.getWarnings({imported: false});
       } else if (result !== undefined) {
         return [result];

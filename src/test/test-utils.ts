@@ -54,7 +54,7 @@ export class CodeUnderliner {
     this._parsedDocumentGetter = async(url: string) => {
       const analysis = await analyzer.analyze([url]);
       const result = analysis.getDocument(url);
-      if (!(result instanceof Document)) {
+      if (!Document.isDocument(result)) {
         throw new Error(`Unable to parse ${url}`);
       }
       return result.parsedDocument;

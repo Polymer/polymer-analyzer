@@ -221,7 +221,8 @@ suite('Analyzer', () => {
           const inlineDocuments =
               Array.from(document.getFeatures({imported: false}))
                   .filter(
-                      (d) => d instanceof Document && d.isInline) as Document[];
+                      (d) =>
+                          Document.isDocument(d) && d.isInline) as Document[];
           assert.equal(inlineDocuments.length, 1);
 
           // This is the main purpose of the test: get a feature from
@@ -292,7 +293,7 @@ suite('Analyzer', () => {
           assert.equal(documents.size, 2);
 
           const inlineDocuments = Array.from(documents).filter(
-              (d) => d instanceof Document && d.isInline) as Document[];
+              (d) => Document.isDocument(d) && d.isInline) as Document[];
           assert.equal(inlineDocuments.length, 1);
 
           // This is the main purpose of the test: get a feature
@@ -419,7 +420,7 @@ suite('Analyzer', () => {
       const url = '/static/does_not_exist';
       const result = await analyzer.analyze([url]);
       const warning = result.getDocument(url);
-      assert.isFalse(warning instanceof Document);
+      assert.isFalse(Document.isDocument(warning));
     });
 
     test('handles documents from multiple calls to analyze()', async() => {
@@ -668,7 +669,7 @@ suite('Analyzer', () => {
 
   test('analyzes a document with a namespace', async() => {
     const document = await analyzeDocument('static/namespaces/import-all.html');
-    if (!(document instanceof Document)) {
+    if (!Document.isDocument(document)) {
       throw new Error(`Expected Document, got ${document}`);
     }
 
