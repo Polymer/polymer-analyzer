@@ -32,7 +32,7 @@ async function getTypeScriptAnalyzer(files: {[url: string]: string}) {
   return new TypeScriptAnalyzer(analysisContext);
 }
 
-suite('TypeScriptParser', () => {
+suite.skip('TypeScriptParser', () => {
   suite('parse()', () => {
 
     test('parses classes', async() => {
