@@ -29,7 +29,7 @@ export class ParsedCssDocument extends ParsedDocument<shady.Node, Visitor> {
   }
 
   visit(visitors: Visitor[]) {
-    for (const node of shady.iterateOverAst(this.ast)) {
+    for (const node of this) {
       for (const visitor of visitors) {
         visitor.visit(node);
       }
@@ -61,6 +61,10 @@ export class ParsedCssDocument extends ParsedDocument<shady.Node, Visitor> {
                .map((line) => line === '' ? '' : indent + line)
                .join('\n') +
         '\n';
+  }
+
+  * [Symbol.iterator](): Iterator<shady.Node> {
+    yield* shady.iterateOverAst(this.ast);
   }
 }
 
