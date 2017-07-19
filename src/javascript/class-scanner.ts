@@ -13,11 +13,12 @@
  */
 
 import * as doctrine from 'doctrine';
+import * as escodegen from 'escodegen';
 import * as estree from 'estree';
 
 import {ScannedClass, ScannedFeature, ScannedMethod, ScannedProperty, ScannedReference, Severity, SourceRange, Warning} from '../model/model';
 import {extractObservers} from '../polymer/declaration-property-handlers';
-import {Observer, ScannedPolymerElement} from '../polymer/polymer-element';
+import {mergePropertyDeclarations, Observer, ScannedPolymerElement} from '../polymer/polymer-element';
 import {ScannedPolymerElementMixin} from '../polymer/polymer-element-mixin';
 import {getIsValue, getPolymerProperties, getStaticGetterValue} from '../polymer/polymer2-config';
 import {MixinVisitor} from '../polymer/polymer2-mixin-scanner';
@@ -183,7 +184,6 @@ export class ClassScanner implements JavaScriptScanner {
     let warnings: Warning[] = [];
 
     let scannedElement: ScannedPolymerElement;
-    let properties: ScannedProperty[] = [];
     let methods = new Map<string, ScannedMethod>();
     let staticMethods = new Map<string, ScannedMethod>();
     let observers: Observer[] = [];
@@ -198,7 +198,17 @@ export class ClassScanner implements JavaScriptScanner {
         observers = observersResult.observers;
         warnings = warnings.concat(observersResult.warnings);
       }
-      properties = getPolymerProperties(astNode, document);
+      const polymerProps = getPolymerProperties(astNode, document);
+      for (const prop of polymerProps) {
+        const constructorProp = class_.properties.get(prop.name);
+        let finalProp;
+        if (constructorProp) {
+          finalProp = mergePropertyDeclarations(constructorProp, prop);
+        } else {
+          finalProp = prop;
+        }
+        class_.properties.set(prop.name, prop);
+      }
       methods = getMethods(astNode, document);
       staticMethods = getStaticMethods(astNode, document);
     }
@@ -211,7 +221,7 @@ export class ClassScanner implements JavaScriptScanner {
       className: class_.name,
       tagName,
       astNode,
-      properties,
+      properties: [...class_.properties.values()],
       methods,
       staticMethods,
       observers,
@@ -405,6 +415,8 @@ class ClassFinder implements Visitor {
     const namespacedName = name && getNamespacedIdentifier(name, doc);
 
     const warnings: Warning[] = [];
+    const properties =
+        extractPropertiesFromConstructor(astNode, this._document);
     // TODO(rictic): scan the constructor and look for assignments to this.foo
     //     to determine properties.
     this.classes.push(new ScannedClass(
@@ -414,7 +426,7 @@ class ClassFinder implements Visitor {
         doc,
         (doc.description || '').trim(),
         this._document.sourceRangeForNode(astNode)!,
-        new Map(),
+        properties,
         getMethods(astNode, this._document),
         getStaticMethods(astNode, this._document),
         this._getExtends(astNode, doc, warnings, this._document),
@@ -573,4 +585,58 @@ class CustomElementsDefineCallFinder implements Visitor {
     }));
     return null;
   }
+}
+
+export function extractPropertiesFromConstructor(
+    astNode: estree.Node,
+    document: JavaScriptDocument,
+    properties = new Map<string, ScannedProperty>()) {
+  if (astNode.type === 'ClassExpression' ||
+      astNode.type === 'ClassDeclaration') {
+    for (const method of astNode.body.body) {
+      if (method.type !== 'MethodDefinition' || method.kind !== 'constructor') {
+        continue;
+      }
+      const constructor = method;
+      for (const statement of constructor.value.body.body) {
+        if (statement.type !== 'ExpressionStatement') {
+          continue;
+        }
+
+        let propertyName;
+        let astNode;
+        let defaultValue;
+        if (statement.expression.type === 'AssignmentExpression') {
+          propertyName = astValue.getIdentifierName(statement.expression.left);
+          astNode = statement.expression.left;
+          defaultValue = escodegen.generate(statement.expression.right);
+        } else if (statement.expression.type === 'MemberExpression') {
+          propertyName = astValue.getIdentifierName(statement.expression);
+          astNode = statement;
+        } else {
+          continue;
+        }
+        if (propertyName === undefined || !propertyName.startsWith('this.')) {
+          continue;
+        }
+        const comment = esutil.getAttachedComment(statement);
+        const jsdocAnn =
+            comment === undefined ? undefined : jsdoc.parseJsdoc(comment);
+        // Remove the leading `this.`
+        propertyName = propertyName.slice(5);
+        properties.set(propertyName, {
+          astNode,
+          default: defaultValue,
+          jsdoc: jsdocAnn,
+          sourceRange: document.sourceRangeForNode(astNode)!,
+          description: jsdocAnn === undefined ? '' : jsdocAnn.description,
+          name: propertyName.slice(5),
+          privacy: getOrInferPrivacy(propertyName, jsdocAnn),
+          warnings: [],
+        });
+      }
+    }
+  }
+
+  return properties;
 }
