@@ -48,8 +48,8 @@ export interface ScannedPolymerProperty extends ScannedProperty,
 export interface PolymerProperty extends Property, BasePolymerProperty {}
 
 export function mergePropertyDeclarations(
-    propA: ScannedPolymerProperty,
-    propB: ScannedPolymerProperty): ScannedPolymerProperty {
+    propA: Readonly<ScannedPolymerProperty>,
+    propB: Readonly<ScannedPolymerProperty>): ScannedPolymerProperty {
   if (propA.name !== propB.name) {
     throw new Error(
         `Tried to merge properties with different names: ` +
@@ -64,14 +64,14 @@ export function mergePropertyDeclarations(
   } else {
     description = propA.description || propB.description;
   }
-  const jsdoc: Annotation = {description: description || '', tags: []};
+  const jsdocAnn: Annotation = {description: description || '', tags: []};
   if (propA.jsdoc) {
-    jsdoc.tags.push(...propA.jsdoc.tags);
+    jsdocAnn.tags.push(...propA.jsdoc.tags);
   }
   if (propB.jsdoc) {
-    jsdoc.tags.push(...propB.jsdoc.tags);
+    jsdocAnn.tags.push(...propB.jsdoc.tags);
   }
-  const privacy = getOrInferPrivacy(propA.name, jsdoc);
+  const privacy = getOrInferPrivacy(propA.name, jsdocAnn);
   const warnings = [...propA.warnings, ...propB.warnings];
   // If either are marked as readOnly, both are.
   const readOnly = propA.readOnly || propB.readOnly;
@@ -82,9 +82,9 @@ export function mergePropertyDeclarations(
     name,
     privacy,
     description,
-    jsdoc,
     warnings,
     readOnly,
+    jsdoc: jsdocAnn,
 
     // prefer A, but take B if there's no A.
     sourceRange: propA.sourceRange || propB.sourceRange,

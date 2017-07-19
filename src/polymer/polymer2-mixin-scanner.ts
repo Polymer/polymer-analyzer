@@ -213,6 +213,7 @@ export class MixinVisitor implements Visitor {
 
     mixin.events = esutil.getEventComments(node);
     // mixin.sourceRange = this._document.sourceRangeForNode(node);
+
     return mixin;
   }
 }

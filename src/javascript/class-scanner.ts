@@ -207,7 +207,7 @@ export class ClassScanner implements JavaScriptScanner {
         } else {
           finalProp = prop;
         }
-        class_.properties.set(prop.name, prop);
+        class_.properties.set(prop.name, finalProp);
       }
       methods = getMethods(astNode, document);
       staticMethods = getStaticMethods(astNode, document);
@@ -417,8 +417,7 @@ class ClassFinder implements Visitor {
     const warnings: Warning[] = [];
     const properties =
         extractPropertiesFromConstructor(astNode, this._document);
-    // TODO(rictic): scan the constructor and look for assignments to this.foo
-    //     to determine properties.
+
     this.classes.push(new ScannedClass(
         namespacedName,
         name,
@@ -602,41 +601,77 @@ export function extractPropertiesFromConstructor(
         if (statement.type !== 'ExpressionStatement') {
           continue;
         }
-
-        let propertyName;
+        let name;
         let astNode;
         let defaultValue;
         if (statement.expression.type === 'AssignmentExpression') {
-          propertyName = astValue.getIdentifierName(statement.expression.left);
+          name = getPropertyNameOnThisExpression(statement.expression.left);
           astNode = statement.expression.left;
           defaultValue = escodegen.generate(statement.expression.right);
         } else if (statement.expression.type === 'MemberExpression') {
-          propertyName = astValue.getIdentifierName(statement.expression);
+          name = getPropertyNameOnThisExpression(statement.expression);
           astNode = statement;
         } else {
           continue;
         }
-        if (propertyName === undefined || !propertyName.startsWith('this.')) {
+        if (name === undefined) {
           continue;
         }
         const comment = esutil.getAttachedComment(statement);
         const jsdocAnn =
             comment === undefined ? undefined : jsdoc.parseJsdoc(comment);
-        // Remove the leading `this.`
-        propertyName = propertyName.slice(5);
-        properties.set(propertyName, {
+        if (!jsdocAnn || jsdocAnn.tags.length === 0) {
+          // The comment only counts if there's a jsdoc annotation in there
+          // somewhere.
+          // Otherwise it's just an assignment, maybe to a property in a
+          // super class or something.
+          continue;
+        }
+        const description = getDescription(jsdocAnn);
+        let type = undefined;
+        const typeTag = jsdoc.getTag(jsdocAnn, 'type');
+        if (typeTag && typeTag.type) {
+          type = doctrine.type.stringify(typeTag.type);
+        }
+        properties.set(name, {
+          name,
           astNode,
+          type,
           default: defaultValue,
           jsdoc: jsdocAnn,
-          sourceRange: document.sourceRangeForNode(astNode)!,
-          description: jsdocAnn === undefined ? '' : jsdocAnn.description,
-          name: propertyName.slice(5),
-          privacy: getOrInferPrivacy(propertyName, jsdocAnn),
+          sourceRange: document.sourceRangeForNode(astNode)!, description,
+          privacy: getOrInferPrivacy(name, jsdocAnn),
           warnings: [],
+          readOnly: jsdoc.hasTag(jsdocAnn, 'const'),
         });
       }
     }
   }
 
   return properties;
+}
+
+function getPropertyNameOnThisExpression(node: estree.Node) {
+  if (node.type !== 'MemberExpression' || node.computed ||
+      node.object.type !== 'ThisExpression' ||
+      node.property.type !== 'Identifier') {
+    return;
+  }
+  return node.property.name;
+}
+
+function getDescription(jsdocAnn: jsdoc.Annotation): string|undefined {
+  if (jsdocAnn.description) {
+    return jsdocAnn.description;
+  }
+  // These tags can be used to describe a field.
+  // e.g.:
+  //    /** @type {string} the name of the animal */
+  //    this.name = name || 'Rex';
+  const tagSet = new Set(['public', 'private', 'protected', 'type']);
+  for (const tag of jsdocAnn.tags) {
+    if (tagSet.has(tag.title) && tag.description) {
+      return tag.description;
+    }
+  }
 }
