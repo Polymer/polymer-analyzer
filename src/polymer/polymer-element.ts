@@ -56,14 +56,8 @@ export function mergePropertyDeclarations(
         `'${propA.name}' and ' ${propB.name}'`);
   }
   const name = propA.name;
-  let description;
-  if (propA.description !== undefined && propB.description !== undefined) {
-    description = propA.description.length < propB.description.length ?
-        propB.description :
-        propA.description;
-  } else {
-    description = propA.description || propB.description;
-  }
+  const description =
+      jsdoc.pickBestDescription(propA.description, propB.description);
   const jsdocAnn: Annotation = {description: description || '', tags: []};
   if (propA.jsdoc) {
     jsdocAnn.tags.push(...propA.jsdoc.tags);

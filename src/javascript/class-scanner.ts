@@ -587,64 +587,70 @@ class CustomElementsDefineCallFinder implements Visitor {
 }
 
 export function extractPropertiesFromConstructor(
-    astNode: estree.Node,
-    document: JavaScriptDocument,
-    properties = new Map<string, ScannedProperty>()) {
-  if (astNode.type === 'ClassExpression' ||
-      astNode.type === 'ClassDeclaration') {
-    for (const method of astNode.body.body) {
-      if (method.type !== 'MethodDefinition' || method.kind !== 'constructor') {
+    astNode: estree.Node, document: JavaScriptDocument) {
+  const properties = new Map<string, ScannedProperty>();
+  if (!(astNode.type === 'ClassExpression' ||
+        astNode.type === 'ClassDeclaration')) {
+    return properties;
+  }
+  for (const method of astNode.body.body) {
+    if (method.type !== 'MethodDefinition' || method.kind !== 'constructor') {
+      continue;
+    }
+    const constructor = method;
+    for (const statement of constructor.value.body.body) {
+      if (statement.type !== 'ExpressionStatement') {
         continue;
       }
-      const constructor = method;
-      for (const statement of constructor.value.body.body) {
-        if (statement.type !== 'ExpressionStatement') {
-          continue;
-        }
-        let name;
-        let astNode;
-        let defaultValue;
-        if (statement.expression.type === 'AssignmentExpression') {
-          name = getPropertyNameOnThisExpression(statement.expression.left);
-          astNode = statement.expression.left;
-          defaultValue = escodegen.generate(statement.expression.right);
-        } else if (statement.expression.type === 'MemberExpression') {
-          name = getPropertyNameOnThisExpression(statement.expression);
-          astNode = statement;
-        } else {
-          continue;
-        }
-        if (name === undefined) {
-          continue;
-        }
-        const comment = esutil.getAttachedComment(statement);
-        const jsdocAnn =
-            comment === undefined ? undefined : jsdoc.parseJsdoc(comment);
-        if (!jsdocAnn || jsdocAnn.tags.length === 0) {
-          // The comment only counts if there's a jsdoc annotation in there
-          // somewhere.
-          // Otherwise it's just an assignment, maybe to a property in a
-          // super class or something.
-          continue;
-        }
-        const description = getDescription(jsdocAnn);
-        let type = undefined;
-        const typeTag = jsdoc.getTag(jsdocAnn, 'type');
-        if (typeTag && typeTag.type) {
-          type = doctrine.type.stringify(typeTag.type);
-        }
-        properties.set(name, {
-          name,
-          astNode,
-          type,
-          default: defaultValue,
-          jsdoc: jsdocAnn,
-          sourceRange: document.sourceRangeForNode(astNode)!, description,
-          privacy: getOrInferPrivacy(name, jsdocAnn),
-          warnings: [],
-          readOnly: jsdoc.hasTag(jsdocAnn, 'const'),
-        });
+      let name;
+      let astNode;
+      let defaultValue;
+      if (statement.expression.type === 'AssignmentExpression') {
+        // statements like:
+        // /** @public The foo. */
+        // this.foo = baz;
+        name = getPropertyNameOnThisExpression(statement.expression.left);
+        astNode = statement.expression.left;
+        defaultValue = escodegen.generate(statement.expression.right);
+      } else if (statement.expression.type === 'MemberExpression') {
+        // statements like:
+        // /** @public The foo. */
+        // this.foo;
+        name = getPropertyNameOnThisExpression(statement.expression);
+        astNode = statement;
+      } else {
+        continue;
       }
+      if (name === undefined) {
+        continue;
+      }
+      const comment = esutil.getAttachedComment(statement);
+      const jsdocAnn =
+          comment === undefined ? undefined : jsdoc.parseJsdoc(comment);
+      if (!jsdocAnn || jsdocAnn.tags.length === 0) {
+        // The comment only counts if there's a jsdoc annotation in there
+        // somewhere.
+        // Otherwise it's just an assignment, maybe to a property in a
+        // super class or something.
+        continue;
+      }
+      const description = getDescription(jsdocAnn);
+      let type = undefined;
+      const typeTag = jsdoc.getTag(jsdocAnn, 'type');
+      if (typeTag && typeTag.type) {
+        type = doctrine.type.stringify(typeTag.type);
+      }
+      properties.set(name, {
+        name,
+        astNode,
+        type,
+        default: defaultValue,
+        jsdoc: jsdocAnn,
+        sourceRange: document.sourceRangeForNode(astNode)!, description,
+        privacy: getOrInferPrivacy(name, jsdocAnn),
+        warnings: [],
+        readOnly: jsdoc.hasTag(jsdocAnn, 'const'),
+      });
     }
   }
 
