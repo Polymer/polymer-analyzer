@@ -102,6 +102,24 @@ suite('PolymerElement', () => {
         ],
         methods: [],
       },
+      {
+        tagName: undefined,
+        className: 'WindowBaseElement',
+        superClass: 'Polymer.Element',
+        description: '',
+        properties: [],
+        attributes: [],
+        methods: [],
+      },
+      {
+        tagName: undefined,
+        className: 'WindowSubElement',
+        superClass: 'Polymer.WindowBaseElement',
+        description: '',
+        properties: [],
+        attributes: [],
+        methods: [],
+      },
     ]);
   });
 
