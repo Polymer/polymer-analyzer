@@ -36,6 +36,7 @@ class SubElement extends BaseElement {
 /**
  * @customElement
  * @polymer
+ * @memberOf Polymer
  */
 class WindowBaseElement extends window.Polymer.Element {}
 
