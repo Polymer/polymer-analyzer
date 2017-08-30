@@ -149,7 +149,9 @@ function getLeadingComments(node: estree.Node): string[]|undefined {
     return;
   }
   const comments = [];
-  for (const comment of node.leadingComments || []) {
+  const leadingComments =
+      (((node as any).comments) || []).filter((c: any) => c.leading);
+  for (const comment of leadingComments) {
     // Espree says any comment that immediately precedes a node is "leading",
     // but we want to be stricter and require them to be touching. If we don't
     // have locations for some reason, err on the side of including the

@@ -100,9 +100,12 @@ suite('JavaScriptParser', () => {
   suite(`stringify()`, () => {
     test('pretty prints output', () => {
       const contents = stripIndent(`
+        /* this is a block comment*/
+        // hello world
         class Foo extends HTMLElement {
           constructor() {
             super();
+            /* block comment in the middle of file */
             this.bar = () => {
             };
             const let = 'let const';

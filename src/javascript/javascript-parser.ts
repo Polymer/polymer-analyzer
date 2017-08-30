@@ -12,8 +12,8 @@
  * http://polymer.github.io/PATENTS.txt
  */
 
-import * as espree from 'espree';
 import * as estree from 'estree';
+import * as recast from 'recast';
 
 import {correctSourceRange, InlineDocInfo, LocationOffset, Severity, SourceRange, Warning, WarningCarryingException} from '../model/model';
 import {Parser} from '../parser/parser';
@@ -100,7 +100,7 @@ export function parseJs(
     return {
       type: 'success',
       sourceType: 'script',
-      program: espree.parse(contents, options)
+      program: recast.parse(contents).program
     };
   } catch (_ignored) {
     try {
@@ -108,7 +108,7 @@ export function parseJs(
       return {
         type: 'success',
         sourceType: 'module',
-        program: espree.parse(contents, options)
+        program: recast.parse(contents).program
       };
     } catch (err) {
       if (err instanceof SyntaxError) {

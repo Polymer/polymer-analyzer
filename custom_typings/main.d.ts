@@ -2,3 +2,4 @@
 /// <reference path="./espree.d.ts" />
 /// <reference path="./estree.d.ts" />
 /// <reference path="./strip-indent.d.ts" />
+/// <reference path="./recast.d.ts" />
