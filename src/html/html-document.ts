@@ -37,7 +37,7 @@ export class ParsedHtmlDocument extends ParsedDocument<ASTNode, HtmlVisitor> {
     dom5.nodeWalk(this.ast, (node) => {
       visitors.forEach((visitor) => visitor(node));
       return false;
-    });
+    }, dom5.childNodesIncludeTemplate);
   }
 
   // An element node with end tag information will produce a source range that
