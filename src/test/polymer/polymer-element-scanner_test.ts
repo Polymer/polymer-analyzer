@@ -299,10 +299,10 @@ suite('PolymerElementScanner', () => {
             [
               `
             computed: 'let let let',
-                           ~`,
+                               ~`,
               `
             observer: 'let let let',
-                           ~`
+                               ~`
             ],
             [
               `
@@ -316,7 +316,7 @@ suite('PolymerElementScanner', () => {
       assert.deepEqual(await underliner.underline(element.warnings), [
         `
           'let let let parseError',
-               ~`,
+                   ~`,
         `
           'foo'
            ~~~`

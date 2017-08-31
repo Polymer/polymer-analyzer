@@ -92,7 +92,7 @@ suite('Analyzer', () => {
 
     test(
         'analyzes a document with an inline Polymer element feature',
-        async() => {
+        async () => {
           const document = await analyzeDocument(
               'static/analysis/simple/simple-element.html');
           const elements = Array.from(
@@ -102,7 +102,7 @@ suite('Analyzer', () => {
 
     test(
         'analyzes a document with an external Polymer element feature',
-        async() => {
+        async () => {
           const document =
               await analyzeDocument('static/analysis/separate-js/element.html');
           const elements = Array.from(
@@ -110,7 +110,7 @@ suite('Analyzer', () => {
           assert.deepEqual(elements.map((e) => e.tagName), ['my-element']);
         });
 
-    test('gets source ranges of documents correct', async() => {
+    test('gets source ranges of documents correct', async () => {
       const document = await analyzeDocument('static/dependencies/root.html');
       assert.deepEqual(await underliner.underline(document.sourceRange), `
 <link rel="import" href="inline-only.html">
@@ -127,7 +127,7 @@ suite('Analyzer', () => {
 `);
     });
 
-    test('analyzes inline scripts correctly', async() => {
+    test('analyzes inline scripts correctly', async () => {
       const document = await analyzeDocument(
           'static/inline-documents/inline-documents.html');
       const jsDocuments = document.getFeatures({kind: 'js-document'});
@@ -144,7 +144,7 @@ suite('Analyzer', () => {
 ~~`);
     });
 
-    test('analyzes inline styles correctly', async() => {
+    test('analyzes inline styles correctly', async () => {
       const document = await analyzeDocument(
           'static/inline-documents/inline-documents.html');
       const cssDocuments = document.getFeatures({kind: 'css-document'});
@@ -164,7 +164,7 @@ suite('Analyzer', () => {
 ~~`);
     });
 
-    test('analyzes a document with an import', async() => {
+    test('analyzes a document with an import', async () => {
       const document =
           await analyzeDocument('static/analysis/behaviors/behavior.html');
       const behaviors =
@@ -176,7 +176,7 @@ suite('Analyzer', () => {
 
     test(
         'creates "missing behavior" warnings on imported documents without elements',
-        async() => {
+        async () => {
           const document = await analyzeDocument(
               'static/chained-missing-behavior/index.html');
           const chainedDocument = getOnly(document.getFeatures({
@@ -207,7 +207,7 @@ suite('Analyzer', () => {
 
     test(
         'an inline document can find features from its container document',
-        async() => {
+        async () => {
           const document =
               await analyzeDocument('static/analysis/behaviors/behavior.html');
           const localDocuments =
@@ -220,8 +220,8 @@ suite('Analyzer', () => {
 
           const inlineDocuments =
               Array.from(document.getFeatures({imported: false}))
-                  .filter(
-                      (d) => d instanceof Document && d.isInline) as Document[];
+                  .filter((d) => d instanceof Document && d.isInline) as
+              Document[];
           assert.equal(inlineDocuments.length, 1);
 
           // This is the main purpose of the test: get a feature from
@@ -238,7 +238,7 @@ suite('Analyzer', () => {
 
     test(
         'an inline script can find features from its container document',
-        async() => {
+        async () => {
           const document = await analyzeDocument(
               'static/script-tags/inline/test-element.html');
           const inlineDocuments = Array
@@ -257,7 +257,7 @@ suite('Analyzer', () => {
 
     test(
         'an external script can find features from its container document',
-        async() => {
+        async () => {
           const document = await analyzeDocument(
               'static/script-tags/external/test-element.html');
 
@@ -283,7 +283,7 @@ suite('Analyzer', () => {
     // resolution, then the element can't find them and throws.
     test(
         'an inline document can find behaviors from its container document',
-        async() => {
+        async () => {
           const document = await analyzeDocument(
               'static/analysis/behaviors/elementdir/element.html');
 
@@ -291,8 +291,9 @@ suite('Analyzer', () => {
               document.getFeatures({kind: 'document', imported: false});
           assert.equal(documents.size, 2);
 
-          const inlineDocuments = Array.from(documents).filter(
-              (d) => d instanceof Document && d.isInline) as Document[];
+          const inlineDocuments =
+              Array.from(documents).filter(
+                  (d) => d instanceof Document && d.isInline) as Document[];
           assert.equal(inlineDocuments.length, 1);
 
           // This is the main purpose of the test: get a feature
@@ -307,12 +308,13 @@ suite('Analyzer', () => {
           assert.equal(subBehavior.className, 'MyNamespace.SubBehavior');
         });
 
-    test('returns a Document with warnings for malformed files', async() => {
+    test('returns a Document with warnings for malformed files', async () => {
       const document = await analyzeDocument('static/malformed.html');
-      assert(document.getWarnings({imported: false}).length >= 1);
+      const warnings = document.getWarnings({imported: false}).length;
+      assert(warnings >= 1, `Expected 1 or more warnings, but got ${warnings}`);
     });
 
-    test('analyzes transitive dependencies', async() => {
+    test('analyzes transitive dependencies', async () => {
       const root = await analyzeDocument('static/dependencies/root.html');
 
       // If we ask for documents we get every document in evaluation order.
@@ -415,19 +417,19 @@ suite('Analyzer', () => {
           inFolder);
     });
 
-    test(`warns for files that don't exist`, async() => {
+    test(`warns for files that don't exist`, async () => {
       const url = '/static/does_not_exist';
       const result = await analyzer.analyze([url]);
       const warning = result.getDocument(url);
       assert.isFalse(warning instanceof Document);
     });
 
-    test('handles documents from multiple calls to analyze()', async() => {
+    test('handles documents from multiple calls to analyze()', async () => {
       await analyzer.analyze(['static/caching/file1.html']);
       await analyzer.analyze(['static/caching/file2.html']);
     });
 
-    test('handles mutually recursive documents', async() => {
+    test('handles mutually recursive documents', async () => {
       const document = await analyzeDocument('static/circular/mutual-a.html');
       const shallowFeatures = document.getFeatures({imported: false});
       assert.deepEqual(
@@ -456,7 +458,7 @@ suite('Analyzer', () => {
 
     test(
         'handles parallel analyses of mutually recursive documents',
-        async() => {
+        async () => {
           // At one point this deadlocked, or threw
           // a _makeDocument error.
           await Promise.all([
@@ -465,7 +467,7 @@ suite('Analyzer', () => {
           ]);
         });
 
-    test('handles a document importing itself', async() => {
+    test('handles a document importing itself', async () => {
       const document =
           await analyzeDocument('static/circular/self-import.html');
       const features = document.getFeatures({imported: true});
@@ -486,7 +488,7 @@ suite('Analyzer', () => {
 
     suite('handles documents with spaces in filename', () => {
 
-      test('given a url with unencoded spaces to analyze', async() => {
+      test('given a url with unencoded spaces to analyze', async () => {
         const document = await analyzeDocument('static/spaces in file.html');
         const features = document.getFeatures({imported: true});
         assert.deepEqual(
@@ -504,7 +506,7 @@ suite('Analyzer', () => {
             ['static/dependencies/spaces%20in%20import.html']);
       });
 
-      test('given a url with encoded spaces to analyze', async() => {
+      test('given a url with encoded spaces to analyze', async () => {
         const document =
             await analyzeDocument('static/spaces%20in%20file.html');
         const features = document.getFeatures({imported: true});
@@ -528,28 +530,28 @@ suite('Analyzer', () => {
   // TODO: reconsider whether we should test these private methods.
   suite('_parse()', () => {
 
-    test('loads and parses an HTML document', async() => {
+    test('loads and parses an HTML document', async () => {
       const context = await getContext(analyzer);
       const doc = await context['_parse']('static/html-parse-target.html');
       assert.instanceOf(doc, ParsedHtmlDocument);
       assert.equal(doc.url, 'static/html-parse-target.html');
     });
 
-    test('loads and parses a JavaScript document', async() => {
+    test('loads and parses a JavaScript document', async () => {
       const context = await getContext(analyzer);
       const doc = await context['_parse']('static/js-elements.js');
       assert.instanceOf(doc, JavaScriptDocument);
       assert.equal(doc.url, 'static/js-elements.js');
     });
 
-    test('returns a Promise that rejects for non-existant files', async() => {
+    test('returns a Promise that rejects for non-existant files', async () => {
       const context = await getContext(analyzer);
       await invertPromise(context['_parse']('static/not-found'));
     });
   });
 
   suite('_getScannedFeatures()', () => {
-    test('default import scanners', async() => {
+    test('default import scanners', async () => {
       const contents = `<html><head>
           <link rel="import" href="polymer.html">
           <script src="foo.js"></script>
@@ -557,8 +559,9 @@ suite('Analyzer', () => {
         </head></html>`;
       const document = new HtmlParser().parse(contents, 'test.html');
       const context = await getContext(analyzer);
-      const features = ((await context['_getScannedFeatures'](document))
-                            .features as ScannedImport[]);
+      const features =
+          ((await context['_getScannedFeatures'](document)).features as
+           ScannedImport[]);
       assert.deepEqual(
           features.map((e) => e.type),
           ['html-import', 'html-script', 'html-style']);
@@ -567,7 +570,7 @@ suite('Analyzer', () => {
           ['polymer.html', 'foo.js', 'foo.css']);
     });
 
-    test('polymer css import scanner', async() => {
+    test('polymer css import scanner', async () => {
       const contents = `<html><head>
           <link rel="import" type="css" href="foo.css">
         </head>
@@ -580,22 +583,23 @@ suite('Analyzer', () => {
       const context = await getContext(analyzer);
       const features =
           (await context['_getScannedFeatures'](document))
-              .features.filter(
-                  (e) => e instanceof ScannedImport) as ScannedImport[];
+              .features.filter((e) => e instanceof ScannedImport) as
+          ScannedImport[];
       assert.equal(features.length, 1);
       assert.equal(features[0].type, 'css-import');
       assert.equal(features[0].url, 'bar.css');
     });
 
-    test('HTML inline document scanners', async() => {
+    test('HTML inline document scanners', async () => {
       const contents = `<html><head>
           <script>console.log('hi')</script>
           <style>body { color: red; }</style>
         </head></html>`;
       const context = await getContext(analyzer);
       const document = new HtmlParser().parse(contents, 'test.html');
-      const features = ((await context['_getScannedFeatures'](document))
-                            .features) as ScannedInlineDocument[];
+      const features =
+          ((await context['_getScannedFeatures'](document)).features) as
+          ScannedInlineDocument[];
 
       assert.equal(features.length, 2);
       assert.instanceOf(features[0], ScannedInlineDocument);
@@ -604,7 +608,7 @@ suite('Analyzer', () => {
 
     const testName =
         'HTML inline documents can be cloned, modified, and stringified';
-    test(testName, async() => {
+    test(testName, async () => {
       const contents = stripIndent(`
         <div>
           <script>
@@ -620,7 +624,6 @@ suite('Analyzer', () => {
       const modifiedContents = stripIndent(`
         <div>
           <script>
-            console.log('bar');
           </script>
           <style>
             body {
@@ -667,7 +670,7 @@ suite('Analyzer', () => {
   });
 
   suite('documentation extraction', () => {
-    test('we get the wrong description for paper-input', async() => {
+    test('we get the wrong description for paper-input', async () => {
       const document = await analyzeDocument('static/paper-input.html');
       const [element] =
           document.getFeatures({kind: 'element', id: 'paper-input'});
@@ -680,7 +683,7 @@ suite('Analyzer', () => {
     });
   });
 
-  test('analyzes a document with a namespace', async() => {
+  test('analyzes a document with a namespace', async () => {
     const document = await analyzeDocument('static/namespaces/import-all.html');
     if (!(document instanceof Document)) {
       throw new Error(`Expected Document, got ${document}`);
@@ -705,7 +708,7 @@ suite('Analyzer', () => {
   // TODO(rictic): move duplicate checks into scopes/analysis results.
   //     No where else has reliable knowledge of the clash.
   test.skip(
-      'creates warnings when duplicate namespaces are analyzed', async() => {
+      'creates warnings when duplicate namespaces are analyzed', async () => {
         const document = await analyzer.analyze(
             ['static/namespaces/import-duplicates.html']);
         const namespaces =
@@ -730,7 +733,7 @@ var DuplicateNamespace = {};
 
   suite('analyzePackage', () => {
 
-    test('produces a package with the right documents', async() => {
+    test('produces a package with the right documents', async () => {
       const analyzer = new Analyzer({
         urlLoader: new FSUrlLoader(path.join(testDir, 'static', 'project'))
       });
@@ -803,7 +806,7 @@ var DuplicateNamespace = {};
           packageElements.concat(['imported-dependency']).sort());
     });
 
-    test('can get warnings from within and without the package', async() => {
+    test('can get warnings from within and without the package', async () => {
       const analyzer = new Analyzer({
         urlLoader:
             new FSUrlLoader(path.join(testDir, 'static', 'project-with-errors'))
@@ -822,7 +825,7 @@ var DuplicateNamespace = {};
   });
 
   suite('_fork', () => {
-    test('returns an independent copy of Analyzer', async() => {
+    test('returns an independent copy of Analyzer', async () => {
       inMemoryOverlay.urlContentsMap.set('a.html', 'a is shared');
       await analyzer.analyze(['a.html']);
       // Unmap a.html so that future reads of it will fail, thus testing the
@@ -847,9 +850,15 @@ var DuplicateNamespace = {};
       assert.equal(b2.parsedDocument.contents, 'b for analyzer2');
     });
 
-    test('supports overriding of urlLoader', async() => {
-      const loader1 = {canLoad: () => true, load: async(u: string) => `${u} 1`};
-      const loader2 = {canLoad: () => true, load: async(u: string) => `${u} 2`};
+    test('supports overriding of urlLoader', async () => {
+      const loader1 = {
+        canLoad: () => true,
+        load: async (u: string) => `${u} 1`
+      };
+      const loader2 = {
+        canLoad: () => true,
+        load: async (u: string) => `${u} 2`
+      };
       const analyzer1 = new Analyzer({urlLoader: loader1});
       const a1 = await analyzeDocument('a.html', analyzer1);
       const analyzer2 = await analyzer1._fork({urlLoader: loader2});
@@ -865,7 +874,7 @@ var DuplicateNamespace = {};
   });
 
   suite('race conditions and caching', () => {
-    test('maintain caches across multiple edits', async() => {
+    test('maintain caches across multiple edits', async () => {
       // This is a regression test of a scenario where changing a dependency
       // did not properly update warnings of a file. The bug turned out to
       // be in the dependency graph, but this test seems useful enough to
@@ -930,7 +939,7 @@ var DuplicateNamespace = {};
       }
     }
 
-    const editorSimulator = async(waitFn: () => Promise<void>) => {
+    const editorSimulator = async (waitFn: () => Promise<void>) => {
       // Here we're simulating a lot of noop-changes to base.html,
       // which has
       // two imports, which mutually import a common dep. This
@@ -962,7 +971,7 @@ var DuplicateNamespace = {};
               analyzer.filesChanged([path]);
               const p = analyzer.analyze([path]);
               const cacheContext = await getContext(analyzer);
-              intermediatePromises.push((async() => {
+              intermediatePromises.push((async () => {
                 await p;
                 const docs = Array.from(
                     cacheContext['_cache'].analyzedDocuments.values());
@@ -1021,7 +1030,7 @@ var DuplicateNamespace = {};
       }
     };
 
-    test('editor simulator of imports that import a common dep', async() => {
+    test('editor simulator of imports that import a common dep', async () => {
       const waitTimes: number[] = [];
       const randomWait = () => new Promise<void>((resolve) => {
         const waitTime = Math.random() * 30;
@@ -1054,7 +1063,7 @@ var DuplicateNamespace = {};
      * end
      * up being very useful. If it isn't, we should delete it.
      */
-    test.skip('somewhat more reproducable editor simulator', async() => {
+    test.skip('somewhat more reproducable editor simulator', async () => {
       // Replace waitTimes' value with the array of wait times
       // that's logged
       // to the console when the random editor test fails.
@@ -1164,7 +1173,7 @@ var DuplicateNamespace = {};
        * This test came out of debugging this issue:
        *     https://github.com/Polymer/polymer-analyzer/issues/406
        */
-      test('two edits of the same file back to back', async() => {
+      test('two edits of the same file back to back', async () => {
         const overlay = new InMemoryOverlayUrlLoader(new NoopUrlLoader);
         const analyzer = new Analyzer({urlLoader: overlay});
 
@@ -1176,7 +1185,7 @@ var DuplicateNamespace = {};
         await Promise.all([p1, p2]);
       });
 
-      test('handles a shared dependency', async() => {
+      test('handles a shared dependency', async () => {
         const initialPaths =
             ['static/diamond/a.html', 'static/diamond/root.html'];
         let result = await analyzer.analyze(initialPaths);
@@ -1198,7 +1207,7 @@ var DuplicateNamespace = {};
         ]);
       });
 
-      test('all files in a cycle wait for the whole cycle', async() => {
+      test('all files in a cycle wait for the whole cycle', async () => {
         const loader = new DeterministicUrlLoader();
         const analyzer = new Analyzer({urlLoader: loader});
         const aAnalyzed = analyzer.analyze(['a.html']);
@@ -1224,7 +1233,7 @@ var DuplicateNamespace = {};
         await Promise.all([aAnalyzedDone, bAnalyzedDone]);
       });
 
-      test('analyzes multiple imports of the same behavior', async() => {
+      test('analyzes multiple imports of the same behavior', async () => {
         const documentA = await analyzer.analyze(
             ['static/multiple-behavior-imports/element-a.html']);
         const documentB = await analyzer.analyze(
@@ -1235,7 +1244,7 @@ var DuplicateNamespace = {};
 
       test(
           'analyzes multiple imports of the same behavior simultaneously',
-          async() => {
+          async () => {
             const result = await Promise.all([
               analyzer.analyze(
                   ['static/multiple-behavior-imports/element-a.html']),

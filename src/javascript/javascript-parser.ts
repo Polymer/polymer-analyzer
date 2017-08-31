@@ -20,20 +20,6 @@ import {Parser} from '../parser/parser';
 
 import {JavaScriptDocument} from './javascript-document';
 
-declare class SyntaxError {
-  message: string;
-  lineNumber: number;
-  column: number;
-}
-
-// TODO(rictic): stop exporting this.
-export const baseParseOptions = {
-  ecmaVersion: 8,
-  attachComment: true,
-  comment: true,
-  loc: true,
-};
-
 export class JavaScriptParser implements Parser<JavaScriptDocument> {
   parse(contents: string, url: string, inlineInfo?: InlineDocInfo<any>):
       JavaScriptDocument {
@@ -94,41 +80,30 @@ export function parseJs(
   if (!warningCode) {
     warningCode = 'parse-error';
   }
-  const options = Object.assign(
-      {sourceType: 'script' as ('script' | 'module')}, baseParseOptions);
   try {
-    return {
-      type: 'success',
-      sourceType: 'script',
-      program: recast.parse(contents).program
-    };
-  } catch (_ignored) {
-    try {
-      options.sourceType = 'module';
+    const program = recast.parse(contents).program;
+    return {type: 'success', sourceType: program.sourceType, program};
+  } catch (err) {
+    // Esprima does not throw a SyntaxError, but instead calls
+    // `Object.create(base)` Therefore do a structural type check instead.
+    if (typeof err.description === 'string' && typeof err.column === 'number' &&
+        typeof err.lineNumber === 'number') {
       return {
-        type: 'success',
-        sourceType: 'module',
-        program: recast.parse(contents).program
+        type: 'failure',
+        warning: {
+          message: err.description.split('\n')[0],
+          severity: Severity.ERROR,
+          code: warningCode,
+          sourceRange: correctSourceRange(
+              {
+                file,
+                start: {line: err.lineNumber - 1, column: err.column - 1},
+                end: {line: err.lineNumber - 1, column: err.column - 1}
+              },
+              locationOffset)!
+        }
       };
-    } catch (err) {
-      if (err instanceof SyntaxError) {
-        return {
-          type: 'failure',
-          warning: {
-            message: err.message.split('\n')[0],
-            severity: Severity.ERROR,
-            code: warningCode,
-            sourceRange: correctSourceRange(
-                {
-                  file,
-                  start: {line: err.lineNumber - 1, column: err.column - 1},
-                  end: {line: err.lineNumber - 1, column: err.column - 1}
-                },
-                locationOffset)!
-          }
-        };
-      }
-      throw err;
     }
+    throw err;
   }
 }
