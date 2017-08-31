@@ -57,17 +57,6 @@ export class HtmlElementReferenceScanner implements HtmlScanner {
 
         elements.push(element);
       }
-
-      // Descend into templates.
-      if (node.tagName === 'template') {
-        const content = treeAdapters.default.getTemplateContent(node);
-        if (content) {
-          dom5.nodeWalk(content, (n) => {
-            visitor(n);
-            return false;
-          });
-        }
-      }
     };
 
     await visit(visitor);

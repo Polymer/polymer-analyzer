@@ -11,10 +11,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
    Unreleased section, uncommenting the header as necessary.
 -->
 
- ## Unreleased
+## Unreleased
 
 * Scan for CSS custom variable uses and assignments.
-* Fix value of reflectToAttribute for polymer properties
+* Fix value of reflectToAttribute for polymer properties.
+* HTML Document feature scanners now visit template children.
 
 ## [2.2.2] - 2017-07-20
 
