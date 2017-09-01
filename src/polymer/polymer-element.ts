@@ -141,7 +141,6 @@ export interface Options {
   observers: Observer[];
   listeners: {event: string, handler: string}[];
   behaviors: ScannedBehaviorAssignment[];
-  scriptElement: dom5.Node|null|undefined;
 
   events: Map<string, ScannedEvent>;
 
@@ -157,10 +156,6 @@ export interface ScannedPolymerExtension extends ScannedElementBase {
   observers: Observer[];
   listeners: {event: string, handler: string}[];
   behaviorAssignments: ScannedBehaviorAssignment[];
-  // FIXME(rictic): domModule and scriptElement aren't known at a file local
-  //     level. Remove them here, they should only exist on PolymerElement.
-  domModule?: dom5.Node;
-  scriptElement?: dom5.Node|null;
   // TODO(justinfagnani): Not Polymer-specific, and hopefully not necessary
   pseudo: boolean;
 
@@ -217,7 +212,6 @@ export class ScannedPolymerElement extends ScannedElement implements
   observers: Observer[] = [];
   listeners: {event: string, handler: string}[] = [];
   behaviorAssignments: ScannedBehaviorAssignment[] = [];
-  scriptElement?: dom5.Node|null;
   // Indicates if an element is a pseudo element
   pseudo: boolean = false;
   abstract: boolean = false;
@@ -240,7 +234,6 @@ export class ScannedPolymerElement extends ScannedElement implements
     this.privacy = options.privacy;
     this.astNode = options.astNode;
     this.sourceRange = options.sourceRange;
-    this.scriptElement = options.scriptElement;
 
     if (options.properties) {
       options.properties.forEach((p) => this.addProperty(p));
@@ -279,7 +272,6 @@ export interface PolymerExtension extends ElementBase {
   > ;
   listeners: ImmutableArray<{event: string, handler: string}>;
   behaviorAssignments: ImmutableArray<ScannedBehaviorAssignment>;
-  scriptElement?: dom5.Node|null;
   localIds: ImmutableArray<LocalId>;
 
   emitPropertyMetadata(property: PolymerProperty): any;
@@ -298,7 +290,6 @@ export class PolymerElement extends Element implements PolymerExtension {
   readonly listeners: ImmutableArray<{event: string, handler: string}> = [];
   readonly behaviorAssignments: ImmutableArray<ScannedBehaviorAssignment> = [];
   readonly domModule?: dom5.Node;
-  readonly scriptElement?: dom5.Node|null;
   readonly localIds: ImmutableArray<LocalId> = [];
 
   constructor(scannedElement: ScannedPolymerElement, document: Document) {
@@ -308,7 +299,6 @@ export class PolymerElement extends Element implements PolymerExtension {
     this.observers = Array.from(scannedElement.observers);
     this.listeners = Array.from(scannedElement.listeners);
     this.behaviorAssignments = Array.from(scannedElement.behaviorAssignments);
-    this.scriptElement = scannedElement.scriptElement;
 
     const domModules = scannedElement.tagName == null ?
         new Set<DomModule>() :

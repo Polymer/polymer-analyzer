@@ -230,7 +230,6 @@ export class ClassScanner implements JavaScriptScanner {
       behaviors: [],
       extends: extends_,
       listeners: [],
-      scriptElement: document.astNode,
 
       description: class_.description,
       sourceRange: class_.sourceRange,

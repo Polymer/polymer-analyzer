@@ -149,7 +149,6 @@ class BehaviorVisitor implements Visitor {
       privacy: esutil.getOrInferPrivacy(symbol, parsedJsdocs),
       abstract: jsdoc.hasTag(parsedJsdocs, 'abstract'),
       attributes: new Map(),
-      scriptElement: this.document.astNode,
       properties: [],
       behaviors: [],
       className: undefined,

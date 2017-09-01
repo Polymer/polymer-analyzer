@@ -16,7 +16,6 @@
 import {assert, use as chaiUse} from 'chai';
 import * as path from 'path';
 
-import {Analyzer, Document} from '../../index';
 import {ClassScanner} from '../../javascript/class-scanner';
 import {Visitor} from '../../javascript/estree-visitor';
 import {JavaScriptParser} from '../../javascript/javascript-parser';
@@ -595,17 +594,5 @@ namespaced name.`,
         warnings: [],
       }
     ]);
-  });
-
-  test('retrieves script element for element', async () => {
-    const filename = 'test-element-18.html';
-    const analyzer = new Analyzer({urlLoader});
-    const document =
-        (await analyzer.analyze([filename])).getDocument(filename) as Document;
-    const elements = document.getFeatures({kind: 'polymer-element'});
-    const [element] = elements;
-    assert.ok(element.scriptElement, 'Element should have a script element');
-    assert.equal(element.scriptElement!.attrs[0].name, 'class');
-    assert.equal(element.scriptElement!.attrs[0].value, 'script-element');
   });
 });
