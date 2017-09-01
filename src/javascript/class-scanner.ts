@@ -230,6 +230,7 @@ export class ClassScanner implements JavaScriptScanner {
       behaviors: [],
       extends: extends_,
       listeners: [],
+      scriptElement: document.astNode,
 
       description: class_.description,
       sourceRange: class_.sourceRange,
@@ -457,7 +458,8 @@ class ClassFinder implements Visitor {
         warnings.push(new Warning({
           code: 'class-extends-annotation-no-id',
           message: '@extends annotation with no identifier',
-          severity: Severity.WARNING, sourceRange,
+          severity: Severity.WARNING,
+          sourceRange,
           parsedDocument: this._document
         }));
       } else {
@@ -649,7 +651,8 @@ export function extractPropertiesFromConstructor(
         type,
         default: defaultValue,
         jsdoc: jsdocAnn,
-        sourceRange: document.sourceRangeForNode(astNode)!, description,
+        sourceRange: document.sourceRangeForNode(astNode)!,
+        description,
         privacy: getOrInferPrivacy(name, jsdocAnn),
         warnings: [],
         readOnly: jsdoc.hasTag(jsdocAnn, 'const'),

@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 * Scan for CSS custom variable uses and assignments.
 * Fix value of reflectToAttribute for polymer properties
+* Set scriptElement of PolymerElement to Node if it originated from a HTML Document
 
 ## [2.2.2] - 2017-07-20
 
