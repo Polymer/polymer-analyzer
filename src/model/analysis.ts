@@ -141,6 +141,33 @@ export class Analysis implements Queryable {
     return Array.from(result);
   }
 
+  /**
+   * Potentially narrow down the document that contains the sourceRange.
+   * For example, if a source range is inside a inlineDocument, this function
+   * will narrow down the document to the most specific inline document.
+   *
+   * @param sourceRange Source range to search for in a document
+   * @param document The document that contains the source range
+   */
+  getDocumentContaining(sourceRange: SourceRange|undefined, document: Document):
+      Document|undefined {
+    if (!sourceRange) {
+      return undefined;
+    }
+    let mostSpecificDocument: undefined|Document = undefined;
+    for (const doc of document.getFeatures({kind: 'document'})) {
+      if (isPositionInsideRange(sourceRange.start, doc.sourceRange)) {
+        if (!mostSpecificDocument ||
+            isPositionInsideRange(
+                doc.sourceRange!.start, mostSpecificDocument.sourceRange)) {
+          mostSpecificDocument = doc;
+        }
+      }
+    }
+    mostSpecificDocument = mostSpecificDocument || document;
+    return mostSpecificDocument;
+  }
+
   private _getDocumentQuery(query: Query = {}): DocumentQuery {
     return {
       kind: query.kind,
@@ -150,14 +177,6 @@ export class Analysis implements Queryable {
       noLazyImports: query.noLazyImports
     };
   }
-}
-
-// TODO(justinfagnani): move to utils
-function addAll<T>(set1: Set<T>, set2: Set<T>): Set<T> {
-  for (const val of set2) {
-    set1.add(val);
-  }
-  return set1;
 }
 
 /**
