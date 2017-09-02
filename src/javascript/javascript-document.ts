@@ -12,9 +12,9 @@
  * http://polymer.github.io/PATENTS.txt
  */
 
-import * as escodegen from 'escodegen';
 import {traverse, VisitorOption} from 'estraverse';
 import {Node, Program} from 'estree';
+import * as recast from 'recast';
 
 import {SourceRange} from '../model/model';
 import {Options as ParsedDocumentOptions, ParsedDocument, StringifyOptions} from '../parser/document';
@@ -166,6 +166,6 @@ export class JavaScriptDocument extends ParsedDocument<Node, Visitor> {
       formatOptions.format.indent.base = options.indent;
     }
 
-    return escodegen.generate(this.ast, formatOptions) + '\n';
+    return recast.print(this.ast, {tabWidth: options.indent}).code + '\n';
   }
 }

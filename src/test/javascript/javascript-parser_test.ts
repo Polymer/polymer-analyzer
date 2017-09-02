@@ -45,7 +45,7 @@ suite('JavaScriptParser', () => {
       assert.instanceOf(document, JavaScriptDocument);
       assert.equal(document.url, '/static/es6-support.js');
       assert.equal(document.ast.type, 'Program');
-      assert.equal(document.parsedAsSourceType, 'script');
+      assert.equal(document.parsedAsSourceType, 'module');
       // First statement is a class declaration
       assert.equal(document.ast.body[0].type, 'ClassDeclaration');
     });
@@ -60,7 +60,7 @@ suite('JavaScriptParser', () => {
       assert.instanceOf(document, JavaScriptDocument);
       assert.equal(document.url, '/static/es6-support.js');
       assert.equal(document.ast.type, 'Program');
-      assert.equal(document.parsedAsSourceType, 'script');
+      assert.equal(document.parsedAsSourceType, 'module');
       // First statement is an async function declaration
       const functionDecl = document.ast.body[0];
       if (functionDecl.type !== 'FunctionDeclaration') {
@@ -100,9 +100,12 @@ suite('JavaScriptParser', () => {
   suite(`stringify()`, () => {
     test('pretty prints output', () => {
       const contents = stripIndent(`
+        /* this is a block comment*/
+        // hello world
         class Foo extends HTMLElement {
           constructor() {
             super();
+            /* block comment in the middle of file */
             this.bar = () => {
             };
             const let = 'let const';
