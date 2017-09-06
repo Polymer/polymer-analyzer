@@ -111,7 +111,7 @@ suite('BehaviorScanner', () => {
     assert.deepEqual([...behavior.methods.keys()], ['method']);
     assert.deepEqual(
         [...behavior.properties.keys()],
-        ['simple', 'object', 'array', 'attached']);
+        ['simple', 'object', 'array', 'attached', 'templateLiteral']);
   });
 
   test('Correctly transforms property types', function() {
@@ -126,7 +126,8 @@ suite('BehaviorScanner', () => {
           {name: 'simple', type: 'boolean'},
           {name: 'object', type: 'Object'},
           {name: 'array', type: 'Array'},
-          {name: 'attached', type: 'Object'}
+          {name: 'attached', type: 'Object'},
+          {name: 'templateLiteral', type: 'string'}
         ]);
   });
 });

@@ -14,7 +14,8 @@ var SimpleNamespacedBehavior = {
   },
   object: {},
   array: [],
-  attached: true ? null : function() {}
+  attached: true ? null : function() {},
+  templateLiteral: `foo`
 };
 
 
