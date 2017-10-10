@@ -20,6 +20,8 @@ import {Parser} from '../parser/parser';
 
 import {JavaScriptDocument} from './javascript-document';
 
+export type SourceType = 'script' | 'module';
+
 declare class SyntaxError {
   message: string;
   lineNumber: number;
@@ -35,11 +37,14 @@ export const baseParseOptions = {
 };
 
 export class JavaScriptParser implements Parser<JavaScriptDocument> {
+  sourceType: SourceType;
+
   parse(contents: string, url: string, inlineInfo?: InlineDocInfo<any>):
       JavaScriptDocument {
     const isInline = !!inlineInfo;
     inlineInfo = inlineInfo || {};
-    const result = parseJs(contents, url, inlineInfo.locationOffset);
+    const result =
+        parseJs(contents, url, inlineInfo.locationOffset, this.sourceType);
     if (result.type === 'failure') {
       // TODO(rictic): define and return a ParseResult instead of throwing.
       const minimalDocument = new JavaScriptDocument({
@@ -47,8 +52,7 @@ export class JavaScriptParser implements Parser<JavaScriptDocument> {
         contents,
         ast: null as any,
         locationOffset: inlineInfo.locationOffset,
-        astNode: inlineInfo.astNode,
-        isInline,
+        astNode: inlineInfo.astNode, isInline,
         parsedAsSourceType: 'script',
       });
       throw new WarningCarryingException(
@@ -60,19 +64,25 @@ export class JavaScriptParser implements Parser<JavaScriptDocument> {
       contents,
       ast: result.program,
       locationOffset: inlineInfo.locationOffset,
-      astNode: inlineInfo.astNode,
-      isInline,
+      astNode: inlineInfo.astNode, isInline,
       parsedAsSourceType: result.sourceType,
     });
   }
 }
 
+export class JavaScriptModuleParser extends JavaScriptParser {
+  sourceType: SourceType = 'module';
+}
+
+export class JavaScriptScriptParser extends JavaScriptParser {
+  sourceType: SourceType = 'script';
+}
 
 export type ParseResult = {
   type: 'success',
-  sourceType: 'script'|'module',
+  sourceType: SourceType,
   program: estree.Program
-}|{
+} | {
   type: 'failure',
   warning: {
     sourceRange: SourceRange,
@@ -92,45 +102,56 @@ export function parseJs(
     contents: string,
     file: string,
     locationOffset?: LocationOffset,
-    warningCode?: string): ParseResult {
+    warningCode?: string,
+    sourceType?: SourceType): ParseResult {
   if (!warningCode) {
     warningCode = 'parse-error';
   }
-  const options = Object.assign(
-      {sourceType: 'script' as ('script' | 'module')}, baseParseOptions);
+
+  let program: estree.Program;
+
   try {
+    if (!sourceType) {
+      try {
+        sourceType = 'script';
+        program = espree.parse(
+            contents,
+            Object.assign(
+                {sourceType: 'script' as SourceType}, baseParseOptions));
+      } catch (_ignored) {
+        sourceType = 'module';
+        program = espree.parse(
+            contents,
+            Object.assign(
+                {sourceType: 'module' as SourceType}, baseParseOptions));
+      }
+    } else {
+      program =
+          espree.parse(contents, Object.assign({sourceType}, baseParseOptions));
+    }
     return {
       type: 'success',
-      sourceType: 'script',
-      program: espree.parse(contents, options)
+      sourceType: sourceType,
+      program: program,
     };
-  } catch (_ignored) {
-    try {
-      options.sourceType = 'module';
+  } catch (err) {
+    if (err instanceof SyntaxError) {
       return {
-        type: 'success',
-        sourceType: 'module',
-        program: espree.parse(contents, options)
+        type: 'failure',
+        warning: {
+          message: err.message.split('\n')[0],
+          severity: Severity.ERROR,
+          code: warningCode,
+          sourceRange: correctSourceRange(
+              {
+                file,
+                start: {line: err.lineNumber - 1, column: err.column - 1},
+                end: {line: err.lineNumber - 1, column: err.column - 1}
+              },
+              locationOffset)!
+        }
       };
-    } catch (err) {
-      if (err instanceof SyntaxError) {
-        return {
-          type: 'failure',
-          warning: {
-            message: err.message.split('\n')[0],
-            severity: Severity.ERROR,
-            code: warningCode,
-            sourceRange: correctSourceRange(
-                {
-                  file,
-                  start: {line: err.lineNumber - 1, column: err.column - 1},
-                  end: {line: err.lineNumber - 1, column: err.column - 1}
-                },
-                locationOffset)!
-          }
-        };
-      }
-      throw err;
     }
+    throw err;
   }
 }
