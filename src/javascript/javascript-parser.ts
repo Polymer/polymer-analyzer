@@ -111,23 +111,19 @@ export function parseJs(
   let program: estree.Program;
 
   try {
+    // If sourceType is not provided, we will try script first and if that
+    // fails, we will try module, since failure is probably that it can't parse
+    // the 'import' or 'export' syntax as a script.
     if (!sourceType) {
       try {
         sourceType = 'script';
-        program = espree.parse(
-            contents,
-            Object.assign(
-                {sourceType: 'script' as SourceType}, baseParseOptions));
+        program = espree.parse(contents, {sourceType, ...baseParseOptions});
       } catch (_ignored) {
         sourceType = 'module';
-        program = espree.parse(
-            contents,
-            Object.assign(
-                {sourceType: 'module' as SourceType}, baseParseOptions));
+        program = espree.parse(contents, {sourceType, ...baseParseOptions});
       }
     } else {
-      program =
-          espree.parse(contents, Object.assign({sourceType}, baseParseOptions));
+      program = espree.parse(contents, {sourceType, ...baseParseOptions});
     }
     return {
       type: 'success',
