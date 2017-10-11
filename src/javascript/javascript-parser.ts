@@ -43,8 +43,8 @@ export class JavaScriptParser implements Parser<JavaScriptDocument> {
       JavaScriptDocument {
     const isInline = !!inlineInfo;
     inlineInfo = inlineInfo || {};
-    const result =
-        parseJs(contents, url, inlineInfo.locationOffset, this.sourceType);
+    const result = parseJs(
+        contents, url, inlineInfo.locationOffset, undefined, this.sourceType);
     if (result.type === 'failure') {
       // TODO(rictic): define and return a ParseResult instead of throwing.
       const minimalDocument = new JavaScriptDocument({
