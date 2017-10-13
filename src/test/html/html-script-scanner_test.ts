@@ -45,11 +45,11 @@ suite('HtmlScriptScanner', () => {
       const {features} = await scanner.scan(document, visit);
       assert.equal(features.length, 2);
       assert.instanceOf(features[0], ScannedImport);
-      const feature0 = <ScannedImport>features[0];
+      const feature0 = features[0] as ScannedImport;
       assert.equal(feature0.type, 'html-script');
       assert.equal(feature0.url, 'foo.js');
       assert.instanceOf(features[1], ScannedInlineDocument);
-      const feature1 = <ScannedInlineDocument>features[1];
+      const feature1 = features[1] as ScannedInlineDocument;
       assert.equal(feature1.type, 'js');
       assert.equal(feature1.contents, `console.log('hi')`);
       assert.deepEqual(feature1.locationOffset, {line: 2, col: 18});
@@ -65,7 +65,7 @@ suite('HtmlScriptScanner', () => {
       const {features} = await scanner.scan(document, visit);
       assert.equal(features.length, 1);
       assert.instanceOf(features[0], ScannedImport);
-      const feature0 = <ScannedImport>features[0];
+      const feature0 = features[0] as ScannedImport;
       assert.equal(feature0.type, 'html-script');
       assert.equal(feature0.url, '/aybabtu/foo.js');
     });
@@ -82,23 +82,30 @@ suite('HtmlScriptScanner', () => {
       test('finds external module scripts', () => {
         const htmlScripts = [...analysis.getFeatures({kind: 'html-script'})];
         assert.equal(htmlScripts.length, 1);
-        const js = <JavaScriptDocument>htmlScripts[0].document.parsedDocument;
+        const js = htmlScripts[0].document.parsedDocument as JavaScriptDocument;
         assert.equal(js.parsedAsSourceType, 'module');
+        assert.equal(
+            js.contents.trim(), `import * as submodule from './submodule.js';`);
       });
 
       test('finds inline module scripts', () => {
         const inlineDocuments =
             [...analysis.getFeatures({kind: 'inline-document'})];
         assert.equal(inlineDocuments.length, 1);
-        const js = <JavaScriptDocument>inlineDocuments[0].parsedDocument;
+        const js = inlineDocuments[0].parsedDocument as JavaScriptDocument;
         assert.equal(js.parsedAsSourceType, 'module');
+        assert.equal(
+            js.contents.trim(),
+            `import * as something from './javascript/module-with-export.js';`);
       });
 
       test('follows import statements found in inline modules', async() => {
         const jsImports = [...analysis.getFeatures({kind: 'js-import'})];
         assert.equal(jsImports.length, 1);
-        const js = <JavaScriptDocument>jsImports[0].document.parsedDocument;
+        const js = jsImports[0].document.parsedDocument as JavaScriptDocument;
         assert.equal(js.parsedAsSourceType, 'module');
+        assert.equal(
+            js.contents.trim(), `export var someValue = 'value goes here';`);
       });
     });
   });
