@@ -101,11 +101,16 @@ suite('HtmlScriptScanner', () => {
 
       test('follows import statements found in inline modules', async() => {
         const jsImports = [...analysis.getFeatures({kind: 'js-import'})];
-        assert.equal(jsImports.length, 1);
-        const js = jsImports[0].document.parsedDocument as JavaScriptDocument;
-        assert.equal(js.parsedAsSourceType, 'module');
+        assert.equal(jsImports.length, 2);
+        const js0 = jsImports[0].document.parsedDocument as JavaScriptDocument;
+        assert.equal(js0.parsedAsSourceType, 'module');
         assert.equal(
-            js.contents.trim(), `export var someValue = 'value goes here';`);
+            js0.contents.trim(), `export var someValue = 'value goes here';`);
+
+        const js1 = jsImports[1].document.parsedDocument as JavaScriptDocument;
+        assert.equal(js1.parsedAsSourceType, 'module');
+        assert.equal(
+            js1.contents.trim(), `export const subThing = 'sub-thing';`);
       });
     });
   });
