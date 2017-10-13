@@ -110,7 +110,7 @@ suite('HtmlScriptScanner', () => {
         assert.equal(js0.url, 'javascript/module-with-export.js');
         assert.equal(js0.parsedAsSourceType, 'module');
         assert.equal(
-            js0.contents.trim(), `export var someValue = 'value goes here';`);
+            js0.contents.trim(), `export const someValue = 'value goes here';`);
 
         // import statement in external module script 'javascript/module.js'
         const js1 = jsImports[1].document.parsedDocument as JavaScriptDocument;

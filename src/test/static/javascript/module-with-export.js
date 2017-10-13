@@ -1,1 +1,1 @@
-export var someValue = 'value goes here';
+export const someValue = 'value goes here';
