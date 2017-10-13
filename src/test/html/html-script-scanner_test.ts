@@ -83,6 +83,7 @@ suite('HtmlScriptScanner', () => {
         const htmlScripts = [...analysis.getFeatures({kind: 'html-script'})];
         assert.equal(htmlScripts.length, 1);
         const js = htmlScripts[0].document.parsedDocument as JavaScriptDocument;
+        assert.equal(js.url, 'javascript/module.js');
         assert.equal(js.parsedAsSourceType, 'module');
         assert.equal(
             js.contents.trim(), `import * as submodule from './submodule.js';`);
@@ -93,21 +94,27 @@ suite('HtmlScriptScanner', () => {
             [...analysis.getFeatures({kind: 'inline-document'})];
         assert.equal(inlineDocuments.length, 1);
         const js = inlineDocuments[0].parsedDocument as JavaScriptDocument;
+        assert.equal(js.url, 'js-modules.html');
         assert.equal(js.parsedAsSourceType, 'module');
         assert.equal(
             js.contents.trim(),
             `import * as something from './javascript/module-with-export.js';`);
       });
 
-      test('follows import statements found in inline modules', async() => {
+      test('follows import statements in modules', async() => {
         const jsImports = [...analysis.getFeatures({kind: 'js-import'})];
         assert.equal(jsImports.length, 2);
+
+        // import statement in inline module script in 'js-modules.html'
         const js0 = jsImports[0].document.parsedDocument as JavaScriptDocument;
+        assert.equal(js0.url, 'javascript/module-with-export.js');
         assert.equal(js0.parsedAsSourceType, 'module');
         assert.equal(
             js0.contents.trim(), `export var someValue = 'value goes here';`);
 
+        // import statement in external module script 'javascript/module.js'
         const js1 = jsImports[1].document.parsedDocument as JavaScriptDocument;
+        assert.equal(js1.url, 'javascript/submodule.js');
         assert.equal(js1.parsedAsSourceType, 'module');
         assert.equal(
             js1.contents.trim(), `export const subThing = 'sub-thing';`);
