@@ -26,6 +26,7 @@ import {FSUrlLoader} from '../../url-loader/fs-url-loader';
 
 const fixturesDir = path.resolve(__dirname, '../static');
 suite('HtmlScriptScanner', () => {
+
   suite('scan()', () => {
     let scanner: HtmlScriptScanner;
 
