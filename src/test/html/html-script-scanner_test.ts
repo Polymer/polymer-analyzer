@@ -24,8 +24,6 @@ import {Analysis} from '../../model/analysis';
 import {ScannedImport, ScannedInlineDocument} from '../../model/model';
 import {FSUrlLoader} from '../../url-loader/fs-url-loader';
 
-// import {CodeUnderliner} from '../test-utils';
-
 const fixturesDir = path.resolve(__dirname, '../static');
 suite('HtmlScriptScanner', () => {
   suite('scan()', () => {
