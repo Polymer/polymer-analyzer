@@ -13,14 +13,21 @@
  */
 
 import {assert} from 'chai';
+import * as path from 'path';
 
+import {Analyzer} from '../../core/analyzer';
 import {HtmlVisitor} from '../../html/html-document';
 import {HtmlParser} from '../../html/html-parser';
 import {HtmlScriptScanner} from '../../html/html-script-scanner';
+import {JavaScriptDocument} from '../../javascript/javascript-document';
+import {Analysis} from '../../model/analysis';
 import {ScannedImport, ScannedInlineDocument} from '../../model/model';
+import {FSUrlLoader} from '../../url-loader/fs-url-loader';
 
+// import {CodeUnderliner} from '../test-utils';
+
+const fixturesDir = path.resolve(__dirname, '../static');
 suite('HtmlScriptScanner', () => {
-
   suite('scan()', () => {
     let scanner: HtmlScriptScanner;
 
@@ -62,6 +69,38 @@ suite('HtmlScriptScanner', () => {
       const feature0 = <ScannedImport>features[0];
       assert.equal(feature0.type, 'html-script');
       assert.equal(feature0.url, '/aybabtu/foo.js');
+    });
+
+    suite('modules', () => {
+      const urlLoader = new FSUrlLoader(fixturesDir);
+      const analyzer = new Analyzer({urlLoader});
+      let analysis: Analysis;
+
+      before(async() => {
+        analysis = await analyzer.analyze(['js-modules.html']);
+      });
+
+      test('finds external module scripts', () => {
+        const htmlScripts = [...analysis.getFeatures({kind: 'html-script'})];
+        assert.equal(htmlScripts.length, 1);
+        const js = <JavaScriptDocument>htmlScripts[0].document.parsedDocument;
+        assert.equal(js.parsedAsSourceType, 'module');
+      });
+
+      test('finds inline module scripts', () => {
+        const inlineDocuments =
+            [...analysis.getFeatures({kind: 'inline-document'})];
+        assert.equal(inlineDocuments.length, 1);
+        const js = <JavaScriptDocument>inlineDocuments[0].parsedDocument;
+        assert.equal(js.parsedAsSourceType, 'module');
+      });
+
+      test('follows import statements found in inline modules', async() => {
+        const jsImports = [...analysis.getFeatures({kind: 'js-import'})];
+        assert.equal(jsImports.length, 1);
+        const js = <JavaScriptDocument>jsImports[0].document.parsedDocument;
+        assert.equal(js.parsedAsSourceType, 'module');
+      });
     });
   });
 });
