@@ -57,7 +57,7 @@ export class ScannedScriptTagImport extends ScannedImport {
       // the html document which contained the script tag with a synthetic
       // import.
       const backReference = new ScriptTagBackReferenceImport(
-          this.url,
+          document.url,
           'html-script-back-reference',
           document,
           this.sourceRange,
