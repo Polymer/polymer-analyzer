@@ -53,9 +53,11 @@ export class ScannedScriptTagImport extends ScannedImport {
     if (scannedDocument) {
       const importedDocument =
           new Document(scannedDocument, document._analysisContext);
-      // Connect the javascript document defined/referenced by the script tag to
-      // the html document which contained the script tag with a synthetic
-      // import.
+
+      // Since JavaScript defined within `<script>` tags or loaded into by a
+      // `<script src=...>` inherits/shares scope with other scripts previously
+      // loaded by the page, add this synthetic import to support queries for
+      // features of the HTML document from the JavaScript document.
       const backReference = new ScriptTagBackReferenceImport(
           document.url,
           'html-script-back-reference',
