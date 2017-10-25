@@ -54,10 +54,14 @@ export class ScannedScriptTagImport extends ScannedImport {
       const importedDocument =
           new Document(scannedDocument, document._analysisContext);
 
-      // Since JavaScript defined within `<script>` tags or loaded into by a
-      // `<script src=...>` inherits/shares scope with other scripts previously
-      // loaded by the page, add this synthetic import to support queries for
-      // features of the HTML document from the JavaScript document.
+      // Scripts regularly make use of global variables or functions (e.g.
+      // `Polymer()`, `$('#some-id')`, etc) that are defined in libraries
+      // which are loaded via prior script tags or HTML imports.  Since
+      // JavaScript defined within `<script>` tags or loaded by a
+      // `<script src=...>` share scope with other scripts previously
+      // loaded by the page, this synthetic import is added to support
+      // queries for features of the HTML document which should be "visible"
+      // to the JavaScript document.
       const backReference = new ScriptTagBackReferenceImport(
           document.url,
           'html-script-back-reference',
