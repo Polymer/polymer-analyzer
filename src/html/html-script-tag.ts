@@ -53,10 +53,9 @@ export class ScannedScriptTagImport extends ScannedImport {
     if (scannedDocument) {
       const importedDocument =
           new Document(scannedDocument, document._analysisContext);
-      // TODO(usergenic): This _addFeature() line just basically adds the whole
-      // current document feature set into the imported document, which makes it
-      // really hard to reason about where the features are coming from *after*
-      // analysis.
+      // Connect the javascript document defined/referenced by the script tag to
+      // the html document which contained the script tag with a synthetic
+      // import.
       const backReference = new ScriptTagBackReferenceImport(
           this.url,
           'html-script-back-reference',
