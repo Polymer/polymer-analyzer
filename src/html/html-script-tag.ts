@@ -22,6 +22,14 @@ import {Document, Import, ScannedImport, Severity, Warning} from '../model/model
  */
 export class ScriptTagImport extends Import { type: 'html-script'; }
 
+/**
+ * A synthetic import that provides the document containing the script tag to
+ * the javascript document defined/referenced by the script tag.
+ */
+export class ScriptTagBackReferenceImport extends Import {
+  type: 'html-script-back-reference';
+}
+
 export class ScannedScriptTagImport extends ScannedImport {
   resolve(document: Document): ScriptTagImport|undefined {
     if (!document._analysisContext.canResolveUrl(this.url)) {
@@ -45,7 +53,20 @@ export class ScannedScriptTagImport extends ScannedImport {
     if (scannedDocument) {
       const importedDocument =
           new Document(scannedDocument, document._analysisContext);
-      importedDocument._addFeature(document);
+      // TODO(usergenic): This _addFeature() line just basically adds the whole
+      // current document feature set into the imported document, which makes it
+      // really hard to reason about where the features are coming from *after*
+      // analysis.
+      const backReference = new ScriptTagBackReferenceImport(
+          this.url,
+          'html-script-back-reference',
+          document,
+          this.sourceRange,
+          this.urlSourceRange,
+          this.astNode,
+          this.warnings,
+          false);
+      importedDocument._addFeature(backReference);
       importedDocument.resolve();
 
       return new ScriptTagImport(
