@@ -5,18 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## Unreleased
+<!-- Add new, unreleased changes here. -->
+* Scan for module imports in inline and external JavaScript, analyzing the entire import graph.
+* Changed the way HTML script tag containing document features are made available to the JavaScript document, by creating a ScriptTagBackReferenceImport instead of appending the HTML document features directly to JavaScript document.
+* [minor] Add an `astNode` property on `Slot`.
+* Improve handling of types of properties defined in a behavior or legacy polymer element.
 
-<!--
-   PRs should document their user-visible changes (if any) in the
-   Unreleased section, uncommenting the header as necessary.
--->
-
- ## Unreleased
+## [2.3.0] - 2017-09-25
 
 * Scan for CSS custom variable uses and assignments.
-* Fix value of reflectToAttribute for polymer properties
-* Remove scriptElement from PolymerElement
-* Fix handling of types of properties defined in a behavior
+* Fix value of reflectToAttribute for polymer properties.
+* Remove scriptElement from PolymerElement.
+* `html-style` features are now scanned for inside templates.
 
 ## [2.2.2] - 2017-07-20
 
