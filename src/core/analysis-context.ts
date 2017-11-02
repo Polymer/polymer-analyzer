@@ -224,16 +224,7 @@ export class AnalysisContext {
     }
     const scannedDocument = this._cache.scannedDocuments.get(resolvedUrl);
     if (!scannedDocument) {
-      return {
-        sourceRange: {
-          file: resolvedUrl,
-          start: {line: 0, column: 0},
-          end: {line: 0, column: 0}
-        },
-        code: 'unable-to-analyze',
-        message: `Document not found: ${resolvedUrl}`,
-        severity: Severity.ERROR
-      } as any;
+      return this._requestedWithoutLoadingWarning(resolvedUrl);
     }
 
     const extension = path.extname(resolvedUrl).substring(1);
@@ -498,6 +489,50 @@ export class AnalysisContext {
    */
   resolveUrls(urls: PackageRelativeUrl[]): ResolvedUrl[] {
     return filterOutUndefineds(urls.map((u) => this.resolveUrl(u)));
+  }
+
+  /**
+   * A warning for a weird situation that should not obtain.
+   *
+   * Before calling getDocument(), which is synchronous, a caller must first
+   * have finished loading and scanning, as those phases are asynchronous.
+   *
+   * So we need to construct a warning, but we don't have a parsed document.
+   * So we construct this weird fake one.
+   */
+  private _requestedWithoutLoadingWarning(resolvedUrl: ResolvedUrl) {
+    class FakeParsedDocument extends ParsedDocument {
+      type: string = 'fake';
+      visit(_visitors: any[]): void {
+        return;
+      }
+      protected _sourceRangeForNode(_node: any): undefined {
+        return undefined;
+      }
+      stringify(): string {
+        return `<FakeParsedDocument url="${this.url}">`;
+      }
+    }
+    const parsedDocument = new FakeParsedDocument({
+      ast: null,
+      url: resolvedUrl,
+      baseUrl: resolvedUrl,
+      astNode: null,
+      contents: '',
+      isInline: false,
+      locationOffset: undefined
+    });
+    return new Warning({
+      sourceRange: {
+        file: resolvedUrl,
+        start: {line: 0, column: 0},
+        end: {line: 0, column: 0}
+      },
+      code: 'unable-to-analyze',
+      message: `[Internal Error] Document was requested ` +
+          ` before loading and scanning finished. This should never happen.`,
+      severity: Severity.ERROR, parsedDocument
+    });
   }
 }
 
