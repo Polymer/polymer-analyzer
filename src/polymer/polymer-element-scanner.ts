@@ -102,7 +102,7 @@ class ElementVisitor implements Visitor {
       return;
     }
     const left = <babel.MemberExpression>node.left;
-    if (left && left.object && left.object.type !== 'ThisExpression') {
+    if (left && left.object && !babel.isThisExpression(left.object)) {
       return;
     }
     const prop = <babel.Identifier>left.property;

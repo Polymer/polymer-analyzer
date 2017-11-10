@@ -122,7 +122,7 @@ export abstract class DatabindingExpression {
       return;
     }
     const expressionStatement = this._expressionAst.body[0]!;
-    if (expressionStatement.type !== 'ExpressionStatement') {
+    if (!babel.isExpressionStatement(expressionStatement)) {
       this.warnings.push(this._validationWarning(
           `Expect an expression, not a ${expressionStatement.type}`,
           expressionStatement));
@@ -141,13 +141,13 @@ export abstract class DatabindingExpression {
       expression: babel.Expression, limitation: ExpressionLimitation) {
     switch (limitation) {
       case 'identifierOnly':
-        if (expression.type !== 'Identifier') {
+        if (!babel.isIdentifier(expression)) {
           this.warnings.push(this._validationWarning(
               `Expected just a name here, not an expression`, expression));
         }
         break;
       case 'callExpression':
-        if (expression.type !== 'CallExpression') {
+        if (!babel.isCallExpression(expression)) {
           this.warnings.push(this._validationWarning(
               `Expected a function call here.`, expression));
         }

@@ -56,7 +56,7 @@ class PolymerCoreFeatureVisitor implements Visitor {
    */
   enterAssignmentExpression(
       assignment: babel.AssignmentExpression, parent: babel.Node) {
-    if (assignment.left.type !== 'MemberExpression' ||
+    if (!babel.isMemberExpression(assignment.left) ||
         !esutil.matchesCallExpression(assignment.left, ['Polymer', 'Base'])) {
       return;
     }
@@ -71,7 +71,7 @@ class PolymerCoreFeatureVisitor implements Visitor {
     this.features.push(feature);
 
     const rhs = assignment.right;
-    if (rhs.type !== 'ObjectExpression') {
+    if (!babel.isObjectExpression(rhs)) {
       feature.warnings.push(new Warning({
         message: `Expected assignment to \`Polymer.Base\` to be an object.` +
             `Got \`${rhs.type}\` instead.`,
@@ -90,7 +90,7 @@ class PolymerCoreFeatureVisitor implements Visitor {
    * Scan for `addFeature({...})`.
    */
   enterCallExpression(call: babel.CallExpression, parent: babel.Node) {
-    if (call.callee.type !== 'MemberExpression' ||
+    if (!babel.isMemberExpression(call.callee) ||
         !esutil.matchesCallExpression(
             call.callee, ['Polymer', 'Base', '_addFeature'])) {
       return;
@@ -119,7 +119,7 @@ class PolymerCoreFeatureVisitor implements Visitor {
     }
 
     const arg = call.arguments[0];
-    if (arg.type !== 'ObjectExpression') {
+    if (!babel.isObjectExpression(arg)) {
       feature.warnings.push(new Warning({
         message: `Expected argument to \`Polymer.Base._addFeature\` to be an ` +
             `object. Got \`${arg.type}\` instead.`,

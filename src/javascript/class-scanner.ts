@@ -601,7 +601,7 @@ export function extractPropertiesFromConstructor(
       continue;
     }
     for (const statement of constructor.value.body.body) {
-      if (statement.type !== 'ExpressionStatement') {
+      if (!babel.isExpressionStatement(statement)) {
         continue;
       }
       let name;
@@ -661,8 +661,8 @@ export function extractPropertiesFromConstructor(
 
 function getPropertyNameOnThisExpression(node: babel.Node) {
   if (!babel.isMemberExpression(node) || node.computed ||
-      node.object.type !== 'ThisExpression' ||
-      node.property.type !== 'Identifier') {
+      !babel.isThisExpression(node.object) ||
+      !babel.isIdentifier(node.property)) {
     return;
   }
   return node.property.name;

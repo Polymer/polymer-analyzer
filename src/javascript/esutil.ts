@@ -47,7 +47,7 @@ export function matchesCallExpression(
   }
   console.assert(path.length >= 2);
 
-  if (expression.property.type !== 'Identifier') {
+  if (!babel.isIdentifier(expression.property)) {
     return false;
   }
   // Unravel backwards, make sure properties match each step of the way.

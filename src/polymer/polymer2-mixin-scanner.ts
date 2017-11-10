@@ -41,7 +41,7 @@ export class MixinVisitor implements Visitor {
 
   enterAssignmentExpression(
       node: babel.AssignmentExpression, parent: babel.Node) {
-    if (parent.type !== 'ExpressionStatement') {
+    if (!babel.isExpressionStatement(parent)) {
       return;
     }
     const parentComments = esutil.getAttachedComment(parent) || '';
@@ -176,8 +176,8 @@ export class MixinVisitor implements Visitor {
   }
 
   enterClassExpression(node: babel.ClassExpression, parent: babel.Node) {
-    if (parent.type !== 'ReturnStatement' &&
-        parent.type !== 'ArrowFunctionExpression') {
+    if (!babel.isReturnStatement(parent) &&
+        !babel.isArrowFunctionExpression(parent)) {
       return;
     }
     this._handleClass(node);

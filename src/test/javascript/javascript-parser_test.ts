@@ -12,9 +12,11 @@
  * http://polymer.github.io/PATENTS.txt
  */
 
+import * as babel from 'babel-types';
 import {assert} from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
+
 import stripIndent = require('strip-indent');
 
 import * as esutil from '../../javascript/esutil';
@@ -68,7 +70,7 @@ suite('JavaScriptParser', () => {
       assert.equal(document.parsedAsSourceType, 'script');
       // First statement is an async function declaration
       const functionDecl = document.ast.body[0];
-      if (functionDecl.type !== 'FunctionDeclaration') {
+      if (!babel.isFunctionDeclaration(functionDecl)) {
         throw new Error('Expected a function declaration.');
       }
       assert.equal(functionDecl.async, true);
