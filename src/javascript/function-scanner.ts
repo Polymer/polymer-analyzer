@@ -12,8 +12,8 @@
  * http://polymer.github.io/PATENTS.txt
  */
 
+import * as babel from 'babel-types';
 import * as doctrine from 'doctrine';
-import * as estree from 'estree';
 
 import {Warning} from '../model/model';
 
@@ -48,7 +48,7 @@ class FunctionVisitor implements Visitor {
    * Scan standalone function declarations.
    */
   enterFunctionDeclaration(
-      node: estree.FunctionDeclaration, _parent: estree.Node) {
+      node: babel.FunctionDeclaration, _parent: babel.Node) {
     this._initFunction(node, getIdentifierName(node.id), node);
     return;
   }
@@ -57,7 +57,7 @@ class FunctionVisitor implements Visitor {
    * Scan functions assigned to newly declared variables.
    */
   enterVariableDeclaration(
-      node: estree.VariableDeclaration, _parent: estree.Node) {
+      node: babel.VariableDeclaration, _parent: babel.Node) {
     if (node.declarations.length !== 1) {
       return;  // Ambiguous.
     }
@@ -74,7 +74,7 @@ class FunctionVisitor implements Visitor {
    * Scan functions assigned to variables and object properties.
    */
   enterAssignmentExpression(
-      node: estree.AssignmentExpression, parent: estree.Node) {
+      node: babel.AssignmentExpression, parent: babel.Node) {
     if (isFunctionType(node.right)) {
       this._initFunction(parent, objectKeyToString(node.left), node.right);
     }
@@ -83,9 +83,14 @@ class FunctionVisitor implements Visitor {
   /**
    * Scan functions defined inside of object literals.
    */
-  enterObjectExpression(node: estree.ObjectExpression, _parent: estree.Node) {
+  enterObjectExpression(node: babel.ObjectExpression, _parent: babel.Node) {
     for (let i = 0; i < node.properties.length; i++) {
       const prop = node.properties[i];
+      // TODO(usergenic): Can't get value from SpreadProperty.  Is it right to
+      // skip it here?
+      if (babel.isSpreadProperty(prop)) {
+        continue;
+      }
       const propValue = prop.value;
       const name = objectKeyToString(prop.key);
       if (isFunctionType(propValue)) {
@@ -102,7 +107,7 @@ class FunctionVisitor implements Visitor {
   }
 
   private _initFunction(
-      node: estree.Node, analyzedName?: string, _fn?: estree.Function) {
+      node: babel.Node, analyzedName?: string, _fn?: babel.Function) {
     const comment = getAttachedComment(node);
 
     // Quickly filter down to potential candidates.

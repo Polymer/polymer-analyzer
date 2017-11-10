@@ -12,8 +12,8 @@
  * http://polymer.github.io/PATENTS.txt
  */
 
+import * as babel from 'babel-types';
 import * as doctrine from 'doctrine';
-import * as estree from 'estree';
 
 import {closureType, configurationProperties, getAttachedComment, getOrInferPrivacy, objectKeyToString} from '../javascript/esutil';
 import * as jsdoc from '../javascript/jsdoc';
@@ -26,7 +26,7 @@ import {ScannedPolymerProperty} from './polymer-element';
  * Create a ScannedProperty object from an estree Property AST node.
  */
 export function toScannedPolymerProperty(
-    node: estree.Property|estree.MethodDefinition,
+    node: babel.ObjectMethod|babel.ObjectProperty|babel.ClassMethod,
     sourceRange: SourceRange,
     document: ParsedDocument): ScannedPolymerProperty {
   const parsedJsdoc = jsdoc.parseJsdoc(getAttachedComment(node) || '');
@@ -45,7 +45,11 @@ export function toScannedPolymerProperty(
       parsedDocument: document
     }));
   }
-  let type = closureType(node.value, sourceRange, document);
+  // TODO(usergenic): Type-checker says node.value may be undefined.  Can we
+  // handle this case?
+  const value = node.value!;
+
+  let type = closureType(value, sourceRange, document);
   const typeTag = jsdoc.getTag(parsedJsdoc, 'type');
   if (typeTag) {
     type = doctrine.type.stringify(typeTag.type!) || type;

@@ -12,7 +12,7 @@
  * http://polymer.github.io/PATENTS.txt
  */
 
-import * as estree from 'estree';
+import * as babel from 'babel-types';
 import {resolve as resolveUrl} from 'url';
 
 import {ScannedImport} from '../model/model';
@@ -28,7 +28,7 @@ export class JavaScriptImportScanner implements JavaScriptScanner {
     const imports: ScannedImport[] = [];
 
     await visit({
-      enterImportDeclaration(node: estree.ImportDeclaration, _: estree.Node) {
+      enterImportDeclaration(node: babel.ImportDeclaration, _: babel.Node) {
         const source = node.source.value as string;
         if (!isPathImport(source)) {
           // TODO(justinfagnani): push a warning

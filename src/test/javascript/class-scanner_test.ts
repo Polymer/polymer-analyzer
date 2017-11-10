@@ -34,6 +34,7 @@ suite('Class', () => {
     const file = await urlLoader.load(filename);
     const parser = new JavaScriptParser();
     const document = parser.parse(file, filename);
+    console.log(document);
     const scanner = new ClassScanner();
     const visit = (visitor: Visitor) =>
         Promise.resolve(document.visit([visitor]));

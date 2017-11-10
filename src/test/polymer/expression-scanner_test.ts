@@ -12,8 +12,8 @@
  * http://polymer.github.io/PATENTS.txt
  */
 
+import * as babel from 'babel-types';
 import {assert} from 'chai';
-import * as estree from 'estree';
 
 import {HtmlParser} from '../../html/html-parser';
 import {JavaScriptParser} from '../../javascript/javascript-parser';
@@ -303,7 +303,7 @@ suite('ExpressionScanner', () => {
       const underliner = CodeUnderliner.withMapping('test.js', contents);
       const javascriptDocument =
           new JavaScriptParser().parse(contents, 'test.js');
-      const literals: estree.Literal[] =
+      const literals: babel.Literal[] =
           (javascriptDocument.ast as any)
               .body[0]['declarations'][0]['init']['elements'];
 

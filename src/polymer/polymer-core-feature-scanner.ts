@@ -12,7 +12,7 @@
  * http://polymer.github.io/PATENTS.txt
  */
 
-import * as estree from 'estree';
+import * as babel from 'babel-types';
 
 import {Visitor} from '../javascript/estree-visitor';
 import * as esutil from '../javascript/esutil';
@@ -55,7 +55,7 @@ class PolymerCoreFeatureVisitor implements Visitor {
    * Scan for `Polymer.Base = {...}`.
    */
   enterAssignmentExpression(
-      assignment: estree.AssignmentExpression, parent: estree.Node) {
+      assignment: babel.AssignmentExpression, parent: babel.Node) {
     if (assignment.left.type !== 'MemberExpression' ||
         !esutil.matchesCallExpression(assignment.left, ['Polymer', 'Base'])) {
       return;
@@ -89,7 +89,7 @@ class PolymerCoreFeatureVisitor implements Visitor {
   /**
    * Scan for `addFeature({...})`.
    */
-  enterCallExpression(call: estree.CallExpression, parent: estree.Node) {
+  enterCallExpression(call: babel.CallExpression, parent: babel.Node) {
     if (call.callee.type !== 'MemberExpression' ||
         !esutil.matchesCallExpression(
             call.callee, ['Polymer', 'Base', '_addFeature'])) {
@@ -139,8 +139,13 @@ class PolymerCoreFeatureVisitor implements Visitor {
    * given feature.
    */
   private _scanObjectProperties(
-      obj: estree.ObjectExpression, feature: ScannedPolymerCoreFeature) {
+      obj: babel.ObjectExpression, feature: ScannedPolymerCoreFeature) {
     for (const prop of obj.properties) {
+      // TODO(usergenic): Can't get property key and value from a
+      // SpreadProperty. Is it right to skip it here?
+      if (babel.isSpreadProperty(prop)) {
+        continue;
+      }
       const sourceRange = this.document.sourceRangeForNode(prop);
       if (!sourceRange) {
         continue;
