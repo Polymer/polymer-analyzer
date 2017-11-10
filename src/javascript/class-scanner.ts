@@ -270,7 +270,7 @@ export class ClassScanner implements JavaScriptScanner {
       node: babel.ClassDeclaration|babel.ClassExpression,
       document: JavaScriptDocument) {
     const returnedValue = getStaticGetterValue(node, 'observedAttributes');
-    if (returnedValue && returnedValue.type === 'ArrayExpression') {
+    if (returnedValue && babel.isArrayExpression(returnedValue)) {
       return this._extractAttributesFromObservedAttributes(
           returnedValue, document);
     }
@@ -370,7 +370,7 @@ class ClassFinder implements Visitor {
         esutil.getAttachedComment(assignment) ||
         esutil.getAttachedComment(statement) || '';
     const doc = jsdoc.parseJsdoc(comment);
-    if (value.type === 'ClassExpression') {
+    if (babel.isClassExpression(value)) {
       const name = assignedName ||
           value.id && astValue.getIdentifierName(value.id) || undefined;
 
@@ -533,7 +533,7 @@ class CustomElementsDefineCallFinder implements Visitor {
     }
     if (babel.isMemberExpression(expression)) {
       // Might be something like MyElement.is
-      const isPropertyNameIs = (expression.property.type === 'Identifier' &&
+      const isPropertyNameIs = (babel.isIdentifier(expression.property) &&
                                 expression.property.name === 'is') ||
           (astValue.expressionToValue(expression.property) === 'is');
       const className = astValue.getIdentifierName(expression.object);
@@ -607,14 +607,14 @@ export function extractPropertiesFromConstructor(
       let name;
       let astNode;
       let defaultValue;
-      if (statement.expression.type === 'AssignmentExpression') {
+      if (babel.isAssignmentExpression(statement.expression)) {
         // statements like:
         // /** @public The foo. */
         // this.foo = baz;
         name = getPropertyNameOnThisExpression(statement.expression.left);
         astNode = statement.expression.left;
         defaultValue = escodegen.generate(statement.expression.right);
-      } else if (statement.expression.type === 'MemberExpression') {
+      } else if (babel.isMemberExpression(statement.expression)) {
         // statements like:
         // /** @public The foo. */
         // this.foo;
