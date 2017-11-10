@@ -196,7 +196,7 @@ class ElementVisitor implements Visitor {
     }
 
     const callee = node.callee;
-    if (callee.type === 'Identifier') {
+    if (babel.isIdentifier(callee)) {
       if (callee.name === 'Polymer') {
         const rawDescription = getAttachedComment(parent);
         let className: undefined|string = undefined;
@@ -237,8 +237,8 @@ class ElementVisitor implements Visitor {
   leaveCallExpression(node: babel.CallExpression, _: babel.Node) {
     const callee = node.callee;
     const args = node.arguments;
-    if (callee.type === 'Identifier' && args.length === 1 &&
-        args[0].type === 'ObjectExpression') {
+    if (babel.isIdentifier(callee) && args.length === 1 &&
+        babel.isObjectExpression(args[0])) {
       if (callee.name === 'Polymer') {
         if (this.element) {
           this.features.push(this.element);

@@ -13,7 +13,6 @@
  */
 
 import * as babel from 'babel-types';
-import {resolve as resolveUrl} from 'url';
 
 import {ScannedImport} from '../model/model';
 import {FileRelativeUrl} from '../model/url';

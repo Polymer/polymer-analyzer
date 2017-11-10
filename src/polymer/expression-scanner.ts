@@ -131,7 +131,7 @@ export abstract class DatabindingExpression {
     let expression = expressionStatement.expression;
 
     this._validateLimitation(expression, limitation);
-    if (expression.type === 'UnaryExpression' && expression.operator === '!') {
+    if (babel.isUnaryExpression(expression) && expression.operator === '!') {
       expression = expression.argument;
     }
     this._extractAndValidateSubExpression(expression, true);
@@ -173,7 +173,7 @@ export abstract class DatabindingExpression {
       this._extractAndValidateSubExpression(expression.argument, false);
       return;
     }
-    if (expression.type === 'Literal') {
+    if (babel.isLiteral(expression)) {
       return;
     }
     if (babel.isIdentifier(expression)) {

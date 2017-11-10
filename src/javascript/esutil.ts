@@ -16,7 +16,7 @@ import * as babel from 'babel-types';
 import * as doctrine from 'doctrine';
 import * as escodegen from 'escodegen';
 
-import {ScannedMethod, MethodParam} from '../index';
+import {MethodParam, ScannedMethod} from '../index';
 import {ImmutableSet} from '../model/immutable';
 import {Privacy} from '../model/model';
 import {ScannedEvent, Severity, SourceRange, Warning} from '../model/model';
@@ -55,11 +55,11 @@ export function matchesCallExpression(
     return false;
   }
   // We've got ourselves a final member expression.
-  if (path.length === 2 && expression.object.type === 'Identifier') {
+  if (path.length === 2 && babel.isIdentifier(expression.object)) {
     return expression.object.name === path[0];
   }
   // Nested expressions.
-  if (path.length > 2 && expression.object.type === 'MemberExpression') {
+  if (path.length > 2 && babel.isMemberExpression(expression.object)) {
     return matchesCallExpression(
         expression.object, path.slice(0, path.length - 1));
   }
@@ -183,8 +183,8 @@ export function getPropertyValue(
 }
 
 export function isFunctionType(node: babel.Node): node is babel.Function {
-  return node.type === 'ArrowFunctionExpression' ||
-      node.type === 'FunctionExpression' || node.type === 'FunctionDeclaration';
+  return babel.isArrowFunctionExpression(node) ||
+      babel.isFunctionExpression(node) || babel.isFunctionDeclaration(node);
 }
 
 
@@ -272,21 +272,21 @@ export function toScannedMethod(
       let defaultValue;
       let rest;
 
-      if (nodeParam.type === 'Identifier') {
+      if (babel.isIdentifier(nodeParam)) {
         // Basic parameter: method(param)
         name = nodeParam.name;
 
       } else if (
-          nodeParam.type === 'RestElement' &&
-          nodeParam.argument.type === 'Identifier') {
+          babel.isRestElement(nodeParam) &&
+          babel.isIdentifier(nodeParam.argument)) {
         // Rest parameter: method(...param)
         name = nodeParam.argument.name;
         rest = true;
 
       } else if (
-          nodeParam.type === 'AssignmentPattern' &&
-          nodeParam.left.type === 'Identifier' &&
-          nodeParam.right.type === 'Literal') {
+          babel.isAssignmentPattern(nodeParam) &&
+          babel.isIdentifier(nodeParam.left) &&
+          babel.isLiteral(nodeParam.right)) {
         // Parameter with a default: method(param = "default")
         name = nodeParam.left.name;
         defaultValue = escodegen.generate(nodeParam.right);
