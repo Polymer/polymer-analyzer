@@ -22,6 +22,7 @@ import {JavaScriptParser} from '../../javascript/javascript-parser';
 import {ScannedPolymerElement} from '../../polymer/polymer-element';
 import {FSUrlLoader} from '../../url-loader/fs-url-loader';
 import {CodeUnderliner} from '../test-utils';
+import { ResolvedUrl } from '../../model/url';
 
 chaiUse(require('chai-subset'));
 
@@ -34,7 +35,7 @@ suite('Polymer2ElementScanner', () => {
       Promise<ScannedPolymerElement[]> {
     const file = await urlLoader.load(filename);
     const parser = new JavaScriptParser();
-    const document = parser.parse(file, filename);
+    const document = parser.parse(file, filename as ResolvedUrl);
     const scanner = new ClassScanner();
     const visit = (visitor: Visitor) =>
         Promise.resolve(document.visit([visitor]));
@@ -428,9 +429,27 @@ namespaced name.`,
                 name: 'customInstanceFunctionWithParams',
                 description: '',
                 params: [
-                  {name: 'a', type: undefined, description: undefined},
-                  {name: 'b', type: undefined, description: undefined},
-                  {name: 'c', type: undefined, description: undefined}
+                  {
+                    name: 'a',
+                    type: undefined,
+                    defaultValue: undefined,
+                    rest: undefined,
+                    description: undefined
+                  },
+                  {
+                    name: 'b',
+                    type: undefined,
+                    defaultValue: undefined,
+                    rest: undefined,
+                    description: undefined
+                  },
+                  {
+                    name: 'c',
+                    type: undefined,
+                    defaultValue: undefined,
+                    rest: undefined,
+                    description: undefined
+                  }
                 ],
                 return: undefined,
               },
@@ -442,12 +461,22 @@ namespaced name.`,
                   {
                     name: 'a',
                     type: 'Number',
+                    defaultValue: undefined,
+                    rest: undefined,
                     description: 'The first argument',
                   },
-                  {name: 'b', type: 'Number', description: undefined},
+                  {
+                    name: 'b',
+                    type: 'Number',
+                    defaultValue: undefined,
+                    rest: undefined,
+                    description: undefined
+                  },
                   {
                     name: 'c',
                     type: 'Number',
+                    defaultValue: undefined,
+                    rest: undefined,
                     description: 'The third argument',
                   }
                 ],

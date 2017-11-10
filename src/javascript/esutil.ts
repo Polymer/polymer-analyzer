@@ -16,7 +16,7 @@ import * as babel from 'babel-types';
 import * as doctrine from 'doctrine';
 import * as escodegen from 'escodegen';
 
-import {ScannedMethod} from '../index';
+import {ScannedMethod, MethodParam} from '../index';
 import {ImmutableSet} from '../model/immutable';
 import {Privacy} from '../model/model';
 import {ScannedEvent, Severity, SourceRange, Warning} from '../model/model';
@@ -268,11 +268,37 @@ export function toScannedMethod(
     }
 
     scannedMethod.params = (value.params || []).map((nodeParam) => {
-      let type = undefined;
-      let description = undefined;
-      // With ES6 we can have a lot of param patterns. Best to leave the
-      // formatting to escodegen.
-      const name = escodegen.generate(nodeParam);
+      let name;
+      let defaultValue;
+      let rest;
+
+      if (nodeParam.type === 'Identifier') {
+        // Basic parameter: method(param)
+        name = nodeParam.name;
+
+      } else if (
+          nodeParam.type === 'RestElement' &&
+          nodeParam.argument.type === 'Identifier') {
+        // Rest parameter: method(...param)
+        name = nodeParam.argument.name;
+        rest = true;
+
+      } else if (
+          nodeParam.type === 'AssignmentPattern' &&
+          nodeParam.left.type === 'Identifier' &&
+          nodeParam.right.type === 'Literal') {
+        // Parameter with a default: method(param = "default")
+        name = nodeParam.left.name;
+        defaultValue = escodegen.generate(nodeParam.right);
+
+      } else {
+        // Some AST pattern we don't recognize. Hope the code generator does
+        // something reasonable.
+        name = escodegen.generate(nodeParam);
+      }
+
+      let type;
+      let description;
       const tag = paramTags.get(name);
       if (tag) {
         if (tag.type) {
@@ -282,7 +308,9 @@ export function toScannedMethod(
           description = tag.description;
         }
       }
-      return {name, type, description};
+
+      const param: MethodParam = {name, type, defaultValue, rest, description};
+      return param;
     });
   }
 
