@@ -254,7 +254,7 @@ export function toScannedMethod(
 
   if (value &&
       (babel.isFunctionExpression(value) ||
-       babel.isArrowFunctionExpression(value))) {
+       babel.isArrowFunctionExpression(value) || babel.isClassMethod(value))) {
     const paramTags = new Map<string, doctrine.Tag>();
     if (scannedMethod.jsdoc) {
       for (const tag of (scannedMethod.jsdoc.tags || [])) {
