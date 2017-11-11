@@ -61,20 +61,20 @@ function unaryToValue(unary: babel.UnaryExpression): LiteralValue {
  */
 function functionDeclarationToValue(fn: babel.FunctionDeclaration):
     LiteralValue {
-  if (fn.body.type === 'BlockStatement') {
+  if (babel.isBlockStatement(fn.body)) {
     return blockStatementToValue(fn.body);
   }
 }
 
 function functionExpressionToValue(fn: babel.FunctionExpression): LiteralValue {
-  if (fn.body.type === 'BlockStatement') {
+  if (babel.isBlockStatement(fn.body)) {
     return blockStatementToValue(fn.body);
   }
 }
 
 function arrowFunctionExpressionToValue(fn: babel.ArrowFunctionExpression):
     LiteralValue {
-  if (fn.body.type === 'BlockStatement') {
+  if (babel.isBlockStatement(fn.body)) {
     return blockStatementToValue(fn.body);
   } else {
     return expressionToValue(fn.body);
@@ -87,7 +87,7 @@ function arrowFunctionExpressionToValue(fn: babel.ArrowFunctionExpression):
 function blockStatementToValue(block: babel.BlockStatement): LiteralValue {
   for (let i = block.body.length - 1; i >= 0; i--) {
     const body = block.body[i];
-    if (body.type === 'ReturnStatement') {
+    if (babel.isReturnStatement(body)) {
       return returnStatementToValue(body);
     }
   }
