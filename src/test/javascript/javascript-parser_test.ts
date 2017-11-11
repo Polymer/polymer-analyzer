@@ -115,7 +115,7 @@ suite('JavaScriptParser', () => {
             super();
             this.bar = () => {
             };
-            const let = 'let const';
+            const leet = 'let const';
           }
         }`).trim() +
           '\n';

@@ -14,6 +14,7 @@
 
 import generate from 'babel-generator';
 import {Node, Program} from 'babel-types';
+import indent = require('indent');
 
 import {SourceRange} from '../model/model';
 import {Options as ParsedDocumentOptions, ParsedDocument, StringifyOptions} from '../parser/document';
@@ -160,12 +161,15 @@ export class JavaScriptDocument extends ParsedDocument<Node, Visitor> {
     options = options || {};
     const formatOptions = {
       comments: true,
-      // format: {indent: {style: '  ', adjustMultilineComment: true, base: 0}}
+      retainLines: false,
+      quotes: 'single' as 'single',
+      // TODO(usergenic): babel-generator does not have anything like
+      // adjustMultilineComment of escodegen.  and we're using `indent` package
+      // to indent at indent level with 2 spaces after-the-fact. format: {
+      // indent: { style: '  ', adjustMultilineComment: true, base: 0}}
     };
-    if (options.indent != null) {
-      // formatOptions.format.indent.base = options.indent;
-    }
 
-    return generate(this.ast, formatOptions).code + '\n';
+    const code = generate(this.ast, formatOptions).code + '\n';
+    return options.indent != null ? indent(code, options.indent * 2) : code;
   }
 }
