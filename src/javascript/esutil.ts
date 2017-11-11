@@ -12,9 +12,9 @@
  * http://polymer.github.io/PATENTS.txt
  */
 
+import generate from 'babel-generator';
 import * as babel from 'babel-types';
 import * as doctrine from 'doctrine';
-import * as escodegen from 'escodegen';
 
 import {MethodParam, ScannedMethod} from '../index';
 import {ImmutableSet} from '../model/immutable';
@@ -89,6 +89,7 @@ export const CLOSURE_CONSTRUCTOR_MAP = new Map(
     [['Boolean', 'boolean'], ['Number', 'number'], ['String', 'string']]);
 
 const VALID_EXPRESSION_TYPES = new Map([
+  ['BlockStatement', 'Function'],
   ['FunctionExpression', 'Function'],
   ['ObjectExpression', 'Object'],
   ['ArrayExpression', 'Array'],
@@ -210,9 +211,14 @@ export function toScannedMethod(
       parsedDocument: document
     }));
   }
-  // TODO(usergenic): Type-checker says node.value may be undefined.  Can we
-  // handle this case?
-  const value = node.value;
+
+  let value;
+  if (babel.isClassMethod(node)) {
+    value = node;
+  } else {
+    value = node.value;
+  }
+
   let type;
   if (value) {
     type = closureType(value, sourceRange, document);
@@ -289,12 +295,12 @@ export function toScannedMethod(
           babel.isLiteral(nodeParam.right)) {
         // Parameter with a default: method(param = "default")
         name = nodeParam.left.name;
-        defaultValue = escodegen.generate(nodeParam.right);
+        defaultValue = generate(nodeParam.right).code;
 
       } else {
         // Some AST pattern we don't recognize. Hope the code generator does
         // something reasonable.
-        name = escodegen.generate(nodeParam);
+        name = generate(nodeParam).code;
       }
 
       let type;

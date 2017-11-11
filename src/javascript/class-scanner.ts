@@ -12,9 +12,9 @@
  * http://polymer.github.io/PATENTS.txt
  */
 
+import generate from 'babel-generator';
 import * as babel from 'babel-types';
 import * as doctrine from 'doctrine';
-import * as escodegen from 'escodegen';
 
 import {ScannedClass, ScannedFeature, ScannedMethod, ScannedProperty, ScannedReference, Severity, SourceRange, Warning} from '../model/model';
 import {extractObservers} from '../polymer/declaration-property-handlers';
@@ -597,10 +597,7 @@ export function extractPropertiesFromConstructor(
       continue;
     }
     const constructor = method;
-    if (!constructor.value) {
-      continue;
-    }
-    for (const statement of constructor.value.body.body) {
+    for (const statement of constructor.body.body) {
       if (!babel.isExpressionStatement(statement)) {
         continue;
       }
@@ -613,7 +610,7 @@ export function extractPropertiesFromConstructor(
         // this.foo = baz;
         name = getPropertyNameOnThisExpression(statement.expression.left);
         astNode = statement.expression.left;
-        defaultValue = escodegen.generate(statement.expression.right);
+        defaultValue = generate(statement.expression.right).code;
       } else if (babel.isMemberExpression(statement.expression)) {
         // statements like:
         // /** @public The foo. */
@@ -653,6 +650,7 @@ export function extractPropertiesFromConstructor(
         warnings: [],
         readOnly: jsdoc.hasTag(jsdocAnn, 'const'),
       });
+      console.log(`just added property ${name}`);
     }
   }
 

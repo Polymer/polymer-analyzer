@@ -12,8 +12,8 @@
  * http://polymer.github.io/PATENTS.txt
  */
 
+import generate from 'babel-generator';
 import {Node, Program} from 'babel-types';
-import * as escodegen from 'escodegen';
 
 import {SourceRange} from '../model/model';
 import {Options as ParsedDocumentOptions, ParsedDocument, StringifyOptions} from '../parser/document';
@@ -159,13 +159,13 @@ export class JavaScriptDocument extends ParsedDocument<Node, Visitor> {
   stringify(options: StringifyOptions) {
     options = options || {};
     const formatOptions = {
-      comment: true,
-      format: {indent: {style: '  ', adjustMultilineComment: true, base: 0}}
+      comments: true,
+      // format: {indent: {style: '  ', adjustMultilineComment: true, base: 0}}
     };
     if (options.indent != null) {
-      formatOptions.format.indent.base = options.indent;
+      // formatOptions.format.indent.base = options.indent;
     }
 
-    return escodegen.generate(this.ast, formatOptions) + '\n';
+    return generate(this.ast, formatOptions).code + '\n';
   }
 }

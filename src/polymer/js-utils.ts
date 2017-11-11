@@ -45,11 +45,30 @@ export function toScannedPolymerProperty(
       parsedDocument: document
     }));
   }
+
+  let value;
+  if (babel.isClassMethod(node)) {
+    value = node;
+  } else {
+    value = node.value;
+  }
+
   // TODO(usergenic): Type-checker says node.value may be undefined.  Can we
   // handle this case?
-  const value = node.value!;
-
-  let type = closureType(value, sourceRange, document);
+  let type;
+  if (value) {
+    type = closureType(value, sourceRange, document);
+  } else {
+    type = new Warning({
+      code: 'unknown-prop-type',
+      message:
+          `Could not determine type of property from expression of type: ` +
+          `${node.key.type}`,
+      sourceRange: sourceRange,
+      severity: Severity.INFO,
+      parsedDocument: document
+    });
+  }
   const typeTag = jsdoc.getTag(parsedJsdoc, 'type');
   if (typeTag) {
     type = doctrine.type.stringify(typeTag.type!) || type;
