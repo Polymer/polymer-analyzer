@@ -650,7 +650,6 @@ export function extractPropertiesFromConstructor(
         warnings: [],
         readOnly: jsdoc.hasTag(jsdocAnn, 'const'),
       });
-      console.log(`just added property ${name}`);
     }
   }
 
