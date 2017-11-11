@@ -35,6 +35,8 @@ export function getStaticGetterValue(
   }
 
   // TODO(justinfagnani): consider generating warnings for these checks
+  // TODO(usergenic): I'm not sure this conversion below here makes sense...  Do
+  // we semantically want this `getter.body` to replace `getter.value.body`?
   const getterBody = getter.body;
   if (getterBody.body.length !== 1) {
     // not a single statement function
