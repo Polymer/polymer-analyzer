@@ -60,6 +60,7 @@
     "temp": "^0.8.3",
     "tslint": "^4.1.1",
     "typescript": "^2.6.1",
+    "typescript-json-schema": "^0.19.0",
     "watchy": "^0.6.6"
   },
   "dependencies": {
@@ -86,8 +87,7 @@
     "jsonschema": "^1.1.0",
     "parse5": "^2.2.1",
     "shady-css-parser": "^0.1.0",
-    "strip-indent": "^2.0.0",
-    "typescript-json-schema": "^0.19.0"
+    "strip-indent": "^2.0.0"
   },
   "engines": {
     "node": ">=6"
