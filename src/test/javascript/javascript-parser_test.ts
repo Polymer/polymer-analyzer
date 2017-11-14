@@ -113,10 +113,12 @@ suite('JavaScriptParser', () => {
         class Foo extends HTMLElement {
           constructor() {
             super();
-            this.bar = () => {
-            };
+
+            this.bar = () => {};
+
             const leet = 'let const';
           }
+
         }`).trim() +
           '\n';
       const document = parser.parse(contents, 'test-file.js' as ResolvedUrl);
