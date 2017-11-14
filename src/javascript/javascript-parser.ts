@@ -147,6 +147,7 @@ export function parseJs(
     };
   } catch (err) {
     if (err instanceof SyntaxError) {
+      updateLineNumberAndColumnForError(err);
       return {
         type: 'failure',
         warning: {
@@ -165,4 +166,25 @@ export function parseJs(
     }
     throw err;
   }
+}
+
+/**
+ * Babylon does not provide lineNumber and column values for unexpected token
+ * syntax errors.  This function parses the `(line:column)` value from the
+ * message of these errors and updates the error object in place.
+ */
+function updateLineNumberAndColumnForError(err: SyntaxError) {
+  if (typeof err.lineNumber === 'number' && typeof err.column === 'number') {
+    return;
+  }
+  if (!err.message) {
+    return;
+  }
+  const lineAndColumnMatch =
+      err.message.match(/(Unexpected token.*)\(([0-9]+):([0-9]+)\)/);
+  if (!lineAndColumnMatch) {
+    return;
+  }
+  err.lineNumber = parseInt(lineAndColumnMatch[2]);
+  err.column = parseInt(lineAndColumnMatch[3]) + 1;
 }
