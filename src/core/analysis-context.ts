@@ -30,7 +30,7 @@ import {NamespaceScanner} from '../javascript/namespace-scanner';
 import {JsonParser} from '../json/json-parser';
 import {Document, InlineDocInfo, LocationOffset, ScannedDocument, ScannedElement, ScannedImport, ScannedInlineDocument, Severity, Warning, WarningCarryingException} from '../model/model';
 import {PackageRelativeUrl, ResolvedUrl} from '../model/url';
-import {ParsedDocument} from '../parser/document';
+import {ParsedDocument, UnparsableParsedDocument} from '../parser/document';
 import {Parser} from '../parser/parser';
 import {BehaviorScanner} from '../polymer/behavior-scanner';
 import {CssImportScanner} from '../polymer/css-import-scanner';
@@ -501,27 +501,7 @@ export class AnalysisContext {
    * So we construct this weird fake one.
    */
   private _requestedWithoutLoadingWarning(resolvedUrl: ResolvedUrl) {
-    class FakeParsedDocument extends ParsedDocument {
-      type: string = 'fake';
-      visit(_visitors: any[]): void {
-        return;
-      }
-      protected _sourceRangeForNode(_node: any): undefined {
-        return undefined;
-      }
-      stringify(): string {
-        return `<FakeParsedDocument url="${this.url}">`;
-      }
-    }
-    const parsedDocument = new FakeParsedDocument({
-      ast: null,
-      url: resolvedUrl,
-      baseUrl: resolvedUrl,
-      astNode: null,
-      contents: '',
-      isInline: false,
-      locationOffset: undefined
-    });
+    const parsedDocument = new UnparsableParsedDocument(resolvedUrl, '');
     return new Warning({
       sourceRange: {
         file: resolvedUrl,
