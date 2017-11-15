@@ -47,6 +47,13 @@ export class Warning {
    * issue completely then it should go in `fix`.
    */
   readonly fix: Edit|undefined;
+
+  /**
+   * Other actions that could be taken in response to this warning.
+   *
+   * Each action is separate and they may be mutually exclusive. In the case
+   * of edit actions they often are.
+   */
   readonly actions: ReadonlyArray<Action>|undefined;
   private readonly _parsedDocument: ParsedDocument;
 
@@ -143,7 +150,11 @@ export class Warning {
   }
 }
 
-export const enum Severity {ERROR, WARNING, INFO}
+export enum Severity {
+  ERROR,
+  WARNING,
+  INFO
+}
 
 // TODO(rictic): can we get rid of this class entirely?
 export class WarningCarryingException extends Error {
