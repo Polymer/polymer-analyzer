@@ -179,7 +179,7 @@ const defaultPrinterOptions = {
 
 export type Action = EditAction | {
   /** To ensure that type safe code actually checks for the action kind. */
-  kind: 'dummy-action-kind';
+  kind: 'never';
 };
 
 /**
