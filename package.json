@@ -1,6 +1,6 @@
 {
   "name": "polymer-analyzer",
-  "version": "2.6.0",
+  "version": "2.7.0",
   "description": "Static analysis for Web Components",
   "homepage": "https://github.com/Polymer/polymer-analyzer",
   "bugs": "https://github.com/Polymer/polymer-analyzer/issues",
@@ -49,7 +49,6 @@
     "gulp-sourcemaps": "^1.6.0",
     "gulp-tslint": "^7.0.1",
     "gulp-typescript": "^2.13.4",
-    "jsdoc-to-markdown": "^1.0.3",
     "knuth-shuffle": "^1.0.8",
     "memory-streams": "^0.1.1",
     "merge-stream": "^1.0.0",
