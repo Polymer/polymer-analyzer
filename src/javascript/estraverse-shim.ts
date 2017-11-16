@@ -4,9 +4,9 @@ import * as babel from 'babel-types';
 import {Visitor, VisitResult} from './estree-visitor';
 
 export enum VisitorOption {
-  Skip,
-  Break,
-  Remove,
+  Skip = 'skip',
+  Break = 'break',
+  Remove = 'remove',
 }
 
 export function traverse(ast: babel.Node, visitor: Visitor): void {
