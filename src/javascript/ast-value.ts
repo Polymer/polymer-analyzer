@@ -230,10 +230,10 @@ export function getNamespacedIdentifier(
 }
 
 /**
- * Given two source locations, return the -1/0/1 number value suitable for an
- * `Array#sort()` method.
+ * Given two source locations, return a `-1|0|1` number value suitable for an
+ * `Array#sort()` method when comparing their `start` positions.
  */
-export function compareSourceLocation(
+export function compareSourceLocationStart(
     a: babel.SourceLocation, b: babel.SourceLocation): number {
   const al = a.start.line;
   const bl = b.start.line;
