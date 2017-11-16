@@ -185,6 +185,6 @@ function updateLineNumberAndColumnForError(err: SyntaxError) {
   if (!lineAndColumnMatch) {
     return;
   }
-  err.lineNumber = parseInt(lineAndColumnMatch[2]);
-  err.column = parseInt(lineAndColumnMatch[3]) + 1;
+  err.lineNumber = parseInt(lineAndColumnMatch[2], 10);
+  err.column = parseInt(lineAndColumnMatch[3], 10) + 1;
 }
