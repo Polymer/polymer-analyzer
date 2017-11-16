@@ -54,7 +54,7 @@ export class Warning {
    * Each action is separate and they may be mutually exclusive. In the case
    * of edit actions they often are.
    */
-  readonly actions: ReadonlyArray<Action>|undefined;
+  readonly actions: ReadonlyArray<Action>|undefined = undefined;
   private readonly _parsedDocument: ParsedDocument;
 
   constructor(init: WarningInit) {
@@ -323,7 +323,6 @@ function canApply(
       replacements.set(replacement.range.file, [replacement]);
     } else {
       const fileReplacements = replacements.get(replacement.range.file)!;
-      // TODO(rictic): insert in sorted order
       fileReplacements.push(replacement);
     }
   }
