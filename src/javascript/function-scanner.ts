@@ -17,7 +17,7 @@ import * as doctrine from 'doctrine';
 
 import {Warning} from '../model/model';
 
-import {getIdentifierName, getNamespacedIdentifier} from './ast-value';
+import {compareSourceLocation, getIdentifierName, getNamespacedIdentifier} from './ast-value';
 import {Visitor} from './estree-visitor';
 import {getAttachedComment, getOrInferPrivacy, isFunctionType, objectKeyToString} from './esutil';
 import {ScannedFunction} from './function';
@@ -31,7 +31,12 @@ export class FunctionScanner implements JavaScriptScanner {
       visit: (visitor: Visitor) => Promise<void>) {
     const visitor = new FunctionVisitor(document);
     await visit(visitor);
-    return {features: Array.from(visitor.functions)};
+    return {
+      features:
+          Array.from(visitor.functions)
+              .sort(
+                  (a, b) => compareSourceLocation(a.sourceRange, b.sourceRange))
+    };
   }
 }
 
@@ -50,6 +55,14 @@ class FunctionVisitor implements Visitor {
   enterFunctionDeclaration(
       node: babel.FunctionDeclaration, _parent: babel.Node) {
     this._initFunction(node, getIdentifierName(node.id), node);
+    return;
+  }
+
+  /**
+   * Scan object method declarations.
+   */
+  enterObjectMethod(node: babel.ObjectMethod, _parent: babel.Node) {
+    this._initFunction(node, getIdentifierName(node.key), node);
     return;
   }
 
