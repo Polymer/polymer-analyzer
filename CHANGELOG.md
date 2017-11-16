@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
 <!-- Add new, unreleased changes here. -->
+
+* [BREAKING] Switched the underlying parser/AST for JavaScript from `espree/estree` to `babylon/babel-types`.  This was needed to support parsing of important platform features such as dynamic imports and moves us closer to supporting TypeScript.
 * Emit more accurate super classes for Elements when generating analysis JSON.
 * Added the concept of automatically safe fixes and less-safe edit actions for Warnings. This is an upstreaming of functionality originally defined in polymer-linter.
 
