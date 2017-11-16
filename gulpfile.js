@@ -43,10 +43,7 @@ task('depcheck', function() {
   return new Promise((resolve, reject) => {
            depcheck_lib(
                __dirname,
-               {
-                 ignoreDirs: [],
-                 ignoreMatches: ['@types/*', 'typescript-json-schema']
-               },
+               {ignoreDirs: [], ignoreMatches: ['@types/*']},
                resolve);
          })
       .then((result) => {
