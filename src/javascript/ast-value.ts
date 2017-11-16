@@ -229,6 +229,10 @@ export function getNamespacedIdentifier(
   }
 }
 
+/**
+ * Given two source locations, return the -1/0/1 number value suitable for an
+ * `Array#sort()` method.
+ */
 export function compareSourceLocation(
     a: babel.SourceLocation, b: babel.SourceLocation): number {
   const al = a.start.line;
