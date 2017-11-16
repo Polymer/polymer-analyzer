@@ -16,8 +16,9 @@ import * as babel from 'babel-types';
 import * as doctrine from 'doctrine';
 
 import {Warning} from '../model/model';
+import {comparePosition} from '../model/source-range';
 
-import {compareSourceLocationStart, getIdentifierName, getNamespacedIdentifier} from './ast-value';
+import {getIdentifierName, getNamespacedIdentifier} from './ast-value';
 import {Visitor} from './estree-visitor';
 import {getAttachedComment, getOrInferPrivacy, isFunctionType, objectKeyToString} from './esutil';
 import {ScannedFunction} from './function';
@@ -34,8 +35,8 @@ export class FunctionScanner implements JavaScriptScanner {
     return {
       features: Array.from(visitor.functions)
                     .sort(
-                        (a, b) => compareSourceLocationStart(
-                            a.sourceRange, b.sourceRange))
+                        (a, b) => comparePosition(
+                            a.sourceRange.start, b.sourceRange.start)),
     };
   }
 }

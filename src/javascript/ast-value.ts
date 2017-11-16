@@ -229,23 +229,4 @@ export function getNamespacedIdentifier(
   }
 }
 
-/**
- * Given two source locations, return a `-1|0|1` number value suitable for an
- * `Array#sort()` method when comparing their `start` positions.
- */
-export function compareSourceLocationStart(
-    a: babel.SourceLocation, b: babel.SourceLocation): number {
-  const al = a.start.line;
-  const bl = b.start.line;
-  if (al !== bl) {
-    return al < bl ? -1 : 1;
-  }
-  const ac = a.start.column;
-  const bc = a.start.column;
-  if (ac !== bc) {
-    return ac < bc ? -1 : 1;
-  }
-  return 0;
-}
-
 export const CANT_CONVERT = 'UNKNOWN';
