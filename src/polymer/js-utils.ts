@@ -53,8 +53,6 @@ export function toScannedPolymerProperty(
     value = node.value;
   }
 
-  // TODO(usergenic): Type-checker says node.value may be undefined.  Can we
-  // handle this case?
   let type;
   if (value) {
     type = closureType(value, sourceRange, document);
