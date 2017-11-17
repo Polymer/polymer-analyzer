@@ -161,11 +161,8 @@ class ElementVisitor implements Visitor {
           element.warnings = element.warnings.concat(parseResult.warnings);
           let expressionText = undefined;
           if (babel.isLiteral(elementObject)) {
-            // TODO(usergenic): How do I get equivalent of `raw` from Babylon
-            // parse tree?  Perhaps a method that takes the JavaScriptDocument
-            // and the SourceLocation to excerpt?
-            // expressionText = elementObject.raw;
-            expressionText = '' + astValue.expressionToValue(elementObject);
+            expressionText = this.document.contents.slice(
+                elementObject.start, elementObject.end);
           }
           element.observers.push({
             javascriptNode: elementObject,
