@@ -89,11 +89,16 @@ export const CLOSURE_CONSTRUCTOR_MAP = new Map(
     [['Boolean', 'boolean'], ['Number', 'number'], ['String', 'string']]);
 
 const VALID_EXPRESSION_TYPES = new Map([
-  ['BlockStatement', 'Function'],
-  ['FunctionExpression', 'Function'],
-  ['ObjectExpression', 'Object'],
   ['ArrayExpression', 'Array'],
-  ['TemplateLiteral', 'string']
+  ['BlockStatement', 'Function'],
+  ['BooleanLiteral', 'boolean'],
+  ['FunctionExpression', 'Function'],
+  ['NullLiteral', 'null'],
+  ['NumericLiteral', 'number'],
+  ['ObjectExpression', 'Object'],
+  ['RegExpLiteral', 'RegExp'],
+  ['StringLiteral', 'string'],
+  ['TemplateLiteral', 'string'],
 ]);
 
 /**
@@ -110,9 +115,8 @@ export function closureType(
   const type = VALID_EXPRESSION_TYPES.get(node.type);
   if (type) {
     return type;
-  } else if (babel.isLiteral(node)) {
-    return typeof astValue.expressionToValue(node);
-  } else if (babel.isIdentifier(node)) {
+  }
+  if (babel.isIdentifier(node)) {
     return CLOSURE_CONSTRUCTOR_MAP.get(node.name) || node.name;
   }
   return new Warning({
