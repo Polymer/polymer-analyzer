@@ -20,7 +20,7 @@ import {comparePosition} from '../model/source-range';
 
 import {getIdentifierName, getNamespacedIdentifier} from './ast-value';
 import {Visitor} from './estree-visitor';
-import {getAttachedComment, getOrInferPrivacy, isFunctionType, objectKeyToString} from './esutil';
+import {getAttachedComment, getOrInferPrivacy, objectKeyToString} from './esutil';
 import {ScannedFunction} from './function';
 import {JavaScriptDocument} from './javascript-document';
 import {JavaScriptScanner} from './javascript-scanner';
@@ -78,7 +78,7 @@ class FunctionVisitor implements Visitor {
     const declaration = node.declarations[0];
     const declarationId = declaration.id;
     const declarationValue = declaration.init;
-    if (declarationValue && isFunctionType(declarationValue)) {
+    if (declarationValue && babel.isFunction(declarationValue)) {
       return this._initFunction(
           node, objectKeyToString(declarationId), declarationValue);
     }
@@ -89,7 +89,7 @@ class FunctionVisitor implements Visitor {
    */
   enterAssignmentExpression(
       node: babel.AssignmentExpression, parent: babel.Node) {
-    if (isFunctionType(node.right)) {
+    if (babel.isFunction(node.right)) {
       this._initFunction(parent, objectKeyToString(node.left), node.right);
     }
   }
@@ -100,14 +100,12 @@ class FunctionVisitor implements Visitor {
   enterObjectExpression(node: babel.ObjectExpression, _parent: babel.Node) {
     for (let i = 0; i < node.properties.length; i++) {
       const prop = node.properties[i];
-      // TODO(usergenic): Can't get value from SpreadProperty.  Is it right to
-      // skip it here?
       if (babel.isSpreadProperty(prop)) {
         continue;
       }
       const propValue = prop.value;
       const name = objectKeyToString(prop.key);
-      if (isFunctionType(propValue)) {
+      if (babel.isFunction(propValue)) {
         this._initFunction(prop, name, propValue);
         continue;
       }

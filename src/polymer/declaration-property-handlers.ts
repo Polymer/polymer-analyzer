@@ -112,8 +112,6 @@ export function declarationPropertyHandlers(
       }
 
       for (const p of node.properties) {
-        // TODO(usergenic): SpreadProperty doesn't have value so I have to skip
-        // here.  Is it okay to skip?
         if (babel.isSpreadProperty(p)) {
           continue;
         }

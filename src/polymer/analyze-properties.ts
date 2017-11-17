@@ -42,8 +42,6 @@ export function analyzeProperties(
   }
 
   for (const property of node.properties) {
-    // TODO(usergenic): SpreadProperty doesn't have value so I have to skip
-    // here.  Is it okay to skip?
     if (babel.isSpreadProperty(property)) {
       continue;
     }
@@ -86,8 +84,6 @@ export function analyzeProperties(
        * }
        */
       for (const propertyArg of value.properties) {
-        // TODO(usergenic): SpreadProperty doesn't have value so I have to skip
-        // here.  Is it okay to skip?
         if (babel.isSpreadProperty(propertyArg)) {
           continue;
         }

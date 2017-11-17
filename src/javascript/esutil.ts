@@ -178,20 +178,12 @@ export function getPropertyValue(
     node: babel.ObjectExpression, name: string): babel.Node|undefined {
   const properties = node.properties;
   for (const property of properties) {
-    // TODO(usergenic): Can't get property key and value from a SpreadProperty.
-    // Is it right to skip it here?
     if (!babel.isSpreadProperty(property) &&
         objectKeyToString(property.key) === name) {
       return property.value;
     }
   }
 }
-
-export function isFunctionType(node: babel.Node): node is babel.Function {
-  return babel.isArrowFunctionExpression(node) ||
-      babel.isFunctionExpression(node) || babel.isFunctionDeclaration(node);
-}
-
 
 /**
  * Create a ScannedMethod object from an estree Property AST node.

@@ -37,12 +37,6 @@ export const baseParseOptions: babylon.BabylonOptions = {
     // 'importMeta', // not yet in the @types file
     'objectRestSpread',
   ],
-  // TODO(usergenic): None of these parsing options are supported by Babylon.
-  // Remove them or find out how to get equivalent behavior.
-  //  ecmaVersion: 8,
-  //  attachComment: true,
-  //  comment: true,
-  //  loc: true,
 };
 
 // TODO(usergenic): Move this to regular baseParseOptions declaration once

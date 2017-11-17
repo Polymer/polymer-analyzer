@@ -124,8 +124,6 @@ function arrayExpressionToValue(arry: babel.ArrayExpression): LiteralValue {
 function objectExpressionToValue(obj: babel.ObjectExpression): LiteralValue {
   const evaluatedObjectExpression: LiteralObj = {};
   for (const prop of obj.properties) {
-    // TODO(usergenic): Can't get property key and value from a SpreadProperty.
-    // Is it right to skip it here?
     if (babel.isSpreadProperty(prop) || !babel.isLiteral(prop.key)) {
       return;
     }

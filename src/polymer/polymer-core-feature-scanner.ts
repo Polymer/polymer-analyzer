@@ -141,8 +141,6 @@ class PolymerCoreFeatureVisitor implements Visitor {
   private _scanObjectProperties(
       obj: babel.ObjectExpression, feature: ScannedPolymerCoreFeature) {
     for (const prop of obj.properties) {
-      // TODO(usergenic): Can't get property key and value from a
-      // SpreadProperty. Is it right to skip it here?
       if (babel.isSpreadProperty(prop)) {
         continue;
       }
@@ -150,7 +148,7 @@ class PolymerCoreFeatureVisitor implements Visitor {
       if (!sourceRange) {
         continue;
       }
-      if (esutil.isFunctionType(prop.value)) {
+      if (babel.isFunction(prop.value)) {
         const method = toScannedMethod(prop, sourceRange, this.document);
         feature.methods.set(method.name, method);
       } else {

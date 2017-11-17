@@ -86,8 +86,6 @@ class BehaviorVisitor implements Visitor {
     }
 
     for (const prop of node.properties) {
-      // TODO(usergenic): SpreadProperty doesn't have value so I have to skip
-      // here.  Is it okay to skip?
       if (babel.isSpreadProperty(prop)) {
         continue;
       }
@@ -106,7 +104,7 @@ class BehaviorVisitor implements Visitor {
       }
       if (name in this.propertyHandlers) {
         this.propertyHandlers[name](prop.value);
-      } else if (esutil.isFunctionType(prop.value)) {
+      } else if (babel.isFunction(prop.value)) {
         const method = esutil.toScannedMethod(
             prop, this.document.sourceRangeForNode(prop)!, this.document);
         this.currentBehavior.addMethod(method);

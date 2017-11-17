@@ -17,7 +17,7 @@ import * as astValue from '../javascript/ast-value';
 import {getIdentifierName} from '../javascript/ast-value';
 import {VisitorOption} from '../javascript/estraverse-shim';
 import {Visitor} from '../javascript/estree-visitor';
-import {getAttachedComment, getEventComments, getOrInferPrivacy, isFunctionType, objectKeyToString, toScannedMethod} from '../javascript/esutil';
+import {getAttachedComment, getEventComments, getOrInferPrivacy, objectKeyToString, toScannedMethod} from '../javascript/esutil';
 import {JavaScriptDocument} from '../javascript/javascript-document';
 import {JavaScriptScanner} from '../javascript/javascript-scanner';
 import * as jsdoc from '../javascript/jsdoc';
@@ -262,8 +262,6 @@ class ElementVisitor implements Visitor {
       const setters: {[name: string]: ScannedPolymerProperty} = {};
       const definedProperties: {[name: string]: ScannedPolymerProperty} = {};
       for (const prop of node.properties) {
-        // TODO(usergenic): Can't get property key and value from a
-        // SpreadProperty. Is it right to skip it here?
         if (babel.isSpreadProperty(prop)) {
           continue;
         }
@@ -296,7 +294,8 @@ class ElementVisitor implements Visitor {
             getters[scannedPolymerProperty.name] = scannedPolymerProperty;
           } else if (babel.isObjectMethod(prop) && prop.kind === 'set') {
             setters[scannedPolymerProperty.name] = scannedPolymerProperty;
-          } else if (babel.isObjectMethod(prop) || isFunctionType(prop.value)) {
+          } else if (
+              babel.isObjectMethod(prop) || babel.isFunction(prop.value)) {
             const scannedPolymerMethod = toScannedMethod(
                 prop, this.document.sourceRangeForNode(prop)!, this.document);
             element.addMethod(scannedPolymerMethod);
