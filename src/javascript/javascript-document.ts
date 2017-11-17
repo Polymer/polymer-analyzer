@@ -163,10 +163,6 @@ export class JavaScriptDocument extends ParsedDocument<Node, Visitor> {
       comments: true,
       retainLines: false,
       quotes: 'single' as 'single',
-      // TODO(usergenic): babel-generator does not have anything like
-      // adjustMultilineComment of escodegen.  and we're using `indent` package
-      // to indent at indent level with 2 spaces after-the-fact. format: {
-      // indent: { style: '  ', adjustMultilineComment: true, base: 0}}
     };
 
     const code = generate(this.ast, formatOptions).code + '\n';
