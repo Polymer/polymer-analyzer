@@ -65,18 +65,6 @@ class NamespaceVisitor implements Visitor {
     this._initNamespace(parent, node.left);
   }
 
-  // enterProperty(node: babel.Property, _parent: babel.Node) {
-  //   this._initNamespace(node, node.key);
-  // }
-
-  // enterClassMethod(node: babel.ClassMethod, _parent: babel.Node) {
-  //   this._initNamespace(node, node.key);
-  // }
-
-  // enterObjectMethod(node: babel.ObjectMethod, _parent: babel.Node) {
-  //   this._initNamespace(node, node.key);
-  // }
-
   enterObjectProperty(node: babel.ObjectProperty, _parent: babel.Node) {
     this._initNamespace(node, node.key);
   }
