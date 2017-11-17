@@ -163,8 +163,7 @@ export abstract class DatabindingExpression {
   private _extractAndValidateSubExpression(
       expression: babel.Node, callAllowed: boolean): void {
     if (babel.isUnaryExpression(expression) && expression.operator === '-') {
-      if (!babel.isLiteral(expression.argument) ||
-          typeof astValue.expressionToValue(expression.argument) !== 'number') {
+      if (!babel.isNumericLiteral(expression.argument)) {
         this.warnings.push(this._validationWarning(
             'The - operator is only supported for writing negative numbers.',
             expression));
