@@ -18,7 +18,7 @@ import {LiteralObj, LiteralValue} from '../model/model';
 import * as jsdoc from './jsdoc';
 
 /**
- * Converts an ast literal to its underlying valie.
+ * Converts an ast literal to its underlying value.
  */
 function literalToValue(literal: babel.Literal): LiteralValue {
   if (babel.isBooleanLiteral(literal) || babel.isNumericLiteral(literal) ||
@@ -28,6 +28,8 @@ function literalToValue(literal: babel.Literal): LiteralValue {
   if (babel.isNullLiteral(literal)) {
     return null;
   }
+  // Any other literal value is treated as undefined.
+  return undefined;
 }
 
 /**
