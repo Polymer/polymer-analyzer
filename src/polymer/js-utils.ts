@@ -46,27 +46,9 @@ export function toScannedPolymerProperty(
     }));
   }
 
-  let value;
-  if (babel.isClassMethod(node)) {
-    value = node;
-  } else {
-    value = node.value;
-  }
+  const value = babel.isObjectProperty(node) ? node.value : node;
 
-  let type;
-  if (value) {
-    type = closureType(value, sourceRange, document);
-  } else {
-    type = new Warning({
-      code: 'unknown-prop-type',
-      message:
-          `Could not determine type of property from expression of type: ` +
-          `${node.key.type}`,
-      sourceRange: sourceRange,
-      severity: Severity.INFO,
-      parsedDocument: document
-    });
-  }
+  let type = closureType(value, sourceRange, document);
   const typeTag = jsdoc.getTag(parsedJsdoc, 'type');
   if (typeTag) {
     type = doctrine.type.stringify(typeTag.type!) || type;
