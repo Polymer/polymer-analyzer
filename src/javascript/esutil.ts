@@ -208,26 +208,9 @@ export function toScannedMethod(
     }));
   }
 
-  let value;
-  if (babel.isClassMethod(node)) {
-    value = node;
-  } else {
-    value = node.value;
-  }
+  const value = babel.isObjectProperty(node) ? node.value : node;
 
-  let type;
-  if (value) {
-    type = closureType(value, sourceRange, document);
-  } else {
-    type = new Warning({
-      code: 'unknown-method-type',
-      message: `Could not determine type of method from expression of type: ` +
-          `${node.key.type}`,
-      sourceRange: sourceRange,
-      severity: Severity.INFO,
-      parsedDocument: document
-    });
-  }
+  let type = closureType(value, sourceRange, document);
   const typeTag = jsdoc.getTag(parsedJsdoc, 'type');
   if (typeTag) {
     type = doctrine.type.stringify(typeTag.type!) || type;
@@ -248,9 +231,7 @@ export function toScannedMethod(
     privacy: getOrInferPrivacy(name, parsedJsdoc)
   };
 
-  if (value &&
-      (babel.isFunctionExpression(value) ||
-       babel.isArrowFunctionExpression(value) || babel.isClassMethod(value))) {
+  if (value && babel.isFunction(value)) {
     const paramTags = new Map<string, doctrine.Tag>();
     if (scannedMethod.jsdoc) {
       for (const tag of (scannedMethod.jsdoc.tags || [])) {
