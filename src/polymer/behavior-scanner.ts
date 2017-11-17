@@ -273,7 +273,7 @@ function behaviorExpression(node: babel.Node): babel.Node|null|undefined {
   if (babel.isExpressionStatement(node)) {
     // need to cast to `any` here because ExpressionStatement is super
     // super general. this code is suspicious.
-    return (<any>node).expression.right;
+    return (node as any).expression.right;
   }
   if (babel.isVariableDeclaration(node)) {
     return node.declarations.length > 0 ? node.declarations[0].init : undefined;
