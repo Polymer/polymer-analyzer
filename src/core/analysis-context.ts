@@ -492,13 +492,13 @@ export class AnalysisContext {
   }
 
   /**
-   * A warning for a weird situation that should not obtain.
+   * A warning for a weird situation that should never happen.
    *
    * Before calling getDocument(), which is synchronous, a caller must first
    * have finished loading and scanning, as those phases are asynchronous.
    *
-   * So we need to construct a warning, but we don't have a parsed document.
-   * So we construct this weird fake one.
+   * So we need to construct a warning, but we don't have a parsed document,   *
+   * so we construct this weird fake one.
    */
   private _requestedWithoutLoadingWarning(resolvedUrl: ResolvedUrl) {
     const parsedDocument = new UnparsableParsedDocument(resolvedUrl, '');
