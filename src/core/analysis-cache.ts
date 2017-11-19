@@ -127,7 +127,7 @@ export class AnalysisCache {
     if (this.failedDocuments.size > 0) {
       result += `
   failedDocuments:
-  ${Array.from(this.analyzedDocuments.keys()).join('\n    ')}`;
+    ${Array.from(this.analyzedDocuments.keys()).join('\n    ')}`;
     }
     result += '>';
     return result;
