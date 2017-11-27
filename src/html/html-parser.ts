@@ -45,7 +45,7 @@ export class HtmlParser implements Parser<ParsedHtmlDocument> {
     let baseUrl;
     if (baseTag) {
       const baseHref = getAttribute(baseTag, 'href')! as FileRelativeUrl;
-      baseUrl = urlResolver.resolveFileUrl(baseHref, url);
+      baseUrl = urlResolver.resolveFileUrl(baseHref, url, undefined);
     } else {
       baseUrl = url;
     }

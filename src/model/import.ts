@@ -70,7 +70,7 @@ export class ScannedImport implements Resolvable {
       return;
     }
     const resolvedUrl = document._analysisContext.resolveUrlFromFile(
-        this.url, document.parsedDocument.baseUrl);
+        this.url, document.parsedDocument.baseUrl, this);
     const importedDocumentOrWarning =
         document._analysisContext.getDocument(resolvedUrl);
     if (!(importedDocumentOrWarning instanceof Document)) {

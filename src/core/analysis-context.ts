@@ -321,7 +321,7 @@ export class AnalysisContext {
 
             // Update dependency graph
             const importUrls = imports.map(
-                (i) => this.resolveUrlFromFile(i.url, parsedDoc.baseUrl));
+                (i) => this.resolveUrlFromFile(i.url, parsedDoc.baseUrl, i));
             this._cache.dependencyGraph.addDocument(resolvedUrl, importUrls);
 
             return scannedDocument;
@@ -346,7 +346,9 @@ export class AnalysisContext {
           // Scan imports
           for (const scannedImport of imports) {
             const importUrl = this.resolveUrlFromFile(
-                scannedImport.url, scannedDocument.document.baseUrl);
+                scannedImport.url,
+                scannedDocument.document.baseUrl,
+                scannedImport);
             // Request a scan of `importUrl` but do not wait for the results to
             // avoid deadlock in the case of cycles. Later we use the
             // DependencyGraph to wait for all transitive dependencies to load.
@@ -501,9 +503,11 @@ export class AnalysisContext {
                                            (url as any as ResolvedUrl);
   }
 
-  resolveUrlFromFile(url: FileRelativeUrl, baseUrl: ResolvedUrl): ResolvedUrl {
+  resolveUrlFromFile(
+      url: FileRelativeUrl, baseUrl: ResolvedUrl,
+      scannedImport: ScannedImport|undefined): ResolvedUrl {
     return this.resolver.canResolve(url) ?
-        this.resolver.resolveFileUrl(url, baseUrl) :
+        this.resolver.resolveFileUrl(url, baseUrl, scannedImport) :
         (url as any as ResolvedUrl);
   }
 }
