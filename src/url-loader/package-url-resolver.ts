@@ -16,7 +16,8 @@ import {posix as pathlib} from 'path';
 import {Url} from 'url';
 
 import {parseUrl} from '../core/utils';
-import {PackageRelativeUrl, ResolvedUrl} from '../model/url';
+import {FileRelativeUrl, ScannedImport} from '../index';
+import {ResolvedUrl} from '../model/url';
 
 import {UrlResolver} from './url-resolver';
 
@@ -44,14 +45,20 @@ export class PackageUrlResolver extends UrlResolver {
         !pathname.startsWith('../../');
   }
 
-  resolve(url: PackageRelativeUrl): ResolvedUrl|undefined {
-    const urlObject = parseUrl(url);
+  resolve(url: FileRelativeUrl, baseUrl: ResolvedUrl, import_?: ScannedImport):
+      ResolvedUrl|undefined {
+    const packageRelativeUrl = super.resolve(url, baseUrl, import_);
+    if (packageRelativeUrl === undefined) {
+      return undefined;
+    }
+    const urlObject = parseUrl(packageRelativeUrl);
     let pathname;
     try {
       pathname = pathlib.normalize(decodeURI(urlObject.pathname || ''));
     } catch (e) {
       return undefined;  // undecodable url
     }
+
     if (!this._isValid(urlObject, pathname)) {
       return undefined;
     }

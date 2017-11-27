@@ -42,12 +42,20 @@ suite('HtmlImportScanner', () => {
           <script src="foo.js"></script>
           <link rel="stylesheet" href="foo.css"></link>
         </head></html>`;
-    const {features} = await runScannerOnContents(
+    const {features, analyzer, urlLoader} = await runScannerOnContents(
         new HtmlImportScanner(), 'test.html', contents);
     const importFeatures = features as ScannedImport[];
     assert.deepEqual(
         importFeatures.map((imp) => [imp.type, imp.url]),
-        [['html-import', '/aybabtu/polymer.html']]);
+        [['html-import', 'polymer.html']]);
+
+    urlLoader.urlContentsMap.set(
+        analyzer.resolveUrl('aybabtu/polymer.html')!, '');
+    const [import_] = (await analyzer.analyze(['test.html'])).getFeatures({
+      kind: 'html-import'
+    });
+    assert.equal(import_.originalUrl, 'polymer.html');
+    assert.equal(import_.url, 'aybabtu/polymer.html');
   });
 
   test('finds lazy HTML Imports', async () => {

@@ -16,6 +16,7 @@
 
 import * as path from 'path';
 
+import {FileRelativeUrl} from '../index';
 import {Analysis, Document, Warning} from '../model/model';
 import {PackageRelativeUrl, ResolvedUrl} from '../model/url';
 import {Parser} from '../parser/parser';
@@ -101,7 +102,8 @@ export class Analyzer {
       return await previousContext.analyze(uiUrls);
     })();
     const context = await this._analysisComplete;
-    const resolvedUrls = context.resolveUrls(this.brandUserInputUrls(urls));
+    const resolvedUrls =
+        context.resolveUserInputUrls(this.brandUserInputUrls(urls));
     return this._constructAnalysis(context, resolvedUrls);
   }
 
@@ -125,7 +127,8 @@ export class Analyzer {
           (fn) => extensions.has(path.extname(fn).substring(1)));
 
       const newContext = await previousContext.analyze(filesWithParsers);
-      const resolvedFilesWithParsers = newContext.resolveUrls(filesWithParsers);
+      const resolvedFilesWithParsers =
+          newContext.resolveUserInputUrls(filesWithParsers);
       analysis = this._constructAnalysis(newContext, resolvedFilesWithParsers);
       return newContext;
     })();
@@ -223,15 +226,12 @@ export class Analyzer {
    * Resoves `url` to a new location.
    */
   resolveUrl(url: string): ResolvedUrl|undefined {
-    return this.urlResolver.resolve(this.brandUserInputUrl(url));
+    return this.urlResolver.resolve(
+        url as FileRelativeUrl, `` as ResolvedUrl, undefined);
   }
 
-  // Urls from the user are assumed to be package relative.
+  // Urls from the user are assumed to be package relative
   private brandUserInputUrls(urls: string[]): PackageRelativeUrl[] {
     return urls as PackageRelativeUrl[];
-  }
-
-  private brandUserInputUrl(url: string): PackageRelativeUrl {
-    return url as PackageRelativeUrl;
   }
 }

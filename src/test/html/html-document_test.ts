@@ -21,6 +21,7 @@ import * as path from 'path';
 import {Analyzer} from '../../core/analyzer';
 import {ParsedHtmlDocument} from '../../html/html-document';
 import {HtmlParser} from '../../html/html-parser';
+import {PackageUrlResolver} from '../../url-loader/package-url-resolver';
 import {CodeUnderliner, resolvedUrl} from '../test-utils';
 
 suite('ParsedHtmlDocument', () => {
@@ -28,7 +29,8 @@ suite('ParsedHtmlDocument', () => {
   const url = resolvedUrl`./source-ranges/html-complicated.html`;
   const basedir = path.join(__dirname, '../static/');
   const file = fs.readFileSync(path.join(basedir, `${url}`), 'utf8');
-  const document: ParsedHtmlDocument = parser.parse(file, url);
+  const document: ParsedHtmlDocument =
+      parser.parse(file, url, new PackageUrlResolver());
   const analyzer = Analyzer.createForDirectory(basedir);
   const underliner = new CodeUnderliner(analyzer);
 
@@ -110,7 +112,8 @@ suite('ParsedHtmlDocument', () => {
         'works for unclosed tags with attributes and no text content';
     test(testName, async () => {
       const url = resolvedUrl`unclosed-tag-attributes.html`;
-      const document = parser.parse(await analyzer.load(url), url);
+      const document =
+          parser.parse(await analyzer.load(url), url, new PackageUrlResolver());
 
       const tag = dom5.query(document.ast, dom5.predicates.hasTagName('tag'))!;
       assert.deepEqual(

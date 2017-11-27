@@ -14,8 +14,8 @@
 
 import {assert} from 'chai';
 
-import {PackageRelativeUrl, ResolvedUrl} from '../../model/url';
 import {RedirectResolver} from '../../url-loader/redirect-resolver';
+import {fileRelativeUrl, resolvedUrl} from '../test-utils';
 
 
 suite('RedirectResolver', function() {
@@ -23,19 +23,21 @@ suite('RedirectResolver', function() {
     test('if prefix matches, url is rewritten', () => {
       let resolver = new RedirectResolver('proto://site/', 'some/path/');
       assert.equal(
-          resolver.resolve('proto://site/something.html' as PackageRelativeUrl),
-          'some/path/something.html' as ResolvedUrl);
+          resolver.resolve(
+              fileRelativeUrl`proto://site/something.html`, resolvedUrl``),
+          resolvedUrl`some/path/something.html`);
       resolver = new RedirectResolver('/site/', 'some/path/');
       assert.equal(
-          resolver.resolve('/site/something.html' as PackageRelativeUrl),
-          'some/path/something.html' as ResolvedUrl);
+          resolver.resolve(
+              fileRelativeUrl`/site/something.html`, resolvedUrl``),
+          resolvedUrl`some/path/something.html`);
     });
 
     test(`if prefix doesn't match, returns undefined`, () => {
       const resolver = new RedirectResolver('proto://site/', 'some/path/');
       assert.equal(
           resolver.resolve(
-              'protoz://site/something.html' as PackageRelativeUrl),
+              fileRelativeUrl`protoz://site/something.html`, resolvedUrl``),
           undefined);
     });
   });

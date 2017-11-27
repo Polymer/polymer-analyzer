@@ -52,11 +52,9 @@ suite('HtmlScriptScanner', () => {
     const {features} = await runScannerOnContents(
         new HtmlScriptScanner(), 'test-document.html', contents);
 
-    assert.equal(features.length, 1);
-    assert.instanceOf(features[0], ScannedImport);
-    const feature0 = features[0] as ScannedImport;
-    assert.equal(feature0.type, 'html-script');
-    assert.equal(feature0.url, '/aybabtu/foo.js');
+    assert.deepEqual(
+        features.map((f: ScannedImport) => [f.type, f.url]),
+        [['html-script', 'foo.js']]);
   });
 
   suite('modules', () => {

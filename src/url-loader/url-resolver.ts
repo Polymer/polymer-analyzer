@@ -13,8 +13,9 @@
  */
 
 import {posix} from 'path';
+import {resolve as urlLibResolver} from 'url';
 
-import {PackageRelativeUrl} from '../index';
+import {ScannedImport} from '../index';
 import {FileRelativeUrl, ResolvedUrl} from '../model/url';
 
 /**
@@ -31,7 +32,11 @@ export abstract class UrlResolver {
    *
    * Returns `undefined` if the given url cannot be resolved.
    */
-  abstract resolve(url: PackageRelativeUrl): ResolvedUrl|undefined;
+  resolve(
+      url: FileRelativeUrl, baseUrl: ResolvedUrl,
+      _scannedImport: ScannedImport|undefined): ResolvedUrl|undefined {
+    return this.brandAsResolved(urlLibResolver(baseUrl, url));
+  };
 
   relative(from: ResolvedUrl, to: ResolvedUrl, _kind?: string):
       FileRelativeUrl {

@@ -14,21 +14,20 @@
 
 import {assert} from 'chai';
 
-import {PackageRelativeUrl, ResolvedUrl} from '../../index';
+import {FileRelativeUrl} from '../../model/model';
 import {UrlResolver} from '../../url-loader/url-resolver';
+import {resolvedUrl} from '../test-utils';
 
-class SimplestUrlResolver extends UrlResolver {
-  resolve(url: PackageRelativeUrl): ResolvedUrl|undefined {
-    return this.brandAsResolved(url);
-  }
-}
+class SimplestUrlResolver extends UrlResolver {}
 
 suite('UrlResolver', () => {
   suite('relative', () => {
     const resolver = new SimplestUrlResolver();
     function relative(from: string, to: string) {
-      const fromResolved = resolver.resolve(from as PackageRelativeUrl)!;
-      const toResolved = resolver.resolve(to as PackageRelativeUrl)!;
+      const fromResolved =
+          resolver.resolve(from as FileRelativeUrl, resolvedUrl``, undefined)!;
+      const toResolved =
+          resolver.resolve(to as FileRelativeUrl, resolvedUrl``, undefined)!;
       return resolver.relative(fromResolved, toResolved);
     }
 

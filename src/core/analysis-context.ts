@@ -29,7 +29,7 @@ import {JavaScriptParser} from '../javascript/javascript-parser';
 import {NamespaceScanner} from '../javascript/namespace-scanner';
 import {JsonParser} from '../json/json-parser';
 import {Document, InlineDocInfo, LocationOffset, ScannedDocument, ScannedElement, ScannedImport, ScannedInlineDocument, Severity, Warning, WarningCarryingException} from '../model/model';
-import {PackageRelativeUrl, ResolvedUrl} from '../model/url';
+import {FileRelativeUrl, PackageRelativeUrl, ResolvedUrl} from '../model/url';
 import {ParsedDocument, UnparsableParsedDocument} from '../parser/document';
 import {Parser} from '../parser/parser';
 import {BehaviorScanner} from '../polymer/behavior-scanner';
@@ -139,7 +139,7 @@ export class AnalysisContext {
    * Returns a copy of this cache context with proper cache invalidation.
    */
   filesChanged(urls: PackageRelativeUrl[]) {
-    const newCache = this._cache.invalidate(this.resolveUrls(urls));
+    const newCache = this._cache.invalidate(this.resolveUserInputUrls(urls));
     return this._fork(newCache);
   }
 
@@ -147,7 +147,7 @@ export class AnalysisContext {
    * Implements Analyzer#analyze, see its docs.
    */
   async analyze(urls: PackageRelativeUrl[]): Promise<AnalysisContext> {
-    const resolvedUrls = this.resolveUrls(urls);
+    const resolvedUrls = this.resolveUserInputUrls(urls);
 
     // 1. Await current analysis if there is one, so we can check to see if has
     // all of the requested URLs.
@@ -310,7 +310,10 @@ export class AnalysisContext {
                     (e) => e instanceof ScannedImport) as ScannedImport[];
 
             // Update dependency graph
-            const importUrls = this.resolveUrls(imports.map((i) => i.url));
+            const importUrls =
+                imports
+                    .map((i) => this.resolveUrl(i.url, parsedDoc.baseUrl, i)!)
+                    .filter((i) => i !== undefined);
             this._cache.dependencyGraph.addDocument(resolvedUrl, importUrls);
 
             return scannedDocument;
@@ -334,8 +337,11 @@ export class AnalysisContext {
 
           // Scan imports
           for (const scannedImport of imports) {
-            const importUrl = this.resolveUrl(scannedImport.url);
-            if (!importUrl) {
+            const importUrl = this.resolveUrl(
+                scannedImport.url,
+                scannedDocument.document.baseUrl,
+                scannedImport);
+            if (importUrl === undefined) {
               continue;
             }
             // Request a scan of `importUrl` but do not wait for the results to
@@ -469,7 +475,7 @@ export class AnalysisContext {
       throw new NoKnownParserError(`No parser for for file type ${type}`);
     }
     try {
-      return parser.parse(contents, url, inlineInfo);
+      return parser.parse(contents, url, this.resolver, inlineInfo);
     } catch (error) {
       if (error instanceof WarningCarryingException) {
         throw error;
@@ -482,15 +488,22 @@ export class AnalysisContext {
    * Resolves a URL with this Analyzer's `UrlResolver` or returns the given
    * URL if it can not be resolved.
    */
-  resolveUrl(url: PackageRelativeUrl): ResolvedUrl|undefined {
-    return this.resolver.resolve(url);
+  resolveUrl(
+      url: FileRelativeUrl, baseUrl: ResolvedUrl,
+      scannedImport: ScannedImport|undefined): ResolvedUrl|undefined {
+    return this.resolver.resolve(url, baseUrl, scannedImport);
   }
 
   /**
    * Resolves all resolvable URLs in the list, removes unresolvable ones.
    */
-  resolveUrls(urls: PackageRelativeUrl[]): ResolvedUrl[] {
-    return filterOutUndefineds(urls.map((u) => this.resolveUrl(u)));
+  resolveUserInputUrls(urls: PackageRelativeUrl[]): ResolvedUrl[] {
+    return filterOutUndefineds(urls.map((u) => this.resolveUserInputUrl(u)));
+  }
+
+  resolveUserInputUrl(url: PackageRelativeUrl): ResolvedUrl|undefined {
+    return this.resolveUrl(
+        url as any as FileRelativeUrl, '' as ResolvedUrl, undefined);
   }
 }
 
