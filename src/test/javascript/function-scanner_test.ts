@@ -22,6 +22,7 @@ import {FunctionScanner} from '../../javascript/function-scanner';
 import {JavaScriptParser} from '../../javascript/javascript-parser';
 import {ResolvedUrl} from '../../model/url';
 import {FSUrlLoader} from '../../url-loader/fs-url-loader';
+import {PackageUrlResolver} from '../../url-loader/package-url-resolver';
 import {CodeUnderliner} from '../test-utils';
 
 suite('FunctionScanner', () => {
@@ -33,7 +34,8 @@ suite('FunctionScanner', () => {
       Promise<ScannedFunction[]> {
     const file = await urlLoader.load(filename);
     const parser = new JavaScriptParser();
-    const document = parser.parse(file, filename as ResolvedUrl);
+    const document =
+        parser.parse(file, filename as ResolvedUrl, new PackageUrlResolver());
     const scanner = new FunctionScanner();
     const visit = (visitor: Visitor) =>
         Promise.resolve(document.visit([visitor]));

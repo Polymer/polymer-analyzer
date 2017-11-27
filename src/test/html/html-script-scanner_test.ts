@@ -24,6 +24,7 @@ import {Analysis} from '../../model/analysis';
 import {ScannedImport, ScannedInlineDocument} from '../../model/model';
 import {ResolvedUrl} from '../../model/url';
 import {FSUrlLoader} from '../../url-loader/fs-url-loader';
+import {PackageUrlResolver} from '../../url-loader/package-url-resolver';
 
 const fixturesDir = path.resolve(__dirname, '../static');
 suite('HtmlScriptScanner', () => {
@@ -39,8 +40,10 @@ suite('HtmlScriptScanner', () => {
           <script src="foo.js"></script>
           <script>console.log('hi')</script>
         </head></html>`;
-      const document =
-          new HtmlParser().parse(contents, 'test-document.html' as ResolvedUrl);
+      const document = new HtmlParser().parse(
+          contents,
+          'test-document.html' as ResolvedUrl,
+          new PackageUrlResolver());
       const visit = async (visitor: HtmlVisitor) => document.visit([visitor]);
 
       const {features} = await scanner.scan(document, visit);
@@ -60,8 +63,10 @@ suite('HtmlScriptScanner', () => {
       const contents = `<html><head><base href="/aybabtu/">
           <script src="foo.js"></script>
         </head></html>`;
-      const document =
-          new HtmlParser().parse(contents, 'test-document.html' as ResolvedUrl);
+      const document = new HtmlParser().parse(
+          contents,
+          'test-document.html' as ResolvedUrl,
+          new PackageUrlResolver());
       const visit = async (visitor: HtmlVisitor) => document.visit([visitor]);
 
       const {features} = await scanner.scan(document, visit);
@@ -69,7 +74,7 @@ suite('HtmlScriptScanner', () => {
       assert.instanceOf(features[0], ScannedImport);
       const feature0 = features[0] as ScannedImport;
       assert.equal(feature0.type, 'html-script');
-      assert.equal(feature0.url, '/aybabtu/foo.js');
+      assert.equal(feature0.url, 'foo.js');
     });
 
     suite('modules', () => {

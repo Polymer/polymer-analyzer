@@ -19,6 +19,7 @@ import {HtmlParser} from '../../html/html-parser';
 import {JavaScriptParser} from '../../javascript/javascript-parser';
 import {ResolvedUrl} from '../../model/url';
 import {AttributeDatabindingExpression, parseExpressionInJsStringLiteral, scanDocumentForExpressions, TextNodeDatabindingExpression} from '../../polymer/expression-scanner';
+import {PackageUrlResolver} from '../../url-loader/package-url-resolver';
 import {CodeUnderliner} from '../test-utils';
 
 suite('ExpressionScanner', () => {
@@ -51,8 +52,8 @@ suite('ExpressionScanner', () => {
         </template>
       `;
       const underliner = CodeUnderliner.withMapping('test.html', contents);
-      const document =
-          new HtmlParser().parse(contents, 'test.html' as ResolvedUrl);
+      const document = new HtmlParser().parse(
+          contents, 'test.html' as ResolvedUrl, new PackageUrlResolver());
 
       const results = await scanDocumentForExpressions(document);
       const generalExpressions = results.expressions;
@@ -117,8 +118,8 @@ suite('ExpressionScanner', () => {
 
       `;
       const underliner = CodeUnderliner.withMapping('test.html', contents);
-      const document =
-          new HtmlParser().parse(contents, 'test.html' as ResolvedUrl);
+      const document = new HtmlParser().parse(
+          contents, 'test.html' as ResolvedUrl, new PackageUrlResolver());
 
       const results = await scanDocumentForExpressions(document);
       const generalExpressions = results.expressions;
@@ -186,8 +187,8 @@ suite('ExpressionScanner', () => {
       `;
 
       const underliner = CodeUnderliner.withMapping('test.html', contents);
-      const document =
-          new HtmlParser().parse(contents, 'test.html' as ResolvedUrl);
+      const document = new HtmlParser().parse(
+          contents, 'test.html' as ResolvedUrl, new PackageUrlResolver());
 
       const results = await scanDocumentForExpressions(document);
       const generalExpressions = results.expressions;
@@ -263,8 +264,8 @@ suite('ExpressionScanner', () => {
       `;
 
       const underliner = CodeUnderliner.withMapping('test.html', contents);
-      const document =
-          new HtmlParser().parse(contents, 'test.html' as ResolvedUrl);
+      const document = new HtmlParser().parse(
+          contents, 'test.html' as ResolvedUrl, new PackageUrlResolver());
 
       const results = await scanDocumentForExpressions(document);
       assert.deepEqual(
@@ -305,8 +306,8 @@ suite('ExpressionScanner', () => {
         ];
       `;
       const underliner = CodeUnderliner.withMapping('test.js', contents);
-      const javascriptDocument =
-          new JavaScriptParser().parse(contents, 'test.js' as ResolvedUrl);
+      const javascriptDocument = new JavaScriptParser().parse(
+          contents, 'test.js' as ResolvedUrl, new PackageUrlResolver());
       const literals: babel.Literal[] =
           (javascriptDocument.ast as any)
               .body[0]['declarations'][0]['init']['elements'];

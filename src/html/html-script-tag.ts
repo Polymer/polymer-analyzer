@@ -13,6 +13,7 @@
  */
 
 import {Document, Import, ScannedImport, Severity, Warning} from '../model/model';
+import {FileRelativeUrl} from '../model/url';
 
 /**
  * <script> tags are represented in two different ways: as inline documents,
@@ -49,7 +50,7 @@ export class ScannedScriptTagImport extends ScannedImport {
     // See https://github.com/Polymer/polymer-analyzer/issues/615
 
     const scannedDocument = document._analysisContext._getScannedDocument(
-        document._analysisContext.resolveUrl(this.url));
+        document._analysisContext.resolveUrlFromFile(this.url, document.url));
     if (scannedDocument) {
       const importedDocument =
           new Document(scannedDocument, document._analysisContext);
@@ -64,6 +65,7 @@ export class ScannedScriptTagImport extends ScannedImport {
       // to the JavaScript document.
       const backReference = new ScriptTagBackReferenceImport(
           document.url,
+          'fake url' as FileRelativeUrl,
           'html-script-back-reference',
           document,
           this.sourceRange,
@@ -75,7 +77,8 @@ export class ScannedScriptTagImport extends ScannedImport {
       importedDocument.resolve();
 
       return new ScriptTagImport(
-          document._analysisContext.resolveUrl(this.url),
+          document._analysisContext.resolveUrlFromFile(this.url, document.url),
+          this.url,
           this.type,
           importedDocument,
           this.sourceRange,

@@ -18,6 +18,7 @@ import {ResolvedUrl} from '../../model/url';
 import {Visitor} from '../../typescript/typescript-document';
 import {TypeScriptImportScanner} from '../../typescript/typescript-import-scanner';
 import {TypeScriptPreparser} from '../../typescript/typescript-preparser';
+import {PackageUrlResolver} from '../../url-loader/package-url-resolver';
 
 suite('TypeScriptImportScanner', () => {
   suite('scan()', () => {
@@ -30,7 +31,8 @@ suite('TypeScriptImportScanner', () => {
     test('finds no imports', async () => {
       const source = ``;
       const parser = new TypeScriptPreparser();
-      const document = parser.parse(source, 'test.ts' as ResolvedUrl);
+      const document = parser.parse(
+          source, 'test.ts' as ResolvedUrl, new PackageUrlResolver());
       const visit = async (visitor: Visitor) => document.visit([visitor]);
       const {features} = await scanner.scan(document, visit);
       assert.equal(features.length, 0);
@@ -43,11 +45,12 @@ suite('TypeScriptImportScanner', () => {
         import * as z from '../z.ts';
       `;
       const parser = new TypeScriptPreparser();
-      const document = parser.parse(source, 'test.ts' as ResolvedUrl);
+      const document = parser.parse(
+          source, 'test.ts' as ResolvedUrl, new PackageUrlResolver());
       const visit = async (visitor: Visitor) => document.visit([visitor]);
       const {features} = await scanner.scan(document, visit);
       assert.deepEqual(features.map((f) => [f.type, f.url]), [
-        ['js-import', 'x.ts'],
+        ['js-import', './x.ts'],
         ['js-import', '/y.ts'],
         ['js-import', '../z.ts'],
       ]);

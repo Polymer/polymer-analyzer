@@ -22,6 +22,7 @@ import {JavaScriptParser} from '../../javascript/javascript-parser';
 import {ResolvedUrl} from '../../model/url';
 import {ScannedPolymerElement} from '../../polymer/polymer-element';
 import {FSUrlLoader} from '../../url-loader/fs-url-loader';
+import {PackageUrlResolver} from '../../url-loader/package-url-resolver';
 import {CodeUnderliner} from '../test-utils';
 
 chaiUse(require('chai-subset'));
@@ -35,7 +36,8 @@ suite('Polymer2ElementScanner with old jsdoc annotations', () => {
       Promise<ScannedPolymerElement[]> {
     const file = await urlLoader.load(filename);
     const parser = new JavaScriptParser();
-    const document = parser.parse(file, filename as ResolvedUrl);
+    const document =
+        parser.parse(file, filename as ResolvedUrl, new PackageUrlResolver());
     const scanner = new ClassScanner();
     const visit = (visitor: Visitor) =>
         Promise.resolve(document.visit([visitor]));
@@ -412,15 +414,13 @@ namespaced name.`,
               {
                 name: 'customInstanceFunction',
                 description: '',
-                params: [],
-                return: undefined
+                params: [], return: undefined
               },
               {
                 name: 'customInstanceFunctionWithJSDoc',
                 description: 'This is the description for ' +
                     'customInstanceFunctionWithJSDoc.',
-                params: [],
-                return: {
+                params: [], return: {
                   desc: 'The number 5, always.',
                   type: 'Number',
                 },
@@ -489,8 +489,7 @@ namespaced name.`,
                 name: 'customInstanceFunctionWithParamsAndPrivateJSDoc',
                 description: 'This is the description for\n' +
                     'customInstanceFunctionWithParamsAndPrivateJSDoc.',
-                params: [],
-                return: undefined,
+                params: [], return: undefined,
               },
             ],
             warningUnderlines: [],

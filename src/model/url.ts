@@ -34,7 +34,7 @@ export type FileRelativeUrl = string&FileRelativeUrlBrand;
  *
  * This is the assumed format of user input to Analyzer methods.
  *
- * Use ScannedImport.resolveUrl to transform a FileRelativeUrl to a
+ * Use UrlResolver#resolveFileUrl to transform a FileRelativeUrl to a
  * PackageRelativeUrl.
  */
 export type PackageRelativeUrl = string&PackageRelativeUrlBrand;

@@ -23,6 +23,7 @@ import {JavaScriptParser} from '../../javascript/javascript-parser';
 import {Class, Element, ElementMixin, Method, ScannedClass} from '../../model/model';
 import {ResolvedUrl} from '../../model/url';
 import {FSUrlLoader} from '../../url-loader/fs-url-loader';
+import {PackageUrlResolver} from '../../url-loader/package-url-resolver';
 import {CodeUnderliner} from '../test-utils';
 
 const fixturesDir = path.resolve(__dirname, '../static');
@@ -34,7 +35,8 @@ suite('Class', () => {
   async function getScannedFeatures(filename: string) {
     const file = await urlLoader.load(filename);
     const parser = new JavaScriptParser();
-    const document = parser.parse(file, filename as ResolvedUrl);
+    const document =
+        parser.parse(file, filename as ResolvedUrl, new PackageUrlResolver());
     const scanner = new ClassScanner();
     const visit = (visitor: Visitor) =>
         Promise.resolve(document.visit([visitor]));

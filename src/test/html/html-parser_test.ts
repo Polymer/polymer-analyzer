@@ -18,6 +18,7 @@ import * as path from 'path';
 
 import {HtmlParser} from '../../html/html-parser';
 import {ResolvedUrl} from '../../model/url';
+import {PackageUrlResolver} from '../../url-loader/package-url-resolver';
 
 suite('HtmlParser', () => {
   suite('parse()', () => {
@@ -32,14 +33,18 @@ suite('HtmlParser', () => {
           path.resolve(__dirname, '../static/html-parse-target.html'), 'utf8');
 
       test('parses a well-formed document', () => {
-        const document =
-            parser.parse(file, '/static/html-parse-target.html' as ResolvedUrl);
+        const document = parser.parse(
+            file,
+            '/static/html-parse-target.html' as ResolvedUrl,
+            new PackageUrlResolver());
         assert.equal(document.url, '/static/html-parse-target.html');
       });
 
       test('can stringify back a well-formed document', () => {
-        const document =
-            parser.parse(file, '/static/html-parse-target.html' as ResolvedUrl);
+        const document = parser.parse(
+            file,
+            '/static/html-parse-target.html' as ResolvedUrl,
+            new PackageUrlResolver());
         assert.deepEqual(document.stringify(), file);
       });
     });
@@ -49,9 +54,11 @@ suite('HtmlParser', () => {
           path.resolve(__dirname, '../static/base-href/doc-with-base.html'),
           'utf8');
       const document = parser.parse(
-          file, '/static/base-href/doc-with-base.html' as ResolvedUrl);
+          file,
+          '/static/base-href/doc-with-base.html' as ResolvedUrl,
+          new PackageUrlResolver());
       assert.equal(document.url, '/static/base-href/doc-with-base.html');
-      assert.equal(document.baseUrl, '/static/');
+      assert.equal(document.baseUrl, 'static/');
     });
   });
 });

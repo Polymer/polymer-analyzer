@@ -23,6 +23,7 @@ import {JavaScriptParser} from '../../javascript/javascript-parser';
 import {ResolvedUrl} from '../../model/url';
 import {ScannedBehavior, ScannedBehaviorAssignment} from '../../polymer/behavior';
 import {BehaviorScanner} from '../../polymer/behavior-scanner';
+import {PackageUrlResolver} from '../../url-loader/package-url-resolver';
 
 suite('BehaviorScanner', () => {
   let document: JavaScriptDocument;
@@ -33,7 +34,10 @@ suite('BehaviorScanner', () => {
     const parser = new JavaScriptParser();
     const file = fs.readFileSync(
         path.resolve(__dirname, '../static/js-behaviors.js'), 'utf8');
-    document = parser.parse(file, '/static/js-behaviors.js' as ResolvedUrl);
+    document = parser.parse(
+        file,
+        '/static/js-behaviors.js' as ResolvedUrl,
+        new PackageUrlResolver());
     const scanner = new BehaviorScanner();
     const visit = (visitor: Visitor) =>
         Promise.resolve(document.visit([visitor]));

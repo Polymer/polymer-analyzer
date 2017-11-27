@@ -29,7 +29,7 @@ import {JavaScriptParser} from '../javascript/javascript-parser';
 import {NamespaceScanner} from '../javascript/namespace-scanner';
 import {JsonParser} from '../json/json-parser';
 import {Document, InlineDocInfo, LocationOffset, ScannedDocument, ScannedElement, ScannedImport, ScannedInlineDocument, Severity, Warning, WarningCarryingException} from '../model/model';
-import {PackageRelativeUrl, ResolvedUrl} from '../model/url';
+import {FileRelativeUrl, PackageRelativeUrl, ResolvedUrl} from '../model/url';
 import {ParsedDocument} from '../parser/document';
 import {Parser} from '../parser/parser';
 import {BehaviorScanner} from '../polymer/behavior-scanner';
@@ -320,7 +320,8 @@ export class AnalysisContext {
                     (e) => e instanceof ScannedImport) as ScannedImport[];
 
             // Update dependency graph
-            const importUrls = imports.map((i) => this.resolveUrl(i.url));
+            const importUrls = imports.map(
+                (i) => this.resolveUrlFromFile(i.url, parsedDoc.baseUrl));
             this._cache.dependencyGraph.addDocument(resolvedUrl, importUrls);
 
             return scannedDocument;
@@ -344,7 +345,8 @@ export class AnalysisContext {
 
           // Scan imports
           for (const scannedImport of imports) {
-            const importUrl = this.resolveUrl(scannedImport.url);
+            const importUrl = this.resolveUrlFromFile(
+                scannedImport.url, scannedDocument.document.baseUrl);
             // Request a scan of `importUrl` but do not wait for the results to
             // avoid deadlock in the case of cycles. Later we use the
             // DependencyGraph to wait for all transitive dependencies to load.
@@ -474,7 +476,7 @@ export class AnalysisContext {
       throw new NoKnownParserError(`No parser for for file type ${type}`);
     }
     try {
-      return parser.parse(contents, url, inlineInfo);
+      return parser.parse(contents, url, this.resolver, inlineInfo);
     } catch (error) {
       if (error instanceof WarningCarryingException) {
         throw error;
@@ -486,7 +488,7 @@ export class AnalysisContext {
   /**
    * Returns true if the url given is resovable by the Analyzer's `UrlResolver`.
    */
-  canResolveUrl(url: PackageRelativeUrl): boolean {
+  canResolveUrl(url: PackageRelativeUrl|FileRelativeUrl): boolean {
     return this.resolver.canResolve(url);
   }
 
@@ -497,5 +499,11 @@ export class AnalysisContext {
   resolveUrl(url: PackageRelativeUrl): ResolvedUrl {
     return this.resolver.canResolve(url) ? this.resolver.resolve(url) :
                                            (url as any as ResolvedUrl);
+  }
+
+  resolveUrlFromFile(url: FileRelativeUrl, baseUrl: ResolvedUrl): ResolvedUrl {
+    return this.resolver.canResolve(url) ?
+        this.resolver.resolveFileUrl(url, baseUrl) :
+        (url as any as ResolvedUrl);
   }
 }

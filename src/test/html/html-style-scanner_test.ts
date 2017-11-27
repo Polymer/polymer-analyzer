@@ -19,6 +19,7 @@ import {HtmlParser} from '../../html/html-parser';
 import {HtmlStyleScanner} from '../../html/html-style-scanner';
 import {ScannedImport, ScannedInlineDocument} from '../../model/model';
 import {ResolvedUrl} from '../../model/url';
+import {PackageUrlResolver} from '../../url-loader/package-url-resolver';
 
 suite('HtmlStyleScanner', () => {
   suite('scan()', () => {
@@ -33,8 +34,10 @@ suite('HtmlStyleScanner', () => {
           <link rel="stylesheet" type="text/css" href="foo.css">
           <style>h1 { color: green; }</style>
         </head></html>`;
-      const document =
-          new HtmlParser().parse(contents, 'test-document.html' as ResolvedUrl);
+      const document = new HtmlParser().parse(
+          contents,
+          'test-document.html' as ResolvedUrl,
+          new PackageUrlResolver());
       const visit = async (visitor: HtmlVisitor) => document.visit([visitor]);
 
       const {features} = await scanner.scan(document, visit);
@@ -54,8 +57,10 @@ suite('HtmlStyleScanner', () => {
       const contents = `<html><head><base href="/aybabtu/">
           <link rel="stylesheet" type="text/css" href="foo.css">
         </head></html>`;
-      const document =
-          new HtmlParser().parse(contents, 'test-document.html' as ResolvedUrl);
+      const document = new HtmlParser().parse(
+          contents,
+          'test-document.html' as ResolvedUrl,
+          new PackageUrlResolver());
       const visit = async (visitor: HtmlVisitor) => document.visit([visitor]);
 
       const {features} = await scanner.scan(document, visit);
@@ -63,7 +68,7 @@ suite('HtmlStyleScanner', () => {
       assert.instanceOf(features[0], ScannedImport);
       const feature0 = <ScannedImport>features[0];
       assert.equal(feature0.type, 'html-style');
-      assert.equal(feature0.url, '/aybabtu/foo.css');
+      assert.equal(feature0.url, 'foo.css');
     });
   });
 });
