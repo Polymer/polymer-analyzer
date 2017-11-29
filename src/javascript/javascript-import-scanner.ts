@@ -28,10 +28,11 @@ export class JavaScriptImportScanner implements JavaScriptScanner {
     const imports: ScannedImport[] = [];
 
     await visit({
-      // TODO(usergenic): There's no babel.Import type right now, so we'll use
-      // generic Node here until there is; please change to use babel.Import
-      // once it is a thing.
       enterCallExpression(node: babel.CallExpression, _: babel.Node) {
+        // TODO(usergenic): There's no babel.Import type or babel.isImport()
+        // function right now, we have to just check the type property
+        // here until there is; please change to use babel.isImport(node.callee)
+        // once it is a thing.
         if (node.callee.type as string !== 'Import') {
           return;
         }
