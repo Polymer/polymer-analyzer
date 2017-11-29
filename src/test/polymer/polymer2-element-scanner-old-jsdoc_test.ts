@@ -19,6 +19,7 @@ import * as path from 'path';
 import {ClassScanner} from '../../javascript/class-scanner';
 import {Visitor} from '../../javascript/estree-visitor';
 import {JavaScriptParser} from '../../javascript/javascript-parser';
+import {ResolvedUrl} from '../../model/url';
 import {ScannedPolymerElement} from '../../polymer/polymer-element';
 import {FSUrlLoader} from '../../url-loader/fs-url-loader';
 import {CodeUnderliner} from '../test-utils';
@@ -34,7 +35,7 @@ suite('Polymer2ElementScanner with old jsdoc annotations', () => {
       filename: string): Promise<ScannedPolymerElement[]> {
     const file = await urlLoader.load(filename);
     const parser = new JavaScriptParser();
-    const document = parser.parse(file, filename);
+    const document = parser.parse(file, filename as ResolvedUrl);
     const scanner = new ClassScanner();
     const visit = (visitor: Visitor) =>
         Promise.resolve(document.visit([visitor]));
@@ -113,7 +114,7 @@ suite('Polymer2ElementScanner with old jsdoc annotations', () => {
         properties: [{
           name: 'foo',
           description: 'The foo prop.',
-          type: '(m-test|function)',
+          type: '(m-test | function)',
         }],
         attributes: [{
           name: 'foo',
@@ -415,13 +416,15 @@ namespaced name.`,
               {
                 name: 'customInstanceFunction',
                 description: '',
-                params: [], return: undefined
+                params: [],
+                return: undefined
               },
               {
                 name: 'customInstanceFunctionWithJSDoc',
                 description: 'This is the description for ' +
                     'customInstanceFunctionWithJSDoc.',
-                params: [], return: {
+                params: [],
+                return: {
                   desc: 'The number 5, always.',
                   type: 'Number',
                 },
@@ -430,9 +433,27 @@ namespaced name.`,
                 name: 'customInstanceFunctionWithParams',
                 description: '',
                 params: [
-                  {name: 'a', type: undefined, description: undefined},
-                  {name: 'b', type: undefined, description: undefined},
-                  {name: 'c', type: undefined, description: undefined}
+                  {
+                    name: 'a',
+                    type: undefined,
+                    defaultValue: undefined,
+                    rest: undefined,
+                    description: undefined
+                  },
+                  {
+                    name: 'b',
+                    type: undefined,
+                    defaultValue: undefined,
+                    rest: undefined,
+                    description: undefined
+                  },
+                  {
+                    name: 'c',
+                    type: undefined,
+                    defaultValue: undefined,
+                    rest: undefined,
+                    description: undefined
+                  }
                 ],
                 return: undefined,
               },
@@ -444,12 +465,22 @@ namespaced name.`,
                   {
                     name: 'a',
                     type: 'Number',
+                    defaultValue: undefined,
+                    rest: undefined,
                     description: 'The first argument',
                   },
-                  {name: 'b', type: 'Number', description: undefined},
+                  {
+                    name: 'b',
+                    type: 'Number',
+                    defaultValue: undefined,
+                    rest: undefined,
+                    description: undefined
+                  },
                   {
                     name: 'c',
                     type: 'Number',
+                    defaultValue: undefined,
+                    rest: undefined,
                     description: 'The third argument',
                   }
                 ],
@@ -462,7 +493,8 @@ namespaced name.`,
                 name: 'customInstanceFunctionWithParamsAndPrivateJSDoc',
                 description: 'This is the description for\n' +
                     'customInstanceFunctionWithParamsAndPrivateJSDoc.',
-                params: [], return: undefined,
+                params: [],
+                return: undefined,
               },
             ],
             warningUnderlines: [],

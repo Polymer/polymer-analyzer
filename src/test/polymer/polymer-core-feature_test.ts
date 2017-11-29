@@ -18,12 +18,13 @@ import * as path from 'path';
 import {Analyzer} from '../../core/analyzer';
 import {Visitor} from '../../javascript/estree-visitor';
 import {JavaScriptParser} from '../../javascript/javascript-parser';
+import {ResolvedUrl} from '../../model/url';
 import {PolymerCoreFeatureScanner} from '../../polymer/polymer-core-feature-scanner';
 import {FSUrlLoader} from '../../url-loader/fs-url-loader';
 
 suite('PolymerCoreFeatureScanner', () => {
 
-  test('scans _addFeature calls and the Polymer.Base assignment', async() => {
+  test('scans _addFeature calls and the Polymer.Base assignment', async () => {
     const js = `
       /** Feature A */
       Polymer.Base._addFeature({
@@ -35,7 +36,8 @@ suite('PolymerCoreFeatureScanner', () => {
 
       /** Feature B */
       Polymer.Base._addFeature({
-        methodB: function() {}
+        methodB: function() {},
+        methodB2() {}
       });
 
       /** Polymer.Base declaration */
@@ -54,7 +56,7 @@ suite('PolymerCoreFeatureScanner', () => {
 
     const parser = new JavaScriptParser();
     const scanner = new PolymerCoreFeatureScanner();
-    const doc = parser.parse(js, 'features.js');
+    const doc = parser.parse(js, 'features.js' as ResolvedUrl);
     const visit = (visitor: Visitor) => Promise.resolve(doc.visit([visitor]));
     const {features} = await scanner.scan(doc, visit);
 
@@ -86,11 +88,18 @@ suite('PolymerCoreFeatureScanner', () => {
     assert.deepEqual(
         [...b.methods.values()].map(
             ({name, type, description}) => ({name, type, description})),
-        [{
-          name: 'methodB',
-          type: 'Function',
-          description: '',
-        }]);
+        [
+          {
+            name: 'methodB',
+            type: 'Function',
+            description: '',
+          },
+          {
+            name: 'methodB2',
+            type: 'Function',
+            description: '',
+          }
+        ]);
 
     assert.equal(base.description, 'Polymer.Base declaration');
     assert.deepEqual(base.warnings, []);
@@ -107,7 +116,7 @@ suite('PolymerCoreFeatureScanner', () => {
     assert.lengthOf(invalid.warnings, 1);
   });
 
-  test('resolves the Polymer.Base class', async() => {
+  test('resolves the Polymer.Base class', async () => {
     const analyzer = new Analyzer({
       urlLoader: new FSUrlLoader(
           // This directory contains files copied from Polymer 1.x core.

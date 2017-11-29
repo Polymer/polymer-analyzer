@@ -21,6 +21,7 @@ import {ClassScanner} from '../../javascript/class-scanner';
 import {Visitor} from '../../javascript/estree-visitor';
 import {JavaScriptParser} from '../../javascript/javascript-parser';
 import {Class, Element, ElementMixin, Method, ScannedClass} from '../../model/model';
+import {ResolvedUrl} from '../../model/url';
 import {FSUrlLoader} from '../../url-loader/fs-url-loader';
 import {CodeUnderliner} from '../test-utils';
 
@@ -33,7 +34,7 @@ suite('Class', () => {
   async function getScannedFeatures(filename: string) {
     const file = await urlLoader.load(filename);
     const parser = new JavaScriptParser();
-    const document = parser.parse(file, filename);
+    const document = parser.parse(file, filename as ResolvedUrl);
     const scanner = new ClassScanner();
     const visit = (visitor: Visitor) =>
         Promise.resolve(document.visit([visitor]));
@@ -59,7 +60,7 @@ suite('Class', () => {
       privacy: string,
       properties?: any[],
       methods?: any[],
-      warnings?: string[],
+      warnings?: ReadonlyArray<string>,
       mixins?: any[],
       superClass?: string,
     };
@@ -86,6 +87,12 @@ suite('Class', () => {
             }
             if (p.type != null) {
               param.type = p.type;
+            }
+            if (p.defaultValue != null) {
+              param.defaultValue = p.defaultValue;
+            }
+            if (p.rest != null) {
+              param.rest = p.rest;
             }
             return param;
           });
@@ -216,6 +223,50 @@ suite('Class', () => {
               name: 'customInstanceFunctionWithParamsAndPrivateJSDoc',
               description: 'This is the description for\n' +
                   'customInstanceFunctionWithParamsAndPrivateJSDoc.',
+            },
+            {
+              name: 'customInstanceFunctionWithRestParam',
+              description: 'This is the description for ' +
+                  'customInstanceFunctionWithRestParam.',
+              params: [
+                {
+                  name: 'a',
+                  type: 'Number',
+                  description: 'The first argument.',
+                },
+                {
+                  name: 'b',
+                  type: '...Number',
+                  rest: true,
+                  description: 'The second argument.',
+                }
+              ],
+              return: {
+                desc: 'The number 9, always.',
+                type: 'Number',
+              },
+            },
+            {
+              name: 'customInstanceFunctionWithParamDefault',
+              description: 'This is the description for ' +
+                  'customInstanceFunctionWithParamDefault.',
+              params: [
+                {
+                  name: 'a',
+                  type: 'Number',
+                  description: 'The first argument.',
+                },
+                {
+                  name: 'b',
+                  type: 'Number',
+                  defaultValue: '0',
+                  description: 'The second argument.',
+                }
+              ],
+              return: {
+                desc: 'The number 10, always.',
+                type: 'Number',
+              },
             },
           ]
         },
@@ -386,6 +437,50 @@ suite('Class', () => {
               name: 'customInstanceFunctionWithParamsAndPrivateJSDoc',
               description: 'This is the description for\n' +
                   'customInstanceFunctionWithParamsAndPrivateJSDoc.',
+            },
+            {
+              name: 'customInstanceFunctionWithRestParam',
+              description: 'This is the description for ' +
+                  'customInstanceFunctionWithRestParam.',
+              params: [
+                {
+                  name: 'a',
+                  type: 'Number',
+                  description: 'The first argument.',
+                },
+                {
+                  name: 'b',
+                  type: '...Number',
+                  rest: true,
+                  description: 'The second argument.',
+                }
+              ],
+              return: {
+                desc: 'The number 9, always.',
+                type: 'Number',
+              },
+            },
+            {
+              name: 'customInstanceFunctionWithParamDefault',
+              description: 'This is the description for ' +
+                  'customInstanceFunctionWithParamDefault.',
+              params: [
+                {
+                  name: 'a',
+                  type: 'Number',
+                  description: 'The first argument.',
+                },
+                {
+                  name: 'b',
+                  type: 'Number',
+                  defaultValue: '0',
+                  description: 'The second argument.',
+                }
+              ],
+              return: {
+                desc: 'The number 10, always.',
+                type: 'Number',
+              },
             },
           ]
         },
