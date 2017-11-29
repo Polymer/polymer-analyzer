@@ -47,7 +47,8 @@ suite('JavaScriptImportScanner', () => {
     const file = fs.readFileSync(
         path.resolve(__dirname, '../static/javascript/dynamic-import.js'),
         'utf8');
-    const document = parser.parse(file, '/static/javascript/dynamic-import.js');
+    const document = parser.parse(
+        file, '/static/javascript/dynamic-import.js' as ResolvedUrl);
 
     const visit = (visitor: Visitor) =>
         Promise.resolve(document.visit([visitor]));
