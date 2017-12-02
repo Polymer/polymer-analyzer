@@ -11,8 +11,10 @@
  * subject to an additional IP rights grant found at
  * http://polymer.github.io/PATENTS.txt
  */
+import {resolve as urlLibResolver} from 'url';
 
-import {PackageRelativeUrl, ResolvedUrl} from '../model/url';
+import {ScannedImport} from '../index';
+import {FileRelativeUrl, PackageRelativeUrl, ResolvedUrl} from '../model/url';
 
 /**
  * Resolves the given URL to the concrete URL that a resource can
@@ -26,12 +28,20 @@ export abstract class UrlResolver {
   /**
    * Returns `true` if this resolver can resolve the given `url`.
    */
-  abstract canResolve(url: PackageRelativeUrl): boolean;
+  abstract canResolve(url: PackageRelativeUrl|FileRelativeUrl): boolean;
 
   /**
    * Resoves `url` to a new location.
    */
   abstract resolve(url: PackageRelativeUrl): ResolvedUrl;
+
+  resolveFileUrl(
+      url: FileRelativeUrl, baseUrl: ResolvedUrl,
+      _scannedImport: ScannedImport|undefined): ResolvedUrl {
+    const packageRelativeUrl =
+        urlLibResolver(baseUrl, url) as PackageRelativeUrl;
+    return this.resolve(packageRelativeUrl);
+  }
 
   protected brandAsResolved(url: string): ResolvedUrl {
     return url as ResolvedUrl;

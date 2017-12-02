@@ -21,6 +21,7 @@ import {Visitor} from '../../javascript/estree-visitor';
 import {JavaScriptImportScanner} from '../../javascript/javascript-import-scanner';
 import {JavaScriptParser} from '../../javascript/javascript-parser';
 import {ResolvedUrl} from '../../model/url';
+import {PackageUrlResolver} from '../../url-loader/package-url-resolver';
 
 suite('JavaScriptImportScanner', () => {
   const parser = new JavaScriptParser();
@@ -29,8 +30,10 @@ suite('JavaScriptImportScanner', () => {
   test('finds imports', async () => {
     const file = fs.readFileSync(
         path.resolve(__dirname, '../static/javascript/module.js'), 'utf8');
-    const document =
-        parser.parse(file, '/static/javascript/module.js' as ResolvedUrl);
+    const document = parser.parse(
+        file,
+        '/static/javascript/module.js' as ResolvedUrl,
+        new PackageUrlResolver());
 
     const visit = (visitor: Visitor) =>
         Promise.resolve(document.visit([visitor]));
@@ -39,7 +42,7 @@ suite('JavaScriptImportScanner', () => {
     assert.containSubset(features, [
       {
         type: 'js-import',
-        url: '/static/javascript/submodule.js',
+        url: './submodule.js',
         lazy: false,
       },
     ]);
@@ -50,7 +53,9 @@ suite('JavaScriptImportScanner', () => {
         path.resolve(__dirname, '../static/javascript/dynamic-import.js'),
         'utf8');
     const document = parser.parse(
-        file, '/static/javascript/dynamic-import.js' as ResolvedUrl);
+        file,
+        '/static/javascript/dynamic-import.js' as ResolvedUrl,
+        new PackageUrlResolver());
 
     const visit = (visitor: Visitor) =>
         Promise.resolve(document.visit([visitor]));
@@ -59,7 +64,7 @@ suite('JavaScriptImportScanner', () => {
     assert.containSubset(features, [
       {
         type: 'js-import',
-        url: '/static/javascript/submodule.js',
+        url: './submodule.js',
         lazy: true,
       },
     ]);
@@ -71,7 +76,9 @@ suite('JavaScriptImportScanner', () => {
             __dirname, '../static/javascript/module-with-named-import.js'),
         'utf8');
     const document = parser.parse(
-        file, '/static/javascript/module-with-named-import.js' as ResolvedUrl);
+        file,
+        '/static/javascript/module-with-named-import.js' as ResolvedUrl,
+        new PackageUrlResolver());
 
     const visit = (visitor: Visitor) =>
         Promise.resolve(document.visit([visitor]));

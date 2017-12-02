@@ -37,6 +37,7 @@ import chaiAsPromised = require('chai-as-promised');
 import chaiSubset = require('chai-subset');
 import stripIndent = require('strip-indent');
 import {ResolvedUrl} from '../../model/url';
+import {PackageUrlResolver} from '../../url-loader/package-url-resolver';
 
 use(chaiSubset);
 use(chaiAsPromised);
@@ -558,8 +559,8 @@ suite('Analyzer', () => {
           <script src="foo.js"></script>
           <link rel="stylesheet" href="foo.css"></link>
         </head></html>`;
-      const document =
-          new HtmlParser().parse(contents, 'test.html' as ResolvedUrl);
+      const document = new HtmlParser().parse(
+          contents, 'test.html' as ResolvedUrl, new PackageUrlResolver());
       const context = await getContext(analyzer);
       const features =
           ((await context['_getScannedFeatures'](document)).features as
@@ -581,8 +582,8 @@ suite('Analyzer', () => {
             <link rel="import" type="css" href="bar.css">
           </dom-module>
         </body></html>`;
-      const document =
-          new HtmlParser().parse(contents, 'test.html' as ResolvedUrl);
+      const document = new HtmlParser().parse(
+          contents, 'test.html' as ResolvedUrl, new PackageUrlResolver());
       const context = await getContext(analyzer);
       const features =
           (await context['_getScannedFeatures'](document))
@@ -600,7 +601,7 @@ suite('Analyzer', () => {
         </head></html>`;
       const context = await getContext(analyzer);
       const document =
-          new HtmlParser().parse(contents, 'test.html' as ResolvedUrl);
+          new HtmlParser().parse(contents, 'test.html' as ResolvedUrl,  new PackageUrlResolver());
       const features =
           ((await context['_getScannedFeatures'](document)).features) as
           ScannedInlineDocument[];

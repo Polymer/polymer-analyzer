@@ -14,10 +14,13 @@
 
 import {assert} from 'chai';
 
+import {Analyzer} from '../../core/analyzer';
 import {HtmlVisitor} from '../../html/html-document';
 import {HtmlImportScanner} from '../../html/html-import-scanner';
 import {HtmlParser} from '../../html/html-parser';
 import {PackageRelativeUrl, ResolvedUrl} from '../../model/url';
+import {InMemoryOverlayUrlLoader} from '../../url-loader/overlay-loader';
+import {PackageUrlResolver} from '../../url-loader/package-url-resolver';
 
 suite('HtmlImportScanner', () => {
   suite('scan()', () => {
@@ -34,8 +37,8 @@ suite('HtmlImportScanner', () => {
           <script src="foo.js"></script>
           <link rel="stylesheet" href="foo.css"></link>
         </head></html>`;
-      const document =
-          new HtmlParser().parse(contents, 'test.html' as ResolvedUrl);
+      const document = new HtmlParser().parse(
+          contents, 'test.html' as ResolvedUrl, new PackageUrlResolver());
       const visit = async (visitor: HtmlVisitor) => document.visit([visitor]);
 
       const {features} = await scanner.scan(document, visit);
@@ -51,14 +54,23 @@ suite('HtmlImportScanner', () => {
           <script src="foo.js"></script>
           <link rel="stylesheet" href="foo.css"></link>
         </head></html>`;
-      const document =
-          new HtmlParser().parse(contents, 'test.html' as ResolvedUrl);
+      const document = new HtmlParser().parse(
+          contents, 'test.html' as ResolvedUrl, new PackageUrlResolver());
       const visit = async (visitor: HtmlVisitor) => document.visit([visitor]);
 
-      const {features} = await scanner.scan(document, visit);
-      assert.equal(features.length, 1);
-      assert.equal(features[0].type, 'html-import');
-      assert.equal(features[0].url, '/aybabtu/polymer.html');
+      const {features: [scannedImport]} = await scanner.scan(document, visit);
+      assert.equal(scannedImport.type, 'html-import');
+      assert.equal(scannedImport.url, 'polymer.html');
+
+      const urlLoader = new InMemoryOverlayUrlLoader();
+      const analyzer = new Analyzer({urlLoader});
+      urlLoader.urlContentsMap.set('test.html', contents);
+      urlLoader.urlContentsMap.set('aybabtu/polymer.html', '');
+      const [import_] = (await analyzer.analyze(['test.html'])).getFeatures({
+        kind: 'html-import'
+      });
+      assert.equal(import_.originalUrl, 'polymer.html');
+      assert.equal(import_.url, 'aybabtu/polymer.html');
     });
 
     test('finds lazy HTML Imports', async () => {
@@ -69,8 +81,8 @@ suite('HtmlImportScanner', () => {
           </dom-module>
           <link rel="stylesheet" href="foo.css"></link>
         </head></html>`;
-      const document =
-          new HtmlParser().parse(contents, 'test.html' as ResolvedUrl);
+      const document = new HtmlParser().parse(
+          contents, 'test.html' as ResolvedUrl, new PackageUrlResolver());
       const visit = async (visitor: HtmlVisitor) => document.visit([visitor]);
 
       const {features} = await scanner.scan(document, visit);
@@ -99,8 +111,8 @@ suite('HtmlImportScanner', () => {
           <script src="foo.js"></script>
           <link rel="stylesheet" href="foo.css"></link>
         </head></html>`;
-      const document =
-          new HtmlParser().parse(contents, 'test.html' as ResolvedUrl);
+      const document = new HtmlParser().parse(
+          contents, 'test.html' as ResolvedUrl, new PackageUrlResolver());
       const visit = async (visitor: HtmlVisitor) => document.visit([visitor]);
 
       const {features} = await scanner.scan(document, visit);

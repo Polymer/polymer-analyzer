@@ -18,6 +18,7 @@ import {HtmlVisitor} from '../../html/html-document';
 import {HtmlCustomElementReferenceScanner, HtmlElementReferenceScanner} from '../../html/html-element-reference-scanner';
 import {HtmlParser} from '../../html/html-parser';
 import {ResolvedUrl} from '../../model/url';
+import {PackageUrlResolver} from '../../url-loader/package-url-resolver';
 import {CodeUnderliner} from '../test-utils';
 
 suite('HtmlElementReferenceScanner', () => {
@@ -28,7 +29,7 @@ suite('HtmlElementReferenceScanner', () => {
       scanner = new HtmlElementReferenceScanner();
     });
 
-    test('finds element references', async () => {
+    test('finds element references', async() => {
       const contents = `<html><head></head>
       <body>
         <div>Foo</div>
@@ -38,9 +39,11 @@ suite('HtmlElementReferenceScanner', () => {
         </div>
       </body></html>`;
 
-      const document =
-          new HtmlParser().parse(contents, 'test-document.html' as ResolvedUrl);
-      const visit = async (visitor: HtmlVisitor) => document.visit([visitor]);
+      const document = new HtmlParser().parse(
+          contents,
+          'test-document.html' as ResolvedUrl,
+          new PackageUrlResolver());
+      const visit = async(visitor: HtmlVisitor) => document.visit([visitor]);
 
       const {features} = await scanner.scan(document, visit);
 
@@ -62,7 +65,7 @@ suite('HtmlCustomElementReferenceScanner', () => {
       scanner = new HtmlCustomElementReferenceScanner();
     });
 
-    test('finds custom element references', async () => {
+    test('finds custom element references', async() => {
       contents = `<html><body>
           <div>Foo</div>
           <x-foo a=5 b="test" c></x-foo>
@@ -75,9 +78,11 @@ suite('HtmlCustomElementReferenceScanner', () => {
           </template>
         </body></html>`;
 
-      const document =
-          new HtmlParser().parse(contents, 'test-document.html' as ResolvedUrl);
-      const visit = async (visitor: HtmlVisitor) => document.visit([visitor]);
+      const document = new HtmlParser().parse(
+          contents,
+          'test-document.html' as ResolvedUrl,
+          new PackageUrlResolver());
+      const visit = async(visitor: HtmlVisitor) => document.visit([visitor]);
 
       const {features} = await scanner.scan(document, visit);
 
@@ -90,7 +95,7 @@ suite('HtmlCustomElementReferenceScanner', () => {
           [['a', '5'], ['b', 'test'], ['c', '']]);
 
       const sourceRanges = await Promise.all(
-          features.map(async (f) => await underliner.underline(f.sourceRange)));
+          features.map(async(f) => await underliner.underline(f.sourceRange)));
 
       assert.deepEqual(sourceRanges, [
         `
@@ -105,11 +110,10 @@ suite('HtmlCustomElementReferenceScanner', () => {
       ]);
 
       const attrRanges = await Promise.all(features.map(
-          async (f) =>
-              await Promise.all(Array.from(f.attributes.values())
-                                    .map(
-                                        async (a) => await underliner.underline(
-                                            a.sourceRange)))));
+          async(f) => await Promise.all(
+              Array.from(f.attributes.values())
+                  .map(
+                      async(a) => await underliner.underline(a.sourceRange)))));
 
       assert.deepEqual(attrRanges, [
         [
@@ -128,7 +132,7 @@ suite('HtmlCustomElementReferenceScanner', () => {
       ]);
 
       const attrNameRanges = await Promise.all(features.map(
-          async (f) =>
+          async(f) =>
               await underliner.underline(Array.from(f.attributes.values())
                                              .map((a) => a.nameSourceRange))));
 
@@ -149,10 +153,10 @@ suite('HtmlCustomElementReferenceScanner', () => {
       ]);
 
       const attrValueRanges = await Promise.all(features.map(
-          async (f) =>
+          async(f) =>
               await Promise.all(Array.from(f.attributes.values())
                                     .map(
-                                        async (a) => await underliner.underline(
+                                        async(a) => await underliner.underline(
                                             a.valueSourceRange)))));
 
       assert.deepEqual(attrValueRanges, [

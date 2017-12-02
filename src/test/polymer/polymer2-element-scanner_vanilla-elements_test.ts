@@ -24,6 +24,7 @@ import {JavaScriptDocument} from '../../javascript/javascript-document';
 import {JavaScriptParser} from '../../javascript/javascript-parser';
 import {ResolvedUrl} from '../../model/url';
 import {ScannedPolymerElement} from '../../polymer/polymer-element';
+import {PackageUrlResolver} from '../../url-loader/package-url-resolver';
 
 
 //
@@ -46,7 +47,10 @@ suite('Polymer2ElementScanner - Vanilla Element Scanning', () => {
     const parser = new JavaScriptParser();
     const file = fs.readFileSync(
         path.resolve(__dirname, '../static/vanilla-elements.js'), 'utf8');
-    document = parser.parse(file, '/static/vanilla-elements.js' as ResolvedUrl);
+    document = parser.parse(
+        file,
+        '/static/vanilla-elements.js' as ResolvedUrl,
+        new PackageUrlResolver());
     const scanner = new ClassScanner();
     const visit = (visitor: Visitor) =>
         Promise.resolve(document.visit([visitor]));

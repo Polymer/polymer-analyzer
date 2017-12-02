@@ -15,10 +15,13 @@
 
 import {assert} from 'chai';
 
+import {Analyzer} from '../../core/analyzer';
 import {HtmlVisitor} from '../../html/html-document';
 import {HtmlParser} from '../../html/html-parser';
 import {ResolvedUrl} from '../../model/url';
 import {CssImportScanner} from '../../polymer/css-import-scanner';
+import {InMemoryOverlayUrlLoader} from '../../url-loader/overlay-loader';
+import {PackageUrlResolver} from '../../url-loader/package-url-resolver';
 
 suite('CssImportScanner', () => {
   suite('scan()', () => {
@@ -44,8 +47,8 @@ suite('CssImportScanner', () => {
           </dom-module>
         </body>
         </html>`;
-      const document =
-          new HtmlParser().parse(contents, 'test.html' as ResolvedUrl);
+      const document = new HtmlParser().parse(
+          contents, 'test.html' as ResolvedUrl, new PackageUrlResolver());
       const visit = async (visitor: HtmlVisitor) => document.visit([visitor]);
 
       const {features} = await scanner.scan(document, visit);
@@ -63,14 +66,23 @@ suite('CssImportScanner', () => {
           </dom-module>
         </body>
         </html>`;
-      const document =
-          new HtmlParser().parse(contents, 'test.html' as ResolvedUrl);
+      const document = new HtmlParser().parse(
+          contents, 'test.html' as ResolvedUrl, new PackageUrlResolver());
       const visit = async (visitor: HtmlVisitor) => document.visit([visitor]);
 
       const {features} = await scanner.scan(document, visit);
       assert.equal(features.length, 1);
       assert.equal(features[0].type, 'css-import');
-      assert.equal(features[0].url, '/aybabtu/polymer.css');
+      assert.equal(features[0].url, 'polymer.css');
+
+      const urlLoader = new InMemoryOverlayUrlLoader();
+      const analyzer = new Analyzer({urlLoader});
+      urlLoader.urlContentsMap.set('test.html', contents);
+      urlLoader.urlContentsMap.set('aybabtu/polymer.css', '');
+      const [import_] =
+          (await analyzer.analyze(['test.html'])).getFeatures({kind: 'import'});
+      assert.equal(import_.originalUrl, 'polymer.css');
+      assert.equal(import_.url, 'aybabtu/polymer.css');
     });
   });
 });

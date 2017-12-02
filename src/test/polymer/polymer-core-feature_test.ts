@@ -21,6 +21,7 @@ import {JavaScriptParser} from '../../javascript/javascript-parser';
 import {ResolvedUrl} from '../../model/url';
 import {PolymerCoreFeatureScanner} from '../../polymer/polymer-core-feature-scanner';
 import {FSUrlLoader} from '../../url-loader/fs-url-loader';
+import {PackageUrlResolver} from '../../url-loader/package-url-resolver';
 
 suite('PolymerCoreFeatureScanner', () => {
   test('scans _addFeature calls and the Polymer.Base assignment', async () => {
@@ -55,7 +56,8 @@ suite('PolymerCoreFeatureScanner', () => {
 
     const parser = new JavaScriptParser();
     const scanner = new PolymerCoreFeatureScanner();
-    const doc = parser.parse(js, 'features.js' as ResolvedUrl);
+    const doc = parser.parse(
+        js, 'features.js' as ResolvedUrl, new PackageUrlResolver());
     const visit = (visitor: Visitor) => Promise.resolve(doc.visit([visitor]));
     const {features} = await scanner.scan(doc, visit);
 

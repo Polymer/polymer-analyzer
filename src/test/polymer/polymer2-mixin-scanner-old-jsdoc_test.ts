@@ -23,6 +23,7 @@ import {JavaScriptParser} from '../../javascript/javascript-parser';
 import {ResolvedUrl} from '../../model/url';
 import {PolymerElementMixin, ScannedPolymerElementMixin} from '../../polymer/polymer-element-mixin';
 import {FSUrlLoader} from '../../url-loader/fs-url-loader';
+import {PackageUrlResolver} from '../../url-loader/package-url-resolver';
 import {CodeUnderliner} from '../test-utils';
 
 suite('Polymer2MixinScanner with old jsdoc annotations', () => {
@@ -34,7 +35,8 @@ suite('Polymer2MixinScanner with old jsdoc annotations', () => {
   async function getScannedMixins(filename: string) {
     const file = await urlLoader.load(filename);
     const parser = new JavaScriptParser();
-    const document = parser.parse(file, filename as ResolvedUrl);
+    const document =
+        parser.parse(file, filename as ResolvedUrl, new PackageUrlResolver());
     const scanner = new ClassScanner();
     const visit = (visitor: Visitor) =>
         Promise.resolve(document.visit([visitor]));
