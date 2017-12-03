@@ -17,96 +17,111 @@ import {assert} from 'chai';
 import {PackageUrlResolver} from '../../url-loader/package-url-resolver';
 import {fileRelativeUrl, resolvedUrl} from '../test-utils';
 
-suite('PackageUrlResolver', function() {
-  suite('resolve', () => {
-    test('resolves an in-package URL', () => {
-      const r = new PackageUrlResolver();
-      assert.equal(
-          `foo.html`, r.resolve(fileRelativeUrl`foo.html`, resolvedUrl``));
-      assert.equal(
-          `foo.html`, r.resolve(fileRelativeUrl`/foo.html`, resolvedUrl``));
-      assert.equal(
-          `foo.html`, r.resolve(fileRelativeUrl`./foo.html`, resolvedUrl``));
-    });
+const root = resolvedUrl`file:///1/2/`;
 
-    test(`resolves a sibling URL`, () => {
-      assert.equal(
-          `bower_components/foo/foo.html`,
-          new PackageUrlResolver().resolve(
-              fileRelativeUrl`../foo/foo.html`, resolvedUrl``));
-    });
 
-    test('returns undefined for a cousin URL', () => {
-      assert.equal(
-          new PackageUrlResolver().resolve(
-              fileRelativeUrl`../../foo/foo.html`, resolvedUrl``),
-          undefined);
-    });
+suite('PackageUrlResolver.resolve', function() {
+  let r: PackageUrlResolver;
+  setup(() => {
+    r = new PackageUrlResolver({packageDir: `/1/2`});
+  });
+  test(`resolves file:// urls to themselves`, () => {
+    const r = new PackageUrlResolver();
+    assert.equal(
+        r.resolve(
+            fileRelativeUrl`file:///foo/bar/baz`,
+            resolvedUrl`https://example.com/bar`),
+        resolvedUrl`file:///foo/bar/baz`);
+  });
 
-    test('returns undefined for a URL with a hostname', () => {
-      const r = new PackageUrlResolver();
-      assert.equal(
-          r.resolve(fileRelativeUrl`http://abc.xyz/foo.html`, resolvedUrl``),
-          undefined);
-      assert.equal(
-          r.resolve(fileRelativeUrl`//abc.xyz/foo.html`, resolvedUrl``),
-          undefined);
-    });
+  // test for url with host but not protocol
+  test('resolves an in-package URL', () => {
+    assert.equal(
+        r.resolve(fileRelativeUrl`foo.html`, root),
+        resolvedUrl`file:///1/2/foo.html`);
+    assert.equal(
+        r.resolve(fileRelativeUrl`/foo.html`, root),
+        resolvedUrl`file:///1/2/foo.html`);
+    assert.equal(
+        r.resolve(fileRelativeUrl`./foo.html`, root),
+        resolvedUrl`file:///1/2/foo.html`);
+  });
 
-    test(`resolves a URL with the right hostname`, () => {
-      const r = new PackageUrlResolver({
-        componentDir: `components`,
-        hostname: `abc.xyz`,
-      });
-      assert.equal(
-          `foo.html`,
-          r.resolve(fileRelativeUrl`http://abc.xyz/foo.html`, resolvedUrl``));
-      assert.equal(
-          `foo.html`,
-          r.resolve(fileRelativeUrl`http://abc.xyz/./foo.html`, resolvedUrl``));
-      assert.equal(
-          `foo.html`,
-          r.resolve(
-              fileRelativeUrl`http://abc.xyz/../foo.html`, resolvedUrl``));
-      assert.equal(
-          `foo.html`,
-          r.resolve(
-              fileRelativeUrl`http://abc.xyz/foo/../foo.html`, resolvedUrl``));
+  test(`resolves sibling URLs to the component dir`, () => {
+    assert.equal(
+        r.resolve(fileRelativeUrl`../foo/foo.html`, root),
+        resolvedUrl`file:///1/2/bower_components/foo/foo.html`);
 
-      assert.equal(
-          `foo.html`, r.resolve(fileRelativeUrl`foo.html`, resolvedUrl``));
-      assert.equal(
-          `foo.html`, r.resolve(fileRelativeUrl`./foo.html`, resolvedUrl``));
-      assert.equal(
-          `components/foo/foo.html`,
-          r.resolve(fileRelativeUrl`../foo/foo.html`, resolvedUrl``));
-      assert.equal(
-          `foo.html`,
-          r.resolve(fileRelativeUrl`foo/../foo.html`, resolvedUrl``));
+    const configured = new PackageUrlResolver(
+        {componentDir: 'components', packageDir: '/1/2/'});
+    assert.equal(
+        configured.resolve(fileRelativeUrl`file:///1/bar/bar.html`, root),
+        resolvedUrl`file:///1/2/components/bar/bar.html`);
+  });
 
-      assert.equal(
-          `foo.html`, r.resolve(fileRelativeUrl`/foo.html`, resolvedUrl``));
-      assert.equal(
-          `foo.html`, r.resolve(fileRelativeUrl`/./foo.html`, resolvedUrl``));
-      assert.equal(
-          `foo/foo.html`,
-          r.resolve(fileRelativeUrl`/../foo/foo.html`, resolvedUrl``));
-      assert.equal(
-          `foo.html`,
-          r.resolve(fileRelativeUrl`/foo/../foo.html`, resolvedUrl``));
-    });
+  test('resolves cousin URLs as normal', () => {
+    assert.equal(
+        r.resolve(fileRelativeUrl`../../foo/foo.html`, root),
+        resolvedUrl`file:///foo/foo.html`);
+  });
 
-    test(`resolves a URL with spaces`, () => {
-      const r = new PackageUrlResolver();
-      assert.equal(
-          r.resolve(fileRelativeUrl`spaced name.html`, resolvedUrl``),
-          resolvedUrl`spaced%20name.html`);
-    });
+  test('passes URLs with unknown hostnames through untouched', () => {
+    const r = new PackageUrlResolver();
+    assert.equal(
+        r.resolve(fileRelativeUrl`http://abc.xyz/foo.html`, root),
+        resolvedUrl`http://abc.xyz/foo.html`);
+    assert.equal(
+        r.resolve(fileRelativeUrl`//abc.xyz/foo.html`, root),
+        resolvedUrl`file://abc.xyz/foo.html`);
+  });
 
-    test('resolves an undecodable URL to undefined', () => {
-      const r = new PackageUrlResolver();
-      assert.equal(
-          r.resolve(fileRelativeUrl`%><><%=`, resolvedUrl``), undefined);
-    });
+  test(`resolves a URL with the right hostname`, () => {
+    const r = new PackageUrlResolver(
+        {componentDir: `components`, hostname: `abc.xyz`, packageDir: `/1/2`});
+    assert.equal(
+        r.resolve(fileRelativeUrl`http://abc.xyz/foo.html`, root),
+        resolvedUrl`file:///1/2/foo.html`);
+    assert.equal(
+        r.resolve(fileRelativeUrl`http://abc.xyz/./foo.html`, root),
+        resolvedUrl`file:///1/2/foo.html`);
+    assert.equal(
+        r.resolve(fileRelativeUrl`http://abc.xyz/../foo.html`, root),
+        resolvedUrl`file:///1/2/foo.html`);
+    assert.equal(
+        r.resolve(fileRelativeUrl`http://abc.xyz/foo/../foo.html`, root),
+        resolvedUrl`file:///1/2/foo.html`);
+
+    assert.equal(
+        r.resolve(fileRelativeUrl`foo.html`, root),
+        resolvedUrl`file:///1/2/foo.html`);
+    assert.equal(
+        r.resolve(fileRelativeUrl`./foo.html`, root),
+        resolvedUrl`file:///1/2/foo.html`);
+    assert.equal(
+        r.resolve(fileRelativeUrl`foo/../foo.html`, root),
+        resolvedUrl`file:///1/2/foo.html`);
+
+    assert.equal(
+        r.resolve(fileRelativeUrl`/foo.html`, root),
+        resolvedUrl`file:///1/2/foo.html`);
+    assert.equal(
+        r.resolve(fileRelativeUrl`/./foo.html`, root),
+        resolvedUrl`file:///1/2/foo.html`);
+    assert.equal(
+        r.resolve(fileRelativeUrl`/../foo/foo.html`, root),
+        resolvedUrl`file:///1/2/foo/foo.html`);
+    assert.equal(
+        r.resolve(fileRelativeUrl`/foo/../foo.html`, root),
+        resolvedUrl`file:///1/2/foo.html`);
+  });
+
+  test(`resolves a URL with spaces`, () => {
+    assert.equal(
+        r.resolve(fileRelativeUrl`spaced name.html`, root),
+        resolvedUrl`file:///1/2/spaced%20name.html`);
+  });
+
+  test('resolves an undecodable URL to undefined', () => {
+    assert.equal(r.resolve(fileRelativeUrl`%><><%=`, root), undefined);
   });
 });

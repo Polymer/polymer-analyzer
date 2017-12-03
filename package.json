@@ -92,7 +92,8 @@
     "polymer-project-config": "^3.6.0",
     "shady-css-parser": "^0.1.0",
     "stable": "^0.1.6",
-    "strip-indent": "^2.0.0"
+    "strip-indent": "^2.0.0",
+    "vscode-uri": "^1.0.1"
   },
   "engines": {
     "node": ">=6"
