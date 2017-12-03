@@ -139,8 +139,7 @@ export class AnalysisContext {
    * Returns a copy of this cache context with proper cache invalidation.
    */
   filesChanged(urls: PackageRelativeUrl[]) {
-    const newCache =
-        this._cache.invalidate(urls.map((url) => this.resolveUrl(url)));
+    const newCache = this._cache.invalidate(this.resolveUrls(urls));
     return this._fork(newCache);
   }
 
@@ -148,7 +147,7 @@ export class AnalysisContext {
    * Implements Analyzer#analyze, see its docs.
    */
   async analyze(urls: PackageRelativeUrl[]): Promise<AnalysisContext> {
-    const resolvedUrls = urls.map((url) => this.resolveUrl(url));
+    const resolvedUrls = this.resolveUrls(urls);
 
     // 1. Await current analysis if there is one, so we can check to see if has
     // all of the requested URLs.
@@ -320,7 +319,7 @@ export class AnalysisContext {
                     (e) => e instanceof ScannedImport) as ScannedImport[];
 
             // Update dependency graph
-            const importUrls = imports.map((i) => this.resolveUrl(i.url));
+            const importUrls = this.resolveUrls(imports.map((i) => i.url));
             this._cache.dependencyGraph.addDocument(resolvedUrl, importUrls);
 
             return scannedDocument;
@@ -345,6 +344,9 @@ export class AnalysisContext {
           // Scan imports
           for (const scannedImport of imports) {
             const importUrl = this.resolveUrl(scannedImport.url);
+            if (!importUrl) {
+              continue;
+            }
             // Request a scan of `importUrl` but do not wait for the results to
             // avoid deadlock in the case of cycles. Later we use the
             // DependencyGraph to wait for all transitive dependencies to load.
@@ -487,11 +489,22 @@ export class AnalysisContext {
    * Resolves a URL with this Analyzer's `UrlResolver` or returns the given
    * URL if it can not be resolved.
    */
-  resolveUrl(url: PackageRelativeUrl): ResolvedUrl {
+  resolveUrl(url: PackageRelativeUrl): ResolvedUrl|undefined {
     const resolved = this.resolver.resolve(url);
     if (resolved === undefined) {
       return url as any as ResolvedUrl;
     }
     return resolved;
+  }
+
+  resolveUrls(urls: PackageRelativeUrl[]): ResolvedUrl[] {
+    const results = [];
+    for (const url of urls) {
+      const resolved = this.resolveUrl(url);
+      if (resolved !== undefined) {
+        results.push(resolved);
+      }
+    }
+    return results;
   }
 }
