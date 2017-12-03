@@ -487,7 +487,7 @@ export class AnalysisContext {
    * Returns true if the url given is resovable by the Analyzer's `UrlResolver`.
    */
   canResolveUrl(url: PackageRelativeUrl): boolean {
-    return this.resolver.canResolve(url);
+    return this.resolver.resolve(url) !== undefined;
   }
 
   /**
@@ -495,7 +495,10 @@ export class AnalysisContext {
    * URL if it can not be resolved.
    */
   resolveUrl(url: PackageRelativeUrl): ResolvedUrl {
-    return this.resolver.canResolve(url) ? this.resolver.resolve(url) :
-                                           (url as any as ResolvedUrl);
+    const resolved = this.resolver.resolve(url);
+    if (resolved === undefined) {
+      return url as any as ResolvedUrl;
+    }
+    return resolved;
   }
 }

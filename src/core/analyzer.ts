@@ -225,13 +225,13 @@ export class Analyzer {
    * Returns `true` if the given `url` can be resolved.
    */
   canResolveUrl(url: string): boolean {
-    return this.urlResolver.canResolve(this.brandUserInputUrl(url));
+    return this.urlResolver.resolve(this.brandUserInputUrl(url)) !== undefined;
   }
 
   /**
    * Resoves `url` to a new location.
    */
-  resolveUrl(url: string): ResolvedUrl {
+  resolveUrl(url: string): ResolvedUrl|undefined {
     return this.urlResolver.resolve(this.brandUserInputUrl(url));
   }
 
