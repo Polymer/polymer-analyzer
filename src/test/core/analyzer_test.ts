@@ -68,17 +68,19 @@ suite('Analyzer', () => {
   setup(() => {
     const underlyingUrlLoader = new FSUrlLoader(testDir);
     inMemoryOverlay = new InMemoryOverlayUrlLoader(underlyingUrlLoader);
-    analyzer = new Analyzer({urlLoader: inMemoryOverlay});
+    analyzer = new Analyzer({
+      urlLoader: inMemoryOverlay,
+      urlResolver: new PackageUrlResolver({packageDir: testDir})
+    });
     underliner = new CodeUnderliner(inMemoryOverlay);
   });
 
   test('canLoad delegates to the urlLoader canLoad method', () => {
-    assert.isTrue(analyzer.canLoad(resolvedUrl`/`), '/');
-    assert.isTrue(analyzer.canLoad(resolvedUrl`/path`), '/path');
-    assert.isFalse(analyzer.canLoad(resolvedUrl`../path`), '../path');
-    assert.isFalse(analyzer.canLoad(resolvedUrl`http://host/`), 'http://host/');
-    assert.isFalse(
-        analyzer.canLoad(resolvedUrl`http://host/path`), 'http://host/path');
+    assert.isTrue(analyzer.canLoad(resolvedUrl`file:///`));
+    assert.isTrue(analyzer.canLoad(resolvedUrl`file:////path`));
+    assert.isFalse(analyzer.canLoad(resolvedUrl`file://hostname/path`));
+    assert.isFalse(analyzer.canLoad(resolvedUrl`http://host/`));
+    assert.isFalse(analyzer.canLoad(resolvedUrl`http://host/path`));
   });
 
   suite('analyze()', () => {
@@ -707,9 +709,6 @@ suite('Analyzer', () => {
 
   test('analyzes a document with a namespace', async () => {
     const document = await analyzeDocument('static/namespaces/import-all.html');
-    if (!(document instanceof Document)) {
-      throw new Error(`Expected Document, got ${document}`);
-    }
 
     const namespaces =
         Array.from(document.getFeatures({kind: 'namespace', imported: true}));

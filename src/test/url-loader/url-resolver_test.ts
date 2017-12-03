@@ -18,8 +18,8 @@ import {FileRelativeUrl, ResolvedUrl} from '../../index';
 import {UrlResolver} from '../../url-loader/url-resolver';
 
 class SimplestUrlResolver extends UrlResolver {
-  resolve(url: string) {
-    return this.brandAsResolved(url);
+  resolve(url: FileRelativeUrl) {
+    return this.simpleUrlResolve(url, '' as ResolvedUrl);
   }
 
   relative(fromOrTo: ResolvedUrl, maybeTo?: ResolvedUrl, _kind?: string):
@@ -58,7 +58,7 @@ suite('UrlResolver', () => {
       assert.equal(relative('./foo/bonk.html', 'sub/bar/'), '../sub/bar/');
     });
 
-    test.skip('will keep absolute urls absolute', () => {
+    test('will keep absolute urls absolute', () => {
       assert.equal(
           relative('foo/', 'http://example.com'), 'http://example.com/');
       assert.equal(
@@ -66,14 +66,6 @@ suite('UrlResolver', () => {
       assert.equal(
           relative('foo/', 'file://host/path/to/file'),
           'file://host/path/to/file');
-    });
-
-    test('sibling urls work properly', () => {
-      assert.equal(relative('foo.html', '../bar/bar.html'), '../bar/bar.html');
-      assert.equal(
-          relative('foo/foo.html', '../bar/bar.html'), '../../bar/bar.html');
-      assert.equal(
-          relative('../foo/foo.html', '../bar/bar.html'), '../bar/bar.html');
     });
   });
 });

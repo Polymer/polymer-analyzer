@@ -10,7 +10,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   `result.successful` is true, `result.value` is a Document. When
   `result.successful` is false, then `result.value` is
   either a Warning or undefined.
-* Introduce getDocumentContaining to find containing inline document for a feature
+* [BREAKING] UrlResolvers should now return complete urls, like
+  file:///path/to/paper-button/paper-button.html or
+  https://example.com/components/paper-button/paper-button.html
+* Introduce getDocumentContaining to find containing inline document for a
+  feature
 <!-- Add new, unreleased changes here. -->
 
 ## [3.0.0-pre.5] - 2017-12-15
