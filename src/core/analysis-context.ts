@@ -484,13 +484,6 @@ export class AnalysisContext {
   }
 
   /**
-   * Returns true if the url given is resovable by the Analyzer's `UrlResolver`.
-   */
-  canResolveUrl(url: PackageRelativeUrl): boolean {
-    return this.resolver.resolve(url) !== undefined;
-  }
-
-  /**
    * Resolves a URL with this Analyzer's `UrlResolver` or returns the given
    * URL if it can not be resolved.
    */
