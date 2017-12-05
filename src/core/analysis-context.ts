@@ -490,21 +490,15 @@ export class AnalysisContext {
    * URL if it can not be resolved.
    */
   resolveUrl(url: PackageRelativeUrl): ResolvedUrl|undefined {
-    const resolved = this.resolver.resolve(url);
-    if (resolved === undefined) {
-      return url as any as ResolvedUrl;
-    }
-    return resolved;
+    return this.resolver.resolve(url);
   }
 
+  /**
+   * Resolves all resolvable URLs in the list.
+   *
+   * Unresolvable URLs will be filtered out.
+   */
   resolveUrls(urls: PackageRelativeUrl[]): ResolvedUrl[] {
-    const results = [];
-    for (const url of urls) {
-      const resolved = this.resolveUrl(url);
-      if (resolved !== undefined) {
-        results.push(resolved);
-      }
-    }
-    return results;
+    return urls.map((u) => this.resolveUrl(u)!).filter((u) => u !== undefined);
   }
 }
