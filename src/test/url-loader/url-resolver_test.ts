@@ -67,5 +67,13 @@ suite('UrlResolver', () => {
           relative('foo/', 'file://host/path/to/file'),
           'file://host/path/to/file');
     });
+
+    test('sibling urls work properly', () => {
+      assert.equal(relative('foo.html', '../bar/bar.html'), '../bar/bar.html');
+      assert.equal(
+          relative('foo/foo.html', '../bar/bar.html'), '../../bar/bar.html');
+      assert.equal(
+          relative('../foo/foo.html', '../bar/bar.html'), '../bar/bar.html');
+    });
   });
 });

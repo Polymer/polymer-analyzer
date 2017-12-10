@@ -36,11 +36,16 @@ export class PackageUrlResolver extends UrlResolver {
   private readonly packageUrl: ResolvedUrl;
   readonly componentDir: string;
   readonly hostname: string|null;
+  private readonly resolvedComponentDir: string;
 
   constructor(options?: PackageUrlResolverOptions) {
     super();
     options = options || {};
-    this.packageDir = pathlib.resolve(options.packageDir || process.cwd());
+    let packageDir = options.packageDir || process.cwd();
+    if (process.platform === 'win32') {
+      packageDir = packageDir.replace(/\\/g, '/');
+    }
+    this.packageDir = pathlib.resolve(packageDir);
     if (!this.packageDir.endsWith('/')) {
       this.packageDir += '/';
     }
@@ -48,6 +53,8 @@ export class PackageUrlResolver extends UrlResolver {
         formatUrl({protocol: 'file:', pathname: encodeURI(this.packageDir)}));
     this.componentDir = options.componentDir || 'bower_components/';
     this.hostname = options.hostname || null;
+    this.resolvedComponentDir =
+        pathlib.join(this.packageDir, this.componentDir);
   }
 
   resolve(
@@ -58,13 +65,17 @@ export class PackageUrlResolver extends UrlResolver {
       return undefined;
     }
     const url = parseUrl(resolvedHref);
-    const isLocalFileUrl =
-        url.protocol === 'file:' && (!url.host || url.host === 'localhost');
-    const isOurHostname = url.hostname === this.hostname;
-    if (isLocalFileUrl || isOurHostname) {
+    if (this.shouldHandleAsFileUrl(url)) {
       return this.handleFileUrl(url, unresolvedHref);
     }
     return this.brandAsResolved(resolvedHref);
+  }
+
+  private shouldHandleAsFileUrl(url: Url) {
+    const isLocalFileUrl =
+        url.protocol === 'file:' && (!url.host || url.host === 'localhost');
+    const isOurHostname = url.hostname === this.hostname;
+    return isLocalFileUrl || isOurHostname;
   }
 
   private handleFileUrl(url: Url, unresolvedHref: string) {
@@ -94,11 +105,6 @@ export class PackageUrlResolver extends UrlResolver {
     const parentOfPackageDir = pathlib.dirname(this.packageDir);
     if (pathname.startsWith(parentOfPackageDir) &&
         !pathname.startsWith(this.packageDir)) {
-      console.log(`
-          pathname: ${pathname}
-          packageDir: ${this.packageDir}
-          parentOfPackageDir: ${parentOfPackageDir}
-      `);
       pathname = pathlib.join(
           this.packageDir,
           this.componentDir,
@@ -119,6 +125,44 @@ export class PackageUrlResolver extends UrlResolver {
       from = this.packageUrl;
       to = fromOrTo;
     }
+    return this.relativeImpl(from, to);
+  }
+
+  private relativeImpl(from: ResolvedUrl, to: ResolvedUrl): FileRelativeUrl {
+    const pathnameInComponentDir = this.pathnameForComponentDirUrl(to);
+    if (pathnameInComponentDir !== undefined) {
+      if (this.pathnameForComponentDirUrl(from) === undefined) {
+        const componentDirPath =
+            pathnameInComponentDir.slice(this.resolvedComponentDir.length);
+        const reresolved = this.simpleUrlResolve(
+            ('../' + componentDirPath) as FileRelativeUrl, this.packageUrl);
+        if (reresolved !== undefined) {
+          to = reresolved;
+        }
+      }
+    }
+
     return this.simpleUrlRelative(from, to);
+  }
+
+  /**
+   * If the given URL is a file url inside our dependencies (e.g.
+   * bower_components) then return a resolved posix path to its file.
+   * Otherwise return undefined.
+   */
+  private pathnameForComponentDirUrl(resolvedUrl: ResolvedUrl): string
+      |undefined {
+    const url = parseUrl(resolvedUrl);
+    if (this.shouldHandleAsFileUrl(url) && url.pathname) {
+      let pathname;
+      try {
+        pathname = pathlib.normalize(decodeURI(url.pathname));
+      } catch {
+      }
+      if (pathname && pathname.startsWith(this.resolvedComponentDir)) {
+        return pathname;
+      }
+    }
+    return undefined;
   }
 }
