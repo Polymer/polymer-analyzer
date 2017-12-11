@@ -21,12 +21,13 @@ import {fileRelativeUrl, resolvedUrl} from '../test-utils';
 suite('RedirectResolver', function() {
   suite('resolve', () => {
     test('if prefix matches, url is rewritten', () => {
-      let resolver = new RedirectResolver('proto://site/', 'some/path/');
+      let resolver =
+          new RedirectResolver(resolvedUrl``, 'proto://site/', 'some/path/');
       assert.equal(
           resolver.resolve(
               fileRelativeUrl`proto://site/something.html`, resolvedUrl``),
           resolvedUrl`some/path/something.html`);
-      resolver = new RedirectResolver('/site/', 'some/path/');
+      resolver = new RedirectResolver(resolvedUrl``, '/site/', 'some/path/');
       assert.equal(
           resolver.resolve(
               fileRelativeUrl`/site/something.html`, resolvedUrl``),
@@ -34,7 +35,8 @@ suite('RedirectResolver', function() {
     });
 
     test(`if prefix doesn't match, returns undefined`, () => {
-      const resolver = new RedirectResolver('proto://site/', 'some/path/');
+      const resolver =
+          new RedirectResolver(resolvedUrl``, 'proto://site/', 'some/path/');
       assert.equal(
           resolver.resolve(
               fileRelativeUrl`protoz://site/something.html`, resolvedUrl``),

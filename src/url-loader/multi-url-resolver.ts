@@ -20,8 +20,15 @@ import {UrlResolver} from './url-resolver';
  * Resolves a URL using multiple resolvers.
  */
 export class MultiUrlResolver extends UrlResolver {
+  get packageUrl() {
+    return this._resolvers[0]!.packageUrl;
+  }
   constructor(private _resolvers: ReadonlyArray<UrlResolver>) {
     super();
+    if (this._resolvers.length === 0) {
+      throw new Error(
+          `Cannot construct a MultiUrlResolver with zero resolvers.`);
+    }
   }
 
   resolve(url: FileRelativeUrl, baseUrl: ResolvedUrl, import_?: ScannedImport):

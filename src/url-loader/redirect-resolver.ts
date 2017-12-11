@@ -21,7 +21,7 @@ import {UrlResolver} from './url-resolver';
  */
 export class RedirectResolver extends UrlResolver {
   constructor(
-      private readonly _redirectFrom: string,
+      readonly packageUrl: ResolvedUrl, private readonly _redirectFrom: string,
       private readonly _redirectTo: string) {
     super();
   }

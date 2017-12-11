@@ -22,16 +22,16 @@ import {Analyzer} from '../../core/analyzer';
 import {ParsedHtmlDocument} from '../../html/html-document';
 import {HtmlParser} from '../../html/html-parser';
 import {PackageUrlResolver} from '../../url-loader/package-url-resolver';
-import {CodeUnderliner, resolvedUrl} from '../test-utils';
+import {CodeUnderliner} from '../test-utils';
 
 suite('ParsedHtmlDocument', () => {
   const parser: HtmlParser = new HtmlParser();
-  const url = resolvedUrl`./source-ranges/html-complicated.html`;
+  const url = `./source-ranges/html-complicated.html`;
   const basedir = path.join(__dirname, '../static/');
-  const file = fs.readFileSync(path.join(basedir, `${url}`), 'utf8');
-  const document: ParsedHtmlDocument =
-      parser.parse(file, url, new PackageUrlResolver());
+  const file = fs.readFileSync(path.join(basedir, url), 'utf8');
   const analyzer = Analyzer.createForDirectory(basedir);
+  const document: ParsedHtmlDocument =
+      parser.parse(file, analyzer.resolveUrl(url)!, new PackageUrlResolver({}));
   const underliner = new CodeUnderliner(analyzer);
 
   suite('sourceRangeForNode()', () => {
@@ -111,9 +111,9 @@ suite('ParsedHtmlDocument', () => {
     const testName =
         'works for unclosed tags with attributes and no text content';
     test(testName, async () => {
-      const url = resolvedUrl`unclosed-tag-attributes.html`;
-      const document =
-          parser.parse(await analyzer.load(url), url, new PackageUrlResolver());
+      const url = analyzer.resolveUrl(`unclosed-tag-attributes.html`)!;
+      const document = parser.parse(
+          await analyzer.load(url), url, new PackageUrlResolver({}));
 
       const tag = dom5.query(document.ast, dom5.predicates.hasTagName('tag'))!;
       assert.deepEqual(
@@ -320,9 +320,13 @@ suite('ParsedHtmlDocument', () => {
   });
 
   suite('sourceRangeForAttribute', () => {
-    const complexTags =
-        dom5.queryAll(document.ast, dom5.predicates.hasTagName('complex-tag'));
-    assert.equal(complexTags.length, 1);
+    let complexTags: parse5.ASTNode[];
+    setup(() => {
+      complexTags = dom5.queryAll(
+          document.ast, dom5.predicates.hasTagName('complex-tag'));
+      assert.equal(complexTags.length, 1);
+    });
+
 
     test('works for boolean attributes', async () => {
       assert.deepEqual(
@@ -396,9 +400,13 @@ suite('ParsedHtmlDocument', () => {
   });
 
   suite('sourceRangeForAttributeName', () => {
-    const complexTags =
-        dom5.queryAll(document.ast, dom5.predicates.hasTagName('complex-tag'));
-    assert.equal(complexTags.length, 1);
+    let complexTags: parse5.ASTNode[];
+    setup(() => {
+      complexTags = dom5.queryAll(
+          document.ast, dom5.predicates.hasTagName('complex-tag'));
+      assert.equal(complexTags.length, 1);
+    });
+
 
     test('works for boolean attributes', async () => {
       assert.deepEqual(
@@ -461,9 +469,13 @@ suite('ParsedHtmlDocument', () => {
   });
 
   suite('sourceRangeForAttributeValue', () => {
-    const complexTags =
-        dom5.queryAll(document.ast, dom5.predicates.hasTagName('complex-tag'));
-    assert.equal(complexTags.length, 1);
+    let complexTags: parse5.ASTNode[];
+    setup(() => {
+      complexTags = dom5.queryAll(
+          document.ast, dom5.predicates.hasTagName('complex-tag'));
+      assert.equal(complexTags.length, 1);
+    });
+
 
     test('returns undefined for boolean attributes', async () => {
       assert.deepEqual(

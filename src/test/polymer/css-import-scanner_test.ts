@@ -63,6 +63,6 @@ suite('CssImportScanner', () => {
     const [import_] =
         (await analyzer.analyze(['test.html'])).getFeatures({kind: 'import'});
     assert.equal(import_.originalUrl, 'polymer.css');
-    assert.equal(import_.url, 'aybabtu/polymer.css');
+    assert.equal(import_.url, analyzer.resolveUrl('aybabtu/polymer.css'));
   });
 });

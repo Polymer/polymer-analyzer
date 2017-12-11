@@ -22,6 +22,7 @@ import {PackageRelativeUrl, ResolvedUrl} from '../model/url';
 import {Parser} from '../parser/parser';
 import {Scanner} from '../scanning/scanner';
 import {FSUrlLoader} from '../url-loader/fs-url-loader';
+import {PackageUrlResolver} from '../url-loader/package-url-resolver';
 import {UrlLoader} from '../url-loader/url-loader';
 import {UrlResolver} from '../url-loader/url-resolver';
 
@@ -87,7 +88,10 @@ export class Analyzer {
    * files including polymer.json or similar.
    */
   static createForDirectory(dirname: string): Analyzer {
-    return new Analyzer({urlLoader: new FSUrlLoader(dirname)});
+    return new Analyzer({
+      urlLoader: new FSUrlLoader(dirname),
+      urlResolver: new PackageUrlResolver({})
+    });
   }
 
   /**
@@ -102,8 +106,7 @@ export class Analyzer {
       return await previousContext.analyze(uiUrls);
     })();
     const context = await this._analysisComplete;
-    const resolvedUrls =
-        context.resolveUserInputUrls(this.brandUserInputUrls(urls));
+    const resolvedUrls = context.resolveUserInputUrls(uiUrls);
     return this._constructAnalysis(context, resolvedUrls);
   }
 
@@ -227,7 +230,7 @@ export class Analyzer {
    */
   resolveUrl(url: string): ResolvedUrl|undefined {
     return this.urlResolver.resolve(
-        url as FileRelativeUrl, `` as ResolvedUrl, undefined);
+        url as FileRelativeUrl, this.urlResolver.packageUrl, undefined);
   }
 
   // Urls from the user are assumed to be package relative

@@ -17,6 +17,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 import {HtmlParser} from '../../html/html-parser';
+import {Analyzer} from '../../index';
 import {PackageUrlResolver} from '../../url-loader/package-url-resolver';
 import {resolvedUrl} from '../test-utils';
 
@@ -49,16 +50,16 @@ suite('HtmlParser', () => {
       });
     });
 
-    test('can properly determine the base url of a document', () => {
-      const file = fs.readFileSync(
-          path.resolve(__dirname, '../static/base-href/doc-with-base.html'),
-          'utf8');
-      const document = parser.parse(
-          file,
-          resolvedUrl`/static/base-href/doc-with-base.html`,
-          new PackageUrlResolver());
-      assert.equal(document.url, '/static/base-href/doc-with-base.html');
-      assert.equal(document.baseUrl, 'static/');
+    test('can properly determine the base url of a document', async () => {
+      const analyzer =
+          Analyzer.createForDirectory(path.resolve(__dirname, '../'));
+      const resolvedPath =
+          analyzer.resolveUrl(`static/base-href/doc-with-base.html`)!;
+      const file = await analyzer.load(resolvedPath);
+      const document =
+          parser.parse(file, resolvedPath, new PackageUrlResolver());
+      assert.equal(document.url, resolvedPath);
+      assert.equal(document.baseUrl, analyzer.resolveUrl('static/'));
     });
   });
 });

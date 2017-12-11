@@ -14,20 +14,22 @@
 
 import {assert} from 'chai';
 
-import {FileRelativeUrl} from '../../model/model';
+import {FileRelativeUrl} from '../../index';
 import {UrlResolver} from '../../url-loader/url-resolver';
 import {resolvedUrl} from '../test-utils';
 
-class SimplestUrlResolver extends UrlResolver {}
+class SimplestUrlResolver extends UrlResolver {
+  readonly packageUrl = resolvedUrl`file:///1/2/`;
+}
 
 suite('UrlResolver', () => {
   suite('relative', () => {
     const resolver = new SimplestUrlResolver();
     function relative(from: string, to: string) {
-      const fromResolved =
-          resolver.resolve(from as FileRelativeUrl, resolvedUrl``, undefined)!;
-      const toResolved =
-          resolver.resolve(to as FileRelativeUrl, resolvedUrl``, undefined)!;
+      const fromResolved = resolver.resolve(
+          from as FileRelativeUrl, resolver.packageUrl, undefined)!;
+      const toResolved = resolver.resolve(
+          to as FileRelativeUrl, resolver.packageUrl, undefined)!;
       return resolver.relative(fromResolved, toResolved);
     }
 

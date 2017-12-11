@@ -65,7 +65,9 @@ export class CodeUnderliner {
   static withMapping(url: ResolvedUrl, contents: string) {
     const urlLoader = new InMemoryOverlayUrlLoader();
     urlLoader.urlContentsMap.set(url, contents);
-    return new CodeUnderliner(urlLoader);
+    return new CodeUnderliner(urlLoader, new class extends UrlResolver {
+      packageUrl = resolvedUrl``;
+    }());
   }
 
   /**

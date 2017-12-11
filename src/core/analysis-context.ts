@@ -503,7 +503,7 @@ export class AnalysisContext {
 
   resolveUserInputUrl(url: PackageRelativeUrl): ResolvedUrl|undefined {
     return this.resolveUrl(
-        url as any as FileRelativeUrl, '' as ResolvedUrl, undefined);
+        url as any as FileRelativeUrl, this.resolver.packageUrl, undefined);
   }
 }
 

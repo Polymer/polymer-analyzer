@@ -27,6 +27,7 @@ import {FileRelativeUrl, ResolvedUrl} from '../model/url';
  * to '/bower_components/polymer/polymer.html'.
  */
 export abstract class UrlResolver {
+  abstract readonly packageUrl: ResolvedUrl;
   /**
    * Resoves `url` to a new location.
    *

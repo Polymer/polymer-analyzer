@@ -30,6 +30,7 @@ export interface PackageUrlResolverOptions {
  * Resolves a URL to a canonical URL within a package.
  */
 export class PackageUrlResolver extends UrlResolver {
+  packageUrl = `` as ResolvedUrl;
   componentDir: string;
   hostname: string|null;
 

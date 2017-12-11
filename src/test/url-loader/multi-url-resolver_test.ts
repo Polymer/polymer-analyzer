@@ -19,6 +19,7 @@ import {UrlResolver} from '../../url-loader/url-resolver';
 import {fileRelativeUrl, resolvedUrl} from '../test-utils';
 
 class MockResolver extends UrlResolver {
+  packageUrl = resolvedUrl``;
   resolveCount: number = 0;
   constructor(private _resolution: string|null) {
     super();
