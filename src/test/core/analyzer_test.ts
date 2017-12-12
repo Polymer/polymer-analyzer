@@ -760,6 +760,7 @@ var DuplicateNamespace = {};
       // imports touch every document in the package.
       assert.deepEqual(
           Array.from(pckage['_searchRoots']).map((d) => d.url).sort(), [
+            'build/output.html',
             'cyclic-a.html',
             'root.html',
             'subdir/root-in-subdir.html'
@@ -772,6 +773,7 @@ var DuplicateNamespace = {};
               .map((d) => d.url)
               .sort(),
           [
+            'build/output.html',
             'cyclic-a.html',
             'cyclic-b.html',
             'root.html',
@@ -790,6 +792,7 @@ var DuplicateNamespace = {};
               .map((d) => d.url)
               .sort(),
           [
+            'build/output.html',
             'cyclic-a.html',
             'cyclic-b.html',
             'root.html',
@@ -801,6 +804,7 @@ var DuplicateNamespace = {};
               .sort());
 
       const packageElements = [
+        'build-output',
         'root-root',
         'leaf-leaf',
         'cyclic-a',
@@ -834,16 +838,21 @@ var DuplicateNamespace = {};
       const pckage = await analyzer.analyzePackage();
       assert.deepEqual(
           Array.from(pckage['_searchRoots']).map((d) => d.url),
-          ['index.html'].map((u) => analyzer.resolveUrl(u)));
-      assert.deepEqual(
-          pckage.getWarnings().map((w) => w.sourceRange.file),
-          [analyzer.resolveUrl('index.html')]);
+          ['index.html', 'build/output.html'].map(
+              (u) => analyzer.resolveUrl(u)));
+      assert.deepEqual(pckage.getWarnings().map((w) => w.sourceRange.file), [
+        analyzer.resolveUrl('index.html'),
+        analyzer.resolveUrl('build/output.html')
+      ]);
       assert.deepEqual(
           pckage.getWarnings({externalPackages: true})
               .map((w) => w.sourceRange.file)
               .sort(),
-          ['bower_components/external-with-warnings.html', 'index.html'].map(
-              (u) => analyzer.resolveUrl(u)));
+          [
+            'bower_components/external-with-warnings.html',
+            'build/output.html',
+            'index.html',
+          ].map((u) => analyzer.resolveUrl(u)));
     });
   });
 
