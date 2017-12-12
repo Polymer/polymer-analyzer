@@ -60,8 +60,8 @@ export abstract class UrlResolver {
     if (toUrl.host && toUrl.host !== fromUrl.host) {
       return this.brandAsRelative(to);
     }
-    let fromPath = decodeURI(fromUrl.pathname || '');
-    const toPath = decodeURI(toUrl.pathname || '');
+    let fromPath = decodeURIComponent(fromUrl.pathname || '');
+    const toPath = decodeURIComponent(toUrl.pathname || '');
     if (!fromPath.endsWith('/')) {
       fromPath = posix.dirname(fromPath);
     }
