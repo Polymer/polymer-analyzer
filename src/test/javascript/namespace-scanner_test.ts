@@ -23,7 +23,7 @@ import {CodeUnderliner, runScanner} from '../test-utils';
 
 suite('NamespaceScanner', () => {
   const testFilesDir = path.resolve(__dirname, '../static/namespaces/');
-  const analyzer = Analyzer.forDirectory(testFilesDir);
+  const analyzer = Analyzer.createForDirectory(testFilesDir);
   const underliner = new CodeUnderliner(analyzer);
 
   async function getNamespaces(filename: string) {

@@ -68,7 +68,7 @@ suite('DependencyGraph', () => {
   suite('as used in the Analyzer', () => {
     let analyzer: Analyzer;
     setup(() => {
-      analyzer = Analyzer.forDirectory(path.join(__dirname, '..', 'static'));
+      analyzer = Analyzer.createForDirectory(path.join(__dirname, '..', 'static'));
     });
 
     async function assertImportersOf(

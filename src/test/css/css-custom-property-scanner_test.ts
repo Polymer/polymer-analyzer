@@ -26,7 +26,7 @@ suite('CssCustomPropertyScanner', () => {
   let underliner: CodeUnderliner;
 
   setup(() => {
-    analyzer = Analyzer.forDirectory(testDir);
+    analyzer = Analyzer.createForDirectory(testDir);
     underliner = new CodeUnderliner(analyzer);
   });
 

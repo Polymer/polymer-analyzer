@@ -85,7 +85,7 @@ export class Analyzer {
    * at the given directory, but in the future it may take configuration from
    * files including polymer.json or similar.
    */
-  static forDirectory(dirname: string): Analyzer {
+  static createForDirectory(dirname: string): Analyzer {
     return new Analyzer({urlLoader: new FSUrlLoader(dirname)});
   }
 

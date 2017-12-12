@@ -59,7 +59,7 @@ suite('HtmlScriptScanner', () => {
   });
 
   suite('modules', () => {
-    const analyzer = Analyzer.forDirectory(fixturesDir);
+    const analyzer = Analyzer.createForDirectory(fixturesDir);
     let analysis: Analysis;
 
     before(async () => {

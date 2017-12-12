@@ -25,7 +25,7 @@ chaiUse(require('chai-subset'));
 
 suite('Polymer2ElementScanner', () => {
   const analyzer =
-      Analyzer.forDirectory(path.resolve(__dirname, '../static/polymer2/'));
+      Analyzer.createForDirectory(path.resolve(__dirname, '../static/polymer2/'));
   const underliner = new CodeUnderliner(analyzer);
 
   async function getElements(filename: string):

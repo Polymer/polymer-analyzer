@@ -22,7 +22,7 @@ import {PolymerElement} from '../../polymer/polymer-element';
 
 suite('PolymerElement', () => {
   const analyzer =
-      Analyzer.forDirectory(path.resolve(__dirname, '../static/polymer2/'));
+      Analyzer.createForDirectory(path.resolve(__dirname, '../static/polymer2/'));
 
   async function getElements(filename: string): Promise<Set<PolymerElement>> {
     const document =

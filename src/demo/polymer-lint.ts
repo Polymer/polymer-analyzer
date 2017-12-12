@@ -19,7 +19,7 @@ import {Analyzer, Document, Severity, Warning, WarningPrinter} from '../index';
  */
 async function main() {
   const basedir = process.cwd();
-  const analyzer = Analyzer.forDirectory(basedir);
+  const analyzer = Analyzer.createForDirectory(basedir);
   const warnings = await getWarnings(analyzer, process.argv[2]);
   const warningPrinter = new WarningPrinter(process.stderr);
   await warningPrinter.printWarnings(warnings);

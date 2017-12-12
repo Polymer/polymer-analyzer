@@ -21,7 +21,7 @@ import {JavaScriptImportScanner} from '../../javascript/javascript-import-scanne
 import {runScanner} from '../test-utils';
 
 suite('JavaScriptImportScanner', () => {
-  const analyzer = Analyzer.forDirectory(path.resolve(__dirname, '../static'));
+  const analyzer = Analyzer.createForDirectory(path.resolve(__dirname, '../static'));
 
   test('finds imports', async () => {
     const {features} = await runScanner(

@@ -23,7 +23,7 @@ import {CodeUnderliner, runScanner} from '../test-utils';
 
 suite('Polymer2MixinScanner', () => {
   const analyzer =
-      Analyzer.forDirectory(path.resolve(__dirname, '../static/polymer2/'));
+      Analyzer.createForDirectory(path.resolve(__dirname, '../static/polymer2/'));
   const underliner = new CodeUnderliner(analyzer);
 
   async function getScannedMixins(filename: string) {

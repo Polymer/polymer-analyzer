@@ -22,7 +22,7 @@ import {Class, Element, ElementMixin, Method, ScannedClass} from '../../model/mo
 import {CodeUnderliner, runScanner} from '../test-utils';
 
 suite('Class', () => {
-  const analyzer = Analyzer.forDirectory(path.resolve(__dirname, '../static'));
+  const analyzer = Analyzer.createForDirectory(path.resolve(__dirname, '../static'));
   const underliner = new CodeUnderliner(analyzer);
 
   async function getScannedFeatures(filename: string) {

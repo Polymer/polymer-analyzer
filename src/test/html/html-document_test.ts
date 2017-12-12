@@ -30,7 +30,7 @@ suite('ParsedHtmlDocument', () => {
   const basedir = path.join(__dirname, '../static/');
   const file = fs.readFileSync(path.join(basedir, `${url}`), 'utf8');
   const document: ParsedHtmlDocument = parser.parse(file, url);
-  const analyzer = Analyzer.forDirectory(basedir);
+  const analyzer = Analyzer.createForDirectory(basedir);
   const underliner = new CodeUnderliner(analyzer);
 
   suite('sourceRangeForNode()', () => {
