@@ -178,6 +178,12 @@ class AnalyzerCompilerHost implements ts.CompilerHost {
     });
   }
 
+  /**
+   * Resolves the given url.
+   *
+   * If the url is unresolvable, the given unresolved URL is returned as a
+   * resolved URL.
+   */
   private _failSafeResolveUrl(url: string): ResolvedUrl {
     const resolved = this.context.resolveUrl(url as PackageRelativeUrl);
     return resolved === undefined ? url as any as ResolvedUrl : resolved;

@@ -494,9 +494,7 @@ export class AnalysisContext {
   }
 
   /**
-   * Resolves all resolvable URLs in the list.
-   *
-   * Unresolvable URLs will be filtered out.
+   * Resolves all resolvable URLs in the list, removes unresolvable ones.
    */
   resolveUrls(urls: PackageRelativeUrl[]): ResolvedUrl[] {
     return urls.map((u) => this.resolveUrl(u)!).filter((u) => u !== undefined);
