@@ -14,8 +14,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   exports.
 * Added `templateTypes` property to functions, extracted from `@template`
   annotations.
-* Add Analyzer.forDirectory() for easily getting a well configured analyzer
-  for a given directory.
+* Add `Analyzer.createForDirectory()` for easily getting a well configured
+  analyzer for a given directory.
 
 ## [3.0.0-pre.2] - 2017-11-30
 

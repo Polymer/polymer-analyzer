@@ -15,7 +15,7 @@ npm install polymer-analyzer
 ```js
 const {Analyzer} = require('polymer-analyzer');
 
-let analyzer = Analyzer.forDirectory('/path/to/package/root');
+const analyzer = Analyzer.createForDirectory('./');
 
 // This path is relative to the package root
 analyzer.analyze(['./my-element.html']).then((analysis) => {
