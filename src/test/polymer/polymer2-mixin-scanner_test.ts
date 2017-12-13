@@ -21,9 +21,9 @@ import {ClassScanner} from '../../javascript/class-scanner';
 import {PolymerElementMixin, ScannedPolymerElementMixin} from '../../polymer/polymer-element-mixin';
 import {CodeUnderliner, runScanner} from '../test-utils';
 
-suite('Polymer2MixinScanner', () => {
-  const analyzer =
-      Analyzer.createForDirectory(path.resolve(__dirname, '../static/polymer2/'));
+suite('Polymer2MixinScanner', async () => {
+  const analyzer = await Analyzer.createForDirectory(
+      path.resolve(__dirname, '../static/polymer2/'));
   const underliner = new CodeUnderliner(analyzer);
 
   async function getScannedMixins(filename: string) {

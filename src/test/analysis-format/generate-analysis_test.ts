@@ -94,7 +94,7 @@ suite('generate-analysis', () => {
     suite('generates from package', () => {
       test('does not include external features', async () => {
         const basedir = path.resolve(fixturesDir, 'analysis/bower_packages');
-        const analyzer = Analyzer.createForDirectory(basedir);
+        const analyzer = await Analyzer.createForDirectory(basedir);
         const _package = await analyzer.analyzePackage();
         const metadata = generateAnalysis(_package, analyzer.urlResolver);
         // The fixture only contains external elements
@@ -103,7 +103,7 @@ suite('generate-analysis', () => {
 
       test('includes package features', async () => {
         const basedir = path.resolve(fixturesDir, 'analysis/simple');
-        const analyzer = Analyzer.createForDirectory(basedir);
+        const analyzer = await Analyzer.createForDirectory(basedir);
         const _package = await analyzer.analyzePackage();
         const metadata = generateAnalysis(_package, analyzer.urlResolver);
         assert.equal(metadata.elements && metadata.elements.length, 1);
@@ -187,7 +187,7 @@ function* walkRecursively(dir: string): Iterable<string> {
 }
 
 async function analyzeDir(baseDir: string) {
-  const analyzer = Analyzer.createForDirectory(baseDir);
+  const analyzer = await Analyzer.createForDirectory(baseDir);
   const allFilenames = Array.from(walkRecursively(baseDir));
   const htmlOrJsFilenames =
       allFilenames.filter((f) => f.endsWith('.html') || f.endsWith('.js'));

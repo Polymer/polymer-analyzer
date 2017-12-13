@@ -725,8 +725,8 @@ var DuplicateNamespace = {};
 
   suite('analyzePackage', () => {
     test('produces a package with the right documents', async () => {
-      const analyzer =
-          Analyzer.createForDirectory(path.join(testDir, 'static', 'project'));
+      const analyzer = await Analyzer.createForDirectory(
+          path.join(testDir, 'static', 'project'));
       const pckage = await analyzer.analyzePackage();
 
       // The root documents of the package are a minimal set of documents whose
@@ -802,7 +802,7 @@ var DuplicateNamespace = {};
     });
 
     test('can get warnings from within and without the package', async () => {
-      const analyzer = Analyzer.createForDirectory(
+      const analyzer = await Analyzer.createForDirectory(
           path.join(testDir, 'static', 'project-with-errors'));
       const pckage = await analyzer.analyzePackage();
       assert.deepEqual(

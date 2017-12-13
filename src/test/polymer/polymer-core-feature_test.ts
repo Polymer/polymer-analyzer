@@ -113,7 +113,7 @@ suite('PolymerCoreFeatureScanner', () => {
 
   test('resolves the Polymer.Base class', async () => {
     // This directory contains files copied from Polymer 1.x core.
-    const analyzer = Analyzer.createForDirectory(
+    const analyzer = await Analyzer.createForDirectory(
         path.resolve(__dirname, '../static/polymer-core-feature/'));
 
     const analysis = await analyzer.analyzePackage();

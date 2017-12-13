@@ -37,22 +37,27 @@ suite('DependencyGraph', () => {
     // base.html -> a.html -> common.html
     // base.html -> b.html -> common.html
     let graph = new DependencyGraph();
-    assertStringSetsEqual(graph.getAllDependantsOf(resolvedUrl`common.html`), []);
+    assertStringSetsEqual(
+        graph.getAllDependantsOf(resolvedUrl`common.html`), []);
     graph.addDocument(resolvedUrl`a.html`, [resolvedUrl`common.html`]);
     assertStringSetsEqual(
         graph.getAllDependantsOf(resolvedUrl`common.html`), ['a.html']);
     graph.addDocument(resolvedUrl`b.html`, [resolvedUrl`common.html`]);
     assertStringSetsEqual(
-        graph.getAllDependantsOf(resolvedUrl`common.html`), ['a.html', 'b.html']);
-    graph.addDocument(resolvedUrl`base.html`, ['a.html', 'b.html'] as ResolvedUrl[]);
+        graph.getAllDependantsOf(resolvedUrl`common.html`),
+        ['a.html', 'b.html']);
+    graph.addDocument(
+        resolvedUrl`base.html`, ['a.html', 'b.html'] as ResolvedUrl[]);
     assertStringSetsEqual(
         graph.getAllDependantsOf(resolvedUrl`common.html`),
         ['a.html', 'b.html', 'base.html']);
     graph = graph.invalidatePaths([resolvedUrl`a.html`]);
     assertStringSetsEqual(
-        graph.getAllDependantsOf(resolvedUrl`common.html`), ['b.html', 'base.html']);
+        graph.getAllDependantsOf(resolvedUrl`common.html`),
+        ['b.html', 'base.html']);
     graph = graph.invalidatePaths([resolvedUrl`b.html`]);
-    assertStringSetsEqual(graph.getAllDependantsOf(resolvedUrl`common.html`), []);
+    assertStringSetsEqual(
+        graph.getAllDependantsOf(resolvedUrl`common.html`), []);
     assertIsValidGraph(graph);
   });
 
@@ -63,8 +68,9 @@ suite('DependencyGraph', () => {
    */
   suite('as used in the Analyzer', () => {
     let analyzer: Analyzer;
-    setup(() => {
-      analyzer = Analyzer.createForDirectory(path.join(__dirname, '..', 'static'));
+    setup(async () => {
+      analyzer = await Analyzer.createForDirectory(
+          path.join(__dirname, '..', 'static'));
     });
 
     async function assertImportersOf(
@@ -141,7 +147,8 @@ suite('DependencyGraph', () => {
 
     test('resolves for a simple cycle', async () => {
       const graph = new DependencyGraph();
-      const promises = [graph.whenReady(resolvedUrl`a`), graph.whenReady(resolvedUrl`b`)];
+      const promises =
+          [graph.whenReady(resolvedUrl`a`), graph.whenReady(resolvedUrl`b`)];
       graph.addDocument(resolvedUrl`a`, ['b'] as ResolvedUrl[]);
       graph.addDocument(resolvedUrl`b`, ['a'] as ResolvedUrl[]);
       await Promise.all(promises);

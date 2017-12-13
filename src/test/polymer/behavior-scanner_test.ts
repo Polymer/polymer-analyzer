@@ -27,7 +27,7 @@ suite('BehaviorScanner', () => {
 
   suiteSetup(async () => {
     const {features} = await runScanner(
-        Analyzer.createForDirectory(path.resolve(__dirname, '../static')),
+        await Analyzer.createForDirectory(path.resolve(__dirname, '../static')),
         new BehaviorScanner(),
         'js-behaviors.js');
     behaviors = new Map();

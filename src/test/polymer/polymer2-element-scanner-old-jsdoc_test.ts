@@ -23,9 +23,9 @@ import {CodeUnderliner, runScanner} from '../test-utils';
 
 chaiUse(require('chai-subset'));
 
-suite('Polymer2ElementScanner with old jsdoc annotations', () => {
+suite('Polymer2ElementScanner with old jsdoc annotations', async () => {
   const testFilesDir = path.resolve(__dirname, '../static/polymer2-old-jsdoc/');
-  const analyzer = Analyzer.createForDirectory(testFilesDir);
+  const analyzer = await Analyzer.createForDirectory(testFilesDir);
   const underliner = new CodeUnderliner(analyzer);
 
   async function getElements(filename: string):

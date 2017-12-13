@@ -21,8 +21,9 @@ import {ClassScanner} from '../../javascript/class-scanner';
 import {Class, Element, ElementMixin, Method, ScannedClass} from '../../model/model';
 import {CodeUnderliner, runScanner} from '../test-utils';
 
-suite('Class', () => {
-  const analyzer = Analyzer.createForDirectory(path.resolve(__dirname, '../static'));
+suite('Class', async () => {
+  const analyzer =
+      await Analyzer.createForDirectory(path.resolve(__dirname, '../static'));
   const underliner = new CodeUnderliner(analyzer);
 
   async function getScannedFeatures(filename: string) {

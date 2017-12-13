@@ -20,8 +20,9 @@ import {Analyzer} from '../../core/analyzer';
 import {JavaScriptImportScanner} from '../../javascript/javascript-import-scanner';
 import {runScanner} from '../test-utils';
 
-suite('JavaScriptImportScanner', () => {
-  const analyzer = Analyzer.createForDirectory(path.resolve(__dirname, '../static'));
+suite('JavaScriptImportScanner', async () => {
+  const analyzer =
+      await Analyzer.createForDirectory(path.resolve(__dirname, '../static'));
 
   test('finds imports', async () => {
     const {features} = await runScanner(

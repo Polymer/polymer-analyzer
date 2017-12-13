@@ -21,9 +21,9 @@ import {ScannedFunction} from '../../javascript/function';
 import {FunctionScanner} from '../../javascript/function-scanner';
 import {CodeUnderliner, runScanner} from '../test-utils';
 
-suite('FunctionScanner', () => {
+suite('FunctionScanner', async () => {
   const testFilesDir = path.resolve(__dirname, '../static/namespaces/');
-  const analyzer = Analyzer.createForDirectory(testFilesDir);
+  const analyzer = await Analyzer.createForDirectory(testFilesDir);
   const underliner = new CodeUnderliner(analyzer);
 
   async function getNamespaceFunctions(filename: string) {

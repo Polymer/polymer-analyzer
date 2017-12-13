@@ -21,9 +21,9 @@ import {ClassScanner} from '../../javascript/class-scanner';
 import {PolymerElementMixin, ScannedPolymerElementMixin} from '../../polymer/polymer-element-mixin';
 import {CodeUnderliner, runScanner} from '../test-utils';
 
-suite('Polymer2MixinScanner with old jsdoc annotations', () => {
+suite('Polymer2MixinScanner with old jsdoc annotations', async () => {
   const testFilesDir = path.resolve(__dirname, '../static/polymer2-old-jsdoc/');
-  const analyzer = Analyzer.createForDirectory(testFilesDir);
+  const analyzer = await Analyzer.createForDirectory(testFilesDir);
   const underliner = new CodeUnderliner(analyzer);
 
   async function getScannedMixins(filename: string) {

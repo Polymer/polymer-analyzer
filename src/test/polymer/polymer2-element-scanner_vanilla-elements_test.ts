@@ -39,7 +39,8 @@ suite('Polymer2ElementScanner - Vanilla Element Scanning', () => {
   let elementsList: ScannedPolymerElement[];
 
   suiteSetup(async () => {
-    const analyzer = Analyzer.createForDirectory(path.resolve(__dirname, '../'));
+    const analyzer =
+        await Analyzer.createForDirectory(path.resolve(__dirname, '../'));
     const {features} = await runScanner(
         analyzer, new ClassScanner(), 'static/vanilla-elements.js');
 

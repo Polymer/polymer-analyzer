@@ -20,9 +20,9 @@ import {Analyzer} from '../../core/analyzer';
 import {Document, Severity, Warning} from '../../model/model';
 import {PolymerElement} from '../../polymer/polymer-element';
 
-suite('PolymerElement', () => {
-  const analyzer =
-      Analyzer.createForDirectory(path.resolve(__dirname, '../static/polymer2/'));
+suite('PolymerElement', async () => {
+  const analyzer = await Analyzer.createForDirectory(
+      path.resolve(__dirname, '../static/polymer2/'));
 
   async function getElements(filename: string): Promise<Set<PolymerElement>> {
     const document =
