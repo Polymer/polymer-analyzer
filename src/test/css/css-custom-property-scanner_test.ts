@@ -22,8 +22,8 @@ suite('CssCustomPropertyScanner', () => {
   let analyzer: Analyzer;
   let underliner: CodeUnderliner;
 
-  setup(() => {
-    analyzer = Analyzer.createForDirectory(fixtureDir);
+  setup(async () => {
+    analyzer = await Analyzer.createForDirectory(fixtureDir);
     underliner = new CodeUnderliner(analyzer);
   });
 

@@ -26,6 +26,12 @@ import {FileRelativeUrl, ResolvedUrl} from '../model/url';
  * to '/bower_components/polymer/polymer.html'.
  */
 export abstract class UrlResolver {
+  static async createForDirectory(_dirname: string): Promise<UrlResolver> {
+    // Break the import loop by doing a dynamic import.
+    const {PackageUrlResolver} = await import('./package-url-resolver');
+    return new PackageUrlResolver(/* will use _dirname soon */);
+  }
+
   /**
    * Resoves `url` to a new location.
    *

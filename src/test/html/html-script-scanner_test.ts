@@ -54,8 +54,8 @@ suite('HtmlScriptScanner', () => {
         [['html-script', 'foo.js']]);
   });
 
-  suite('modules', () => {
-    const analyzer = Analyzer.createForDirectory(fixtureDir);
+  suite('modules', async () => {
+    const analyzer = await Analyzer.createForDirectory(fixtureDir);
     let analysis: Analysis;
 
     before(async () => {

@@ -15,10 +15,11 @@ npm install polymer-analyzer
 ```js
 const {Analyzer} = require('polymer-analyzer');
 
-const analyzer = Analyzer.createForDirectory('./');
+async function main() {
+  const analyzer = await Analyzer.createForDirectory('./');
 
-// This path is relative to the package root
-analyzer.analyze(['./my-element.html']).then((analysis) => {
+  // This path is relative to the package root
+  const analysis = await analyzer.analyze(['./my-element.html']);
   // Print the name of every property on paper-button, and where it was
   // inherited from.
   const [paperButton, ] = analysis.getFeatures(
@@ -36,7 +37,9 @@ analyzer.analyze(['./my-element.html']).then((analysis) => {
   } else {
     console.log(`my-element.html didn't define or import paper-button.`);
   }
-});
+}
+
+main();
 ```
 
 ## What's it used for?
