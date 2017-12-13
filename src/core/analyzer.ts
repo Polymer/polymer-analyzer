@@ -79,7 +79,7 @@ export class Analyzer {
   }
 
   /**
-   * Returns the best analyzer for the given directory.
+   * Returns an analyzer with configuration inferred for the given directory.
    *
    * Currently this just creates a simple analyzer with a FS loader rooted
    * at the given directory, but in the future it may take configuration from

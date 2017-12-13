@@ -104,6 +104,11 @@ function isWarning(wOrS: Warning|SourceRange): wOrS is Warning {
   return 'code' in wOrS;
 }
 
+/**
+ * Run the given scanner on the given package relative url.
+ *
+ * The url must be loadable with the given analyzer.
+ */
 export async function runScanner(
     analyzer: Analyzer,
     scanner: Scanner<ParsedDocument, any, any>,
@@ -114,6 +119,12 @@ export async function runScanner(
   return scan(parsedDocument, [scanner]);
 }
 
+/**
+ * Run the given scanner on some file contents as a string.
+ *
+ * Note that the url's file extension is relevant, because it will affect how
+ * the file is parsed.
+ */
 export async function runScannerOnContents(
     scanner: Scanner<ParsedDocument, any, any>, url: string, contents: string) {
   const overlayLoader = new InMemoryOverlayUrlLoader();
