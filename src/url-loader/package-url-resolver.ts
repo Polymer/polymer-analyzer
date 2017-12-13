@@ -43,8 +43,11 @@ export class PackageUrlResolver extends UrlResolver {
   constructor(options?: PackageUrlResolverOptions) {
     super();
     options = options || {};
-    const packageDir = options.packageDir || process.cwd();
-    this.packageDir = pathlib.resolve(packageDir);
+    this.packageDir = pathlib.resolve(options.packageDir || process.cwd());
+    if (isWindows && /^[a-z]:/.test(this.packageDir)) {
+      // Upper case the drive letter
+      this.packageDir = this.packageDir[0].toUpperCase() + this.packageDir.slice(1);
+    }
     this.packageUrl =
         this.brandAsResolved(Uri.file(this.packageDir).toString());
     if (!this.packageUrl.endsWith('/')) {
