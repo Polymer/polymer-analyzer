@@ -224,7 +224,7 @@ export class AnalysisContext {
     }
     const scannedDocument = this._cache.scannedDocuments.get(resolvedUrl);
     if (!scannedDocument) {
-      return this._requestedWithoutLoadingWarning(resolvedUrl);
+      return makeRequestedWithoutLoadingWarning(resolvedUrl);
     }
 
     const extension = path.extname(resolvedUrl).substring(1);
@@ -490,32 +490,35 @@ export class AnalysisContext {
   resolveUrls(urls: PackageRelativeUrl[]): ResolvedUrl[] {
     return filterOutUndefineds(urls.map((u) => this.resolveUrl(u)));
   }
-
-  /**
-   * A warning for a weird situation that should never happen.
-   *
-   * Before calling getDocument(), which is synchronous, a caller must first
-   * have finished loading and scanning, as those phases are asynchronous.
-   *
-   * So we need to construct a warning, but we don't have a parsed document,   *
-   * so we construct this weird fake one.
-   */
-  private _requestedWithoutLoadingWarning(resolvedUrl: ResolvedUrl) {
-    const parsedDocument = new UnparsableParsedDocument(resolvedUrl, '');
-    return new Warning({
-      sourceRange: {
-        file: resolvedUrl,
-        start: {line: 0, column: 0},
-        end: {line: 0, column: 0}
-      },
-      code: 'unable-to-analyze',
-      message: `[Internal Error] Document was requested ` +
-          ` before loading and scanning finished. This should never happen.`,
-      severity: Severity.ERROR, parsedDocument
-    });
-  }
 }
 
 function filterOutUndefineds<T>(arr: ReadonlyArray<T|undefined>): T[] {
   return arr.filter((t) => t !== undefined) as T[];
+}
+
+/**
+ * A warning for a weird situation that should never happen.
+ *
+ * Before calling getDocument(), which is synchronous, a caller must first
+ * have finished loading and scanning, as those phases are asynchronous.
+ *
+ * So we need to construct a warning, but we don't have a parsed document,
+ * so we construct this weird fake one. This is such a rare case that it's
+ * worth going out of our way here so that warnings can uniformly expect to
+ * have documents.
+ */
+function makeRequestedWithoutLoadingWarning(resolvedUrl: ResolvedUrl) {
+  const parsedDocument = new UnparsableParsedDocument(resolvedUrl, '');
+  return new Warning({
+    sourceRange: {
+      file: resolvedUrl,
+      start: {line: 0, column: 0},
+      end: {line: 0, column: 0}
+    },
+    code: 'unable-to-analyze',
+    message: `[Internal Error] Document was requested ` +
+        ` before loading and scanning finished. This should never happen.`,
+    severity: Severity.ERROR,
+    parsedDocument
+  });
 }
