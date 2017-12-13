@@ -28,6 +28,8 @@ export interface PackageUrlResolverOptions {
   hostname?: string;
 }
 
+const isWindows = process.platform === 'win32';
+
 /**
  * Resolves a URL to a canonical URL within a package.
  */
@@ -110,18 +112,19 @@ export class PackageUrlResolver extends UrlResolver {
     // If the path points to a sibling directory, resolve it to the
     // component directory
     const parentOfPackageDir = pathlib.dirname(this.packageDir);
-    if (pathname.startsWith(parentOfPackageDir) &&
-        !pathname.startsWith(this.packageDir)) {
-      pathname = pathlib.join(
+    let path = this.filesystemPathForPathname(pathname);
+    if (path.startsWith(parentOfPackageDir) &&
+        !path.startsWith(this.packageDir)) {
+      path = pathlib.join(
           this.packageDir,
           this.componentDir,
-          pathname.substring(parentOfPackageDir.length));
+          path.substring(parentOfPackageDir.length));
     }
 
     // TODO(rictic): investigate moving to whatwg URLs internally:
     //     https://github.com/Polymer/polymer-analyzer/issues/804
     // Re-encode URI, since it is expected we are emitting a relative URL.
-    return this.brandAsResolved(Uri.file(pathname).toString());
+    return this.brandAsResolved(Uri.file(path).toString());
   }
 
   relative(fromOrTo: ResolvedUrl, maybeTo?: ResolvedUrl, _kind?: string):
@@ -161,11 +164,22 @@ export class PackageUrlResolver extends UrlResolver {
       try {
         pathname = posix.normalize(decodeURIComponent(url.pathname));
       } catch {
+        return undefined;
       }
-      if (pathname && pathname.startsWith(this.resolvedComponentDir)) {
-        return pathname;
+      const path = this.filesystemPathForPathname(pathname);
+      if (path && path.startsWith(this.resolvedComponentDir)) {
+        return path;
       }
     }
     return undefined;
+  }
+
+  private filesystemPathForPathname(decodedPathname: string) {
+    let path = Uri.file(decodedPathname).fsPath;
+    if (isWindows && /^[a-z]:/.test(path)) {
+      // Upper case the drive letter
+      path = path[0].toUpperCase() + path.slice(1);
+    }
+    return path;
   }
 }
