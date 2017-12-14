@@ -20,15 +20,8 @@ import {UrlResolver} from './url-resolver';
  * Resolves a URL using multiple resolvers.
  */
 export class MultiUrlResolver extends UrlResolver {
-  get packageUrl() {
-    return this._resolvers[0]!.packageUrl;
-  }
   constructor(private _resolvers: ReadonlyArray<UrlResolver>) {
     super();
-    if (this._resolvers.length === 0) {
-      throw new Error(
-          `Cannot construct a MultiUrlResolver with zero resolvers.`);
-    }
   }
 
   resolve(url: FileRelativeUrl, baseUrl: ResolvedUrl, import_?: ScannedImport):
@@ -40,5 +33,17 @@ export class MultiUrlResolver extends UrlResolver {
       }
     }
     return undefined;
+  }
+
+  relative(to: ResolvedUrl): FileRelativeUrl;
+  relative(from: ResolvedUrl, to: ResolvedUrl): FileRelativeUrl;
+  relative(from: ResolvedUrl, to: ResolvedUrl, kind: string): FileRelativeUrl;
+  relative(fromOrTo: ResolvedUrl, maybeTo?: ResolvedUrl, kind?: string):
+      FileRelativeUrl {
+    for (const resolver of this._resolvers) {
+      return resolver.relative(fromOrTo, maybeTo, kind);
+    }
+    throw new Error(
+        `Could not get relative url, with no configured url resolvers`);
   }
 }

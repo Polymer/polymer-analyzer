@@ -40,4 +40,20 @@ export class RedirectResolver extends UrlResolver {
     return this.brandAsResolved(
         this._redirectTo + packageRelativeUrl.slice(this._redirectFrom.length));
   }
+
+  relative(to: ResolvedUrl): FileRelativeUrl;
+  relative(from: ResolvedUrl, to: ResolvedUrl): FileRelativeUrl;
+  relative(from: ResolvedUrl, to: ResolvedUrl, kind: string): FileRelativeUrl;
+  relative(fromOrTo: ResolvedUrl, maybeTo?: ResolvedUrl, _kind?: string):
+      FileRelativeUrl {
+    let from, to;
+    if (maybeTo !== undefined) {
+      from = fromOrTo;
+      to = maybeTo;
+    } else {
+      from = this.packageUrl;
+      to = fromOrTo;
+    }
+    return this.simpleUrlRelative(from, to);
+  }
 }

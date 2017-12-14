@@ -14,12 +14,28 @@
 
 import {assert} from 'chai';
 
-import {FileRelativeUrl} from '../../index';
+import {FileRelativeUrl, ResolvedUrl} from '../../index';
 import {UrlResolver} from '../../url-loader/url-resolver';
 
 class SimplestUrlResolver extends UrlResolver {
   resolve(url: string) {
     return this.brandAsResolved(url);
+  }
+
+  relative(to: ResolvedUrl): FileRelativeUrl;
+  relative(from: ResolvedUrl, to: ResolvedUrl): FileRelativeUrl;
+  relative(from: ResolvedUrl, to: ResolvedUrl, kind: string): FileRelativeUrl;
+  relative(fromOrTo: ResolvedUrl, maybeTo?: ResolvedUrl, _kind?: string):
+      FileRelativeUrl {
+    let from, to;
+    if (maybeTo !== undefined) {
+      from = fromOrTo;
+      to = maybeTo;
+    } else {
+      throw new Error(
+          'simplest url resolver.relative must be called with two arguments');
+    }
+    return this.simpleUrlRelative(from, to);
   }
 }
 

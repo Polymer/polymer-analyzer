@@ -69,6 +69,10 @@ export class CodeUnderliner {
       resolve(url: FileRelativeUrl) {
         return this.brandAsResolved(url);
       }
+
+      relative(): FileRelativeUrl {
+        throw new Error('does not do relative');
+      }
     }());
   }
 

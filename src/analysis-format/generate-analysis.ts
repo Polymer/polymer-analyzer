@@ -187,8 +187,8 @@ function serializeNamespace(
     name: namespace.name,
     description: namespace.description,
     summary: namespace.summary,
-    sourceRange: sourceRangeRelativeTo(
-        namespace.sourceRange, urlResolver.packageUrl, urlResolver)
+    sourceRange:
+        sourceRangeRelativeTo(namespace.sourceRange, undefined, urlResolver)
   };
   return metadata;
 }
@@ -199,8 +199,7 @@ function serializeFunction(
     name: fn.name,
     description: fn.description,
     summary: fn.summary,
-    sourceRange: sourceRangeRelativeTo(
-        fn.sourceRange, urlResolver.packageUrl, urlResolver),
+    sourceRange: sourceRangeRelativeTo(fn.sourceRange, undefined, urlResolver),
     privacy: fn.privacy,
   };
   if (fn.params) {
@@ -218,8 +217,7 @@ function serializeClass(
   let relativeUrl;
   if (class_.sourceRange) {
     path = class_.sourceRange!.file;
-    relativeUrl =
-        urlResolver.relative(urlResolver.packageUrl, class_.sourceRange.file);
+    relativeUrl = urlResolver.relative(class_.sourceRange.file);
   }
 
   const properties = [...class_.properties.values()].map(
@@ -408,17 +406,19 @@ function sourceRangeRelativeTo(
     sourceRange: ResolvedSourceRange|undefined,
     from: ResolvedUrl|undefined,
     urlResolver: UrlResolver): (SourceRange|undefined) {
-  if (sourceRange === undefined || from === undefined) {
+  if (sourceRange === undefined) {
     return;
   }
   if (from === sourceRange.file) {
     return {start: sourceRange.start, end: sourceRange.end};
   }
-  return {
-    file: urlResolver.relative(from, sourceRange.file),
-    start: sourceRange.start,
-    end: sourceRange.end
-  };
+  let file;
+  if (from === undefined) {
+    file = urlResolver.relative(sourceRange.file);
+  } else {
+    file = urlResolver.relative(from, sourceRange.file);
+  }
+  return {file, start: sourceRange.start, end: sourceRange.end};
 }
 
 // TODO(rictic): figure out why type inference goes wrong with more general

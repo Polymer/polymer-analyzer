@@ -14,6 +14,7 @@
 
 import {assert} from 'chai';
 
+import {FileRelativeUrl} from '../../model/url';
 import {MultiUrlResolver} from '../../url-loader/multi-url-resolver';
 import {UrlResolver} from '../../url-loader/url-resolver';
 import {fileRelativeUrl, resolvedUrl} from '../test-utils';
@@ -30,6 +31,10 @@ class MockResolver extends UrlResolver {
       return undefined;
     }
     return this.brandAsResolved(this._resolution);
+  }
+
+  relative(): FileRelativeUrl {
+    throw new Error('Not supported');
   }
 }
 

@@ -35,7 +35,14 @@ export abstract class UrlResolver {
       url: FileRelativeUrl, baseUrl?: ResolvedUrl,
       _scannedImport?: ScannedImport): ResolvedUrl|undefined;
 
-  relative(from: ResolvedUrl, to: ResolvedUrl, _kind?: string):
+  abstract relative(to: ResolvedUrl): FileRelativeUrl;
+  abstract relative(from: ResolvedUrl, to: ResolvedUrl): FileRelativeUrl;
+  abstract relative(from: ResolvedUrl, to: ResolvedUrl, kind: string):
+      FileRelativeUrl;
+  abstract relative(from: ResolvedUrl, to?: ResolvedUrl, kind?: string):
+      FileRelativeUrl;
+
+  protected simpleUrlRelative(from: ResolvedUrl, to: ResolvedUrl):
       FileRelativeUrl {
     if (!from.endsWith('/')) {
       from = this.brandAsResolved(posix.dirname(from));
