@@ -19,9 +19,9 @@
           "relative",
           "${workspaceRoot}/src"
         ],
-        "watching": {
-          "beginsPattern": "\\[npm\\] INFO Spawning\\.\\.\\.",
-          "endsPattern": "\\[npm\\] (ERROR Exited with code \\d+|SUCCESS Exited cleanly|INFO Killed with SIGTERM)"
+        "background": {
+          "beginsPattern": "tsc-then: Running",
+          "endsPattern": "tsc-then: command finished"
         },
         "pattern": [
           {
