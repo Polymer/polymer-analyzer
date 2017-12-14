@@ -74,7 +74,8 @@ suite('PackageUrlResolver', function() {
           {componentDir: 'components', packageDir: '/1/2/'});
       assert.equal(
           configured.resolve(
-              fileRelativeUrl`file:///1/bar/bar.html`, packageRoot),
+              (rootedFileUrl`1/bar/bar.html`) as any as FileRelativeUrl,
+              packageRoot),
           rootedFileUrl`1/2/components/bar/bar.html`);
     });
 
