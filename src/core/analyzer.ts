@@ -229,8 +229,7 @@ export class Analyzer {
    * Resoves `url` to a new location.
    */
   resolveUrl(url: string): ResolvedUrl|undefined {
-    return this.urlResolver.resolve(
-        url as FileRelativeUrl, this.urlResolver.packageUrl, undefined);
+    return this.urlResolver.resolve(url as FileRelativeUrl);
   }
 
   // Urls from the user are assumed to be package relative

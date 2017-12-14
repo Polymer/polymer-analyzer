@@ -108,7 +108,8 @@ suite('generate-analysis', () => {
         const metadata = generateAnalysis(_package, analyzer.urlResolver);
         assert.equal(metadata.elements && metadata.elements.length, 1);
         assert.equal(metadata.elements![0].tagname, 'simple-element');
-        assert.equal(metadata.elements![0].path, fileRelativeUrl`simple-element.html`);
+        assert.equal(
+            metadata.elements![0].path, fileRelativeUrl`simple-element.html`);
       });
     });
   });

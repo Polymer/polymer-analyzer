@@ -310,10 +310,8 @@ export class AnalysisContext {
                     (e) => e instanceof ScannedImport) as ScannedImport[];
 
             // Update dependency graph
-            const importUrls =
-                imports
-                    .map((i) => this.resolveUrl(i.url, parsedDoc.baseUrl, i)!)
-                    .filter((i) => i !== undefined);
+            const importUrls = filterOutUndefineds(imports.map(
+                (i) => this.resolver.resolve(i.url, parsedDoc.baseUrl, i)));
             this._cache.dependencyGraph.addDocument(resolvedUrl, importUrls);
 
             return scannedDocument;
@@ -337,7 +335,7 @@ export class AnalysisContext {
 
           // Scan imports
           for (const scannedImport of imports) {
-            const importUrl = this.resolveUrl(
+            const importUrl = this.resolver.resolve(
                 scannedImport.url,
                 scannedDocument.document.baseUrl,
                 scannedImport);
@@ -485,16 +483,6 @@ export class AnalysisContext {
   }
 
   /**
-   * Resolves a URL with this Analyzer's `UrlResolver` or returns the given
-   * URL if it can not be resolved.
-   */
-  resolveUrl(
-      url: FileRelativeUrl, baseUrl: ResolvedUrl,
-      scannedImport: ScannedImport|undefined): ResolvedUrl|undefined {
-    return this.resolver.resolve(url, baseUrl, scannedImport);
-  }
-
-  /**
    * Resolves all resolvable URLs in the list, removes unresolvable ones.
    */
   resolveUserInputUrls(urls: PackageRelativeUrl[]): ResolvedUrl[] {
@@ -502,8 +490,7 @@ export class AnalysisContext {
   }
 
   resolveUserInputUrl(url: PackageRelativeUrl): ResolvedUrl|undefined {
-    return this.resolveUrl(
-        url as any as FileRelativeUrl, this.resolver.packageUrl, undefined);
+    return this.resolver.resolve(url as any as FileRelativeUrl);
   }
 }
 

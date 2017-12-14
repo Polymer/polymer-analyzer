@@ -13,7 +13,6 @@
  */
 
 import {posix} from 'path';
-import {resolve as urlLibResolver} from 'url';
 
 import {ScannedImport} from '../index';
 import {FileRelativeUrl, ResolvedUrl} from '../model/url';
@@ -27,17 +26,14 @@ import {FileRelativeUrl, ResolvedUrl} from '../model/url';
  * to '/bower_components/polymer/polymer.html'.
  */
 export abstract class UrlResolver {
-  abstract readonly packageUrl: ResolvedUrl;
   /**
    * Resoves `url` to a new location.
    *
    * Returns `undefined` if the given url cannot be resolved.
    */
-  resolve(
-      url: FileRelativeUrl, baseUrl: ResolvedUrl,
-      _scannedImport: ScannedImport|undefined): ResolvedUrl|undefined {
-    return this.brandAsResolved(urlLibResolver(baseUrl, url));
-  };
+  abstract resolve(
+      url: FileRelativeUrl, baseUrl?: ResolvedUrl,
+      _scannedImport?: ScannedImport): ResolvedUrl|undefined;
 
   relative(from: ResolvedUrl, to: ResolvedUrl, _kind?: string):
       FileRelativeUrl {

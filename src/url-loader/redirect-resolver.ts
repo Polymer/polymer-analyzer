@@ -12,6 +12,7 @@
  * http://polymer.github.io/PATENTS.txt
  */
 
+import {resolve as urlLibResolver} from 'url';
 import {FileRelativeUrl, ResolvedUrl, ScannedImport} from '../model/model';
 
 import {UrlResolver} from './url-resolver';
@@ -21,15 +22,17 @@ import {UrlResolver} from './url-resolver';
  */
 export class RedirectResolver extends UrlResolver {
   constructor(
-      readonly packageUrl: ResolvedUrl, private readonly _redirectFrom: string,
+      private readonly packageUrl: ResolvedUrl,
+      private readonly _redirectFrom: string,
       private readonly _redirectTo: string) {
     super();
   }
 
   resolve(
-      fileRelativeUrl: FileRelativeUrl, baseUrl: ResolvedUrl,
-      import_?: ScannedImport): ResolvedUrl|undefined {
-    const packageRelativeUrl = super.resolve(fileRelativeUrl, baseUrl, import_);
+      fileRelativeUrl: FileRelativeUrl, baseUrl: ResolvedUrl = this.packageUrl,
+      _import?: ScannedImport): ResolvedUrl|undefined {
+    const packageRelativeUrl =
+        this.brandAsResolved(urlLibResolver(baseUrl, fileRelativeUrl));
     if (packageRelativeUrl === undefined ||
         !packageRelativeUrl.startsWith(this._redirectFrom)) {
       return undefined;

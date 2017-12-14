@@ -66,7 +66,9 @@ export class CodeUnderliner {
     const urlLoader = new InMemoryOverlayUrlLoader();
     urlLoader.urlContentsMap.set(url, contents);
     return new CodeUnderliner(urlLoader, new class extends UrlResolver {
-      packageUrl = resolvedUrl``;
+      resolve(url: FileRelativeUrl) {
+        return this.brandAsResolved(url);
+      }
     }());
   }
 

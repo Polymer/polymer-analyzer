@@ -13,7 +13,7 @@
  */
 
 import {posix as pathlib} from 'path';
-import {Url} from 'url';
+import {resolve as urlLibResolver, Url} from 'url';
 
 import {parseUrl} from '../core/utils';
 import {FileRelativeUrl, ScannedImport} from '../index';
@@ -30,7 +30,7 @@ export interface PackageUrlResolverOptions {
  * Resolves a URL to a canonical URL within a package.
  */
 export class PackageUrlResolver extends UrlResolver {
-  packageUrl = `` as ResolvedUrl;
+  private packageUrl = `` as ResolvedUrl;
   componentDir: string;
   hostname: string|null;
 
@@ -46,9 +46,11 @@ export class PackageUrlResolver extends UrlResolver {
         !pathname.startsWith('../../');
   }
 
-  resolve(url: FileRelativeUrl, baseUrl: ResolvedUrl, import_?: ScannedImport):
-      ResolvedUrl|undefined {
-    const packageRelativeUrl = super.resolve(url, baseUrl, import_);
+  resolve(
+      url: FileRelativeUrl, baseUrl: ResolvedUrl = this.packageUrl,
+      _import?: ScannedImport): ResolvedUrl|undefined {
+    const packageRelativeUrl =
+        this.brandAsResolved(urlLibResolver(baseUrl, url));
     if (packageRelativeUrl === undefined) {
       return undefined;
     }
