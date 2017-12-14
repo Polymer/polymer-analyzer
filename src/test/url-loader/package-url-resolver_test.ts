@@ -37,7 +37,7 @@ function rootedFileUrl([text]: TemplateStringsArray): ResolvedUrl {
 
 const packageRoot = rootedFileUrl`1/2/`;
 
-suite.only('PackageUrlResolver', function() {
+suite('PackageUrlResolver', function() {
   suite('resolve', () => {
     let resolver: PackageUrlResolver;
     setup(() => {
