@@ -6,35 +6,29 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
-<<<<<<< HEAD
-<!-- Add new, unreleased changes here. -->
-
-## [3.0.0-pre.4] - 2017-12-14
-
-=======
-* [BREAKING] Removed the `UrlResolver#canResolve` method. A UrlResolver should
-  return `undefined` when `resolve` is called to indicate that it can't resolve
-  a URL.
-* [BREAKING] UrlResolvers must implement a readonly property `packageUrl` which
-  is a resolved URL pointing to the root of the package being analyzed.
->>>>>>> d351b701... Update CHANGELOG.
-* Add Analyzer.forDirectory() for easily getting a well configured analyzer
-  for a given directory.
-* Removed the `UrlResolver#canResolve` method. A UrlResolver should return
-  `undefined` when `resolve` is called to indicate that it can't resolve a URL.
-* Analyzer#urlResolver is a property that exposes the analyzer's url resolver,
-  for cases where more direct access to url resolution is desired.
-* Fix a situation where a warning would be reported as `[Object object]`.
-<<<<<<< HEAD
-* Fix issue where inline JavaScript module import statements did not honor
-  their containing document's baseUrl; inline documents now inherit baseUrl
-  from their containing documents.
-=======
+* [BREAKING] Removed `Analyzer#resolveUrl` in favor of just exposing the
+  `UrlResolver` at `Analyzer#urlResolver.resolve`
+* Add `Analyzer.createForDirectory()` for easily getting a well configured
+  analyzer for a given directory.
 * Add `Import#originalUrl` which has the original url of the import as it was
   encountered in the document, before it was resolved relative to the base url
   of its containing document.
 <!-- Add new, unreleased changes here. -->
->>>>>>> d351b701... Update CHANGELOG.
+
+## [3.0.0-pre.4] - 2017-12-14
+
+* [BREAKING] Removed the `UrlResolver#canResolve` method. A UrlResolver should
+  return `undefined` when `resolve` is called to indicate that it can't resolve
+  a URL.
+* Add Analyzer.forDirectory() for easily getting a well configured analyzer
+  for a given directory.
+* Removed the `UrlResolver#canResolve` method. A UrlResolver should return
+  `undefined` when `resolve` is called to indicate that it can't resolve a URL.
+* Fix a situation where a warning would be reported as `[Object object]`.
+* Fix issue where inline JavaScript module import statements did not honor
+  their containing document's baseUrl; inline documents now inherit baseUrl
+  from their containing documents.
+<!-- Add new, unreleased changes here. -->
 
 ## [3.0.0-pre.3] - 2017-12-08
 
