@@ -13,13 +13,15 @@
  */
 
 import {assert} from 'chai';
+import {posix} from 'path';
 
 import {FileRelativeUrl, ResolvedUrl} from '../../index';
 import {UrlResolver} from '../../url-loader/url-resolver';
 
 class SimplestUrlResolver extends UrlResolver {
   resolve(url: FileRelativeUrl) {
-    return this.simpleUrlResolve(url, './' as ResolvedUrl);
+    return this.simpleUrlResolve(
+        url, posix.normalize(process.cwd()) as ResolvedUrl);
   }
 
   relative(fromOrTo: ResolvedUrl, maybeTo?: ResolvedUrl, _kind?: string):
