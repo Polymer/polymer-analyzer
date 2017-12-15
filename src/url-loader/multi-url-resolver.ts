@@ -35,9 +35,6 @@ export class MultiUrlResolver extends UrlResolver {
     return undefined;
   }
 
-  relative(to: ResolvedUrl): FileRelativeUrl;
-  relative(from: ResolvedUrl, to: ResolvedUrl): FileRelativeUrl;
-  relative(from: ResolvedUrl, to: ResolvedUrl, kind: string): FileRelativeUrl;
   relative(fromOrTo: ResolvedUrl, maybeTo?: ResolvedUrl, kind?: string):
       FileRelativeUrl {
     for (const resolver of this._resolvers) {

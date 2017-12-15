@@ -33,12 +33,9 @@ export abstract class UrlResolver {
    */
   abstract resolve(
       url: FileRelativeUrl, baseUrl?: ResolvedUrl,
-      _scannedImport?: ScannedImport): ResolvedUrl|undefined;
+      scannedImport?: ScannedImport): ResolvedUrl|undefined;
 
   abstract relative(to: ResolvedUrl): FileRelativeUrl;
-  abstract relative(from: ResolvedUrl, to: ResolvedUrl): FileRelativeUrl;
-  abstract relative(from: ResolvedUrl, to: ResolvedUrl, kind: string):
-      FileRelativeUrl;
   abstract relative(from: ResolvedUrl, to?: ResolvedUrl, kind?: string):
       FileRelativeUrl;
 
