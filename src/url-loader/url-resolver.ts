@@ -12,6 +12,8 @@
  * http://polymer.github.io/PATENTS.txt
  */
 
+import * as fs from 'mz/fs';
+import * as pathlib from 'path';
 import {posix} from 'path';
 
 import {ScannedImport} from '../index';
@@ -26,10 +28,13 @@ import {FileRelativeUrl, ResolvedUrl} from '../model/url';
  * to '/bower_components/polymer/polymer.html'.
  */
 export abstract class UrlResolver {
-  static async createForDirectory(_dirname: string): Promise<UrlResolver> {
+  static async createForDirectory(dirname: string): Promise<UrlResolver> {
     // Break the import loop by doing a dynamic import.
     const {PackageUrlResolver} = await import('./package-url-resolver');
-    return new PackageUrlResolver(/* reference dirname here soon */);
+
+    const componentDir = await inferComponentDirname(dirname);
+
+    return new PackageUrlResolver({componentDir});
   }
 
   /**
@@ -64,4 +69,26 @@ export abstract class UrlResolver {
   protected brandAsResolved(url: string): ResolvedUrl {
     return url as ResolvedUrl;
   }
+}
+
+async function inferComponentDirname(dirname: string): Promise<string> {
+  try {
+    const contents = await fs.readFile(
+        pathlib.join(dirname, '.bowerrc'), {encoding: 'utf8'});
+    const bowerrc = JSON.parse(contents);
+    if (typeof bowerrc.directory === 'string') {
+      return bowerrc.directory;
+    }
+  } catch { /* don't care */
+  }
+  const [bowerJsonExists, packageJsonExists] = await Promise.all([
+    fs.exists(pathlib.join(dirname, 'bower.json')),
+    fs.exists(pathlib.join(dirname, 'package.json')),
+  ]);
+  if (bowerJsonExists) {
+    return 'bower_components';
+  } else if (packageJsonExists) {
+    return 'node_modules';
+  }
+  return 'bower_components';
 }
