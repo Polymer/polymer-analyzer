@@ -33,6 +33,7 @@ export type Result<T, E> = {
 
 // A regexp that matches paths to external code.
 // TODO(rictic): Make this part of the URL Resolver.
+//     https://github.com/Polymer/polymer-analyzer/issues/803
 // Note that we will match any directory name prefixed by `bower_components` or
 // `node_modules` in order to ignore `polymer install`'s variants, which look
 // like bower_components-foo

@@ -78,6 +78,14 @@ export class PackageUrlResolver extends UrlResolver {
     return isLocalFileUrl || isOurHostname;
   }
 
+  /**
+   * Take the given URL which is either a file:// url or a url with the
+   * configured hostname, and treat its pathname as though it points to a file
+   * on the local filesystem, producing a file:/// url.
+   *
+   * Also corrects sibling URLs like `../foo` to point to
+   * `./${component_dir}/foo`
+   */
   private handleFileUrl(url: Url, unresolvedHref: string) {
     let pathname: string;
     const unresolvedUrl = parseUrl(unresolvedHref);
@@ -89,10 +97,12 @@ export class PackageUrlResolver extends UrlResolver {
         unresolvedPathname =
             pathlib.normalize(decodeURI(unresolvedUrl.pathname));
       } catch (e) {
-        return undefined;
+        return undefined;  // undecodable url
       }
       pathname = pathlib.join(this.packageDir, unresolvedPathname);
     } else {
+      // Otherwise, consider the url that has already been resolved
+      // against the baseUrl
       try {
         pathname = pathlib.normalize(decodeURI(url.pathname || ''));
       } catch (e) {
@@ -111,20 +121,16 @@ export class PackageUrlResolver extends UrlResolver {
           pathname.substring(parentOfPackageDir.length));
     }
 
+    // TODO(rictic): investigate moving to whatwg URLs internally:
+    //     https://github.com/Polymer/polymer-analyzer/issues/804
     // Re-encode URI, since it is expected we are emitting a relative URL.
     return this.brandAsResolved(Uri.file(pathname).toString());
   }
 
   relative(fromOrTo: ResolvedUrl, maybeTo?: ResolvedUrl, _kind?: string):
       FileRelativeUrl {
-    let from, to;
-    if (maybeTo !== undefined) {
-      from = fromOrTo;
-      to = maybeTo;
-    } else {
-      from = this.packageUrl;
-      to = fromOrTo;
-    }
+    const [from, to] = (maybeTo !== undefined) ? [fromOrTo, maybeTo] :
+                                                 [this.packageUrl, fromOrTo];
     return this.relativeImpl(from, to);
   }
 
