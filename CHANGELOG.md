@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [3.0.0-pre.5] - 2017-12-15
 * [BREAKING] Removed `Analyzer#resolveUrl` in favor of just exposing the
   `UrlResolver` at `Analyzer#urlResolver.resolve`
+* [BREAKING] `Analysis#getDocument` now returns a `Result` object. It has two
+  fields: `successful` and `value`. If `successful` is true, then `value` is
+  a Document. Otherwise it's either a Warning or undefined.
 * Add `Analyzer.createForDirectory()` for easily getting a well configured
   analyzer for a given directory.
 * Add `Import#originalUrl` which has the original url of the import as it was

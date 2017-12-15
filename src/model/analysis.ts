@@ -23,6 +23,11 @@ import {ResolvedUrl} from './url';
 import {Warning} from './warning';
 
 
+export type Result<G, B> = {
+  successful: true,
+  value: G
+}|{successful: false, value: B};
+
 // A regexp that matches paths to external code.
 // TODO(rictic): Make this extensible (polymer.json?).
 // Note that we match directories named exactly `build`, but will match any
@@ -72,15 +77,19 @@ export class Analysis implements Queryable {
     this._searchRoots = potentialRoots;
   }
 
-  getDocument(packageRelativeUrl: string): Document|Warning|undefined {
+  getDocument(packageRelativeUrl: string): Result<Document, Warning|undefined> {
     const url = this.context.resolveUserInputUrl(
         packageRelativeUrl as PackageRelativeUrl);
     if (url === undefined) {
-      return undefined;
+      return {successful: false, value: undefined};
     }
     const result = this._results.get(url);
     if (result != null) {
-      return result;
+      if (result instanceof Document) {
+        return {successful: true, value: result};
+      } else {
+        return {successful: false, value: result};
+      }
     }
     const documents =
         Array
@@ -88,9 +97,9 @@ export class Analysis implements Queryable {
                 {kind: 'document', id: url, externalPackages: true}))
             .filter((d) => !d.isInline);
     if (documents.length !== 1) {
-      return undefined;
+      return {successful: false, value: undefined};
     }
-    return documents[0]!;
+    return {successful: true, value: documents[0]!};
   }
 
   /**

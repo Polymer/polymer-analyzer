@@ -34,7 +34,8 @@ suite('PolymerElement with old jsdoc annotations', () => {
 
   async function getElements(filename: string): Promise<Set<PolymerElement>> {
     const document =
-        (await analyzer.analyze([filename])).getDocument(filename) as Document;
+        (await analyzer.analyze([filename])).getDocument(filename).value as
+        Document;
     const elements = document.getFeatures({kind: 'polymer-element'});
     return elements;
   };
