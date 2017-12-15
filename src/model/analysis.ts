@@ -23,12 +23,12 @@ import {ResolvedUrl} from './url';
 import {Warning} from './warning';
 
 
-export type Result<G, B> = {
+export type Result<T, E> = {
   successful: true,
-  value: G,
+  value: T,
 }|{
   successful: false,
-  error: B,
+  error: E,
 };
 
 // A regexp that matches paths to external code.
