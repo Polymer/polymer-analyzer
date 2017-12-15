@@ -25,8 +25,11 @@ import {Warning} from './warning';
 
 export type Result<G, B> = {
   successful: true,
-  value: G
-}|{successful: false, value: B};
+  value: G,
+}|{
+  successful: false,
+  error: B,
+};
 
 // A regexp that matches paths to external code.
 // TODO(rictic): Make this extensible (polymer.json?).
@@ -81,14 +84,14 @@ export class Analysis implements Queryable {
     const url = this.context.resolveUserInputUrl(
         packageRelativeUrl as PackageRelativeUrl);
     if (url === undefined) {
-      return {successful: false, value: undefined};
+      return {successful: false, error: undefined};
     }
     const result = this._results.get(url);
     if (result != null) {
       if (result instanceof Document) {
         return {successful: true, value: result};
       } else {
-        return {successful: false, value: result};
+        return {successful: false, error: result};
       }
     }
     const documents =
@@ -97,7 +100,7 @@ export class Analysis implements Queryable {
                 {kind: 'document', id: url, externalPackages: true}))
             .filter((d) => !d.isInline);
     if (documents.length !== 1) {
-      return {successful: false, value: undefined};
+      return {successful: false, error: undefined};
     }
     return {successful: true, value: documents[0]!};
   }

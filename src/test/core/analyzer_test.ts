@@ -404,8 +404,10 @@ suite('Analyzer', () => {
       const url = '/static/does_not_exist';
       const analysis = await analyzer.analyze([url]);
       const result = analysis.getDocument(url);
-      assert.isFalse(result.successful);
-      assert.isTrue(result.value instanceof Warning);
+      if (result.successful) {
+        throw new Error('Expected a failed result from getDocument');
+      }
+      assert.isTrue(result.error instanceof Warning);
     });
 
     test('handles documents from multiple calls to analyze()', async () => {
