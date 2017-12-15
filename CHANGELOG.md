@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   analyzer for a given directory.
 * Add `UrlResolver.createForDirectory()` for easily getting a well configured
   url resolver for a given directory.
+  * Resolves `../` urls based on `.bowerrc`, `bower.json`, and `package.json`
+    files.
 * Add `Import#originalUrl` which has the original url of the import as it was
   encountered in the document, before it was resolved relative to the base url
   of its containing document.
