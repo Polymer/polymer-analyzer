@@ -18,9 +18,7 @@ import URI from 'vscode-uri/lib';
 
 import {FileRelativeUrl, ResolvedUrl} from '../../index';
 import {PackageUrlResolver} from '../../url-loader/package-url-resolver';
-import {fileRelativeUrl, resolvedUrl} from '../test-utils';
-
-//
+import {fileRelativeUrl, noOpTag, resolvedUrl} from '../test-utils';
 
 /**
  * On posix systems file urls look like:
@@ -30,8 +28,10 @@ import {fileRelativeUrl, resolvedUrl} from '../test-utils';
  *
  * This will produce an OS-correct file url.
  */
-function rootedFileUrl([text]: TemplateStringsArray): ResolvedUrl {
+function rootedFileUrl(
+    strings: TemplateStringsArray, ...values: any[]): ResolvedUrl {
   const root = URI.file(pathlib.resolve('/')).toString();
+  const text = noOpTag(strings, ...values) as FileRelativeUrl;
   return (root + text) as ResolvedUrl;
 }
 
