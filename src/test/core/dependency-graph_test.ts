@@ -67,8 +67,8 @@ suite('DependencyGraph', () => {
    */
   suite('as used in the Analyzer', () => {
     let analyzer: Analyzer;
-    setup(() => {
-      analyzer = Analyzer.createForDirectory(fixtureDir);
+    setup(async () => {
+      analyzer = await Analyzer.createForDirectory(fixtureDir);
     });
 
     async function assertImportersOf(

@@ -22,7 +22,6 @@ import {PackageRelativeUrl, ResolvedUrl} from '../model/url';
 import {Parser} from '../parser/parser';
 import {Scanner} from '../scanning/scanner';
 import {FSUrlLoader} from '../url-loader/fs-url-loader';
-import {PackageUrlResolver} from '../url-loader/package-url-resolver';
 import {UrlLoader} from '../url-loader/url-loader';
 import {UrlResolver} from '../url-loader/url-resolver';
 
@@ -87,10 +86,10 @@ export class Analyzer {
    * at the given directory, but in the future it may take configuration from
    * files including polymer.json or similar.
    */
-  static createForDirectory(dirname: string): Analyzer {
+  static async createForDirectory(dirname: string): Promise<Analyzer> {
     return new Analyzer({
       urlLoader: new FSUrlLoader(dirname),
-      urlResolver: new PackageUrlResolver({})
+      urlResolver: await UrlResolver.createForDirectory(dirname)
     });
   }
 

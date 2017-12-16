@@ -26,7 +26,7 @@ suite('BehaviorScanner', () => {
 
   suiteSetup(async () => {
     const {features} = await runScanner(
-        Analyzer.createForDirectory(fixtureDir),
+        await Analyzer.createForDirectory(fixtureDir),
         new BehaviorScanner(),
         'js-behaviors.js');
     behaviors = new Map();

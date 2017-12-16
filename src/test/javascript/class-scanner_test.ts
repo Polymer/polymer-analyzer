@@ -20,8 +20,8 @@ import {ClassScanner} from '../../javascript/class-scanner';
 import {Class, Element, ElementMixin, Method, ScannedClass} from '../../model/model';
 import {CodeUnderliner, fixtureDir, runScanner} from '../test-utils';
 
-suite('Class', () => {
-  const analyzer = Analyzer.createForDirectory(fixtureDir);
+suite('Class', async () => {
+  const analyzer = await Analyzer.createForDirectory(fixtureDir);
   const underliner = new CodeUnderliner(analyzer);
 
   async function getScannedFeatures(filename: string) {

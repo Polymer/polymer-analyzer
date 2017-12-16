@@ -23,9 +23,9 @@ import {CodeUnderliner, fixtureDir, runScanner} from '../test-utils';
 
 chaiUse(require('chai-subset'));
 
-suite('Polymer2ElementScanner with old jsdoc annotations', () => {
+suite('Polymer2ElementScanner with old jsdoc annotations', async () => {
   const testFilesDir = path.resolve(fixtureDir, 'polymer2-old-jsdoc/');
-  const analyzer = Analyzer.createForDirectory(testFilesDir);
+  const analyzer = await Analyzer.createForDirectory(testFilesDir);
   const underliner = new CodeUnderliner(analyzer);
 
   async function getElements(filename: string):
@@ -553,18 +553,20 @@ namespaced name.`,
   test('can identify elements registered with ClassName.is', async () => {
     const elements = await getElements('test-element-11.js');
     const elementData = await Promise.all(elements.map(getTestProps));
-    assert.deepEqual(
-        elementData, [{
-          attributes: [{name: 'prop1'}],
-          className: 'MyElement',
-          description: '',
-          methods: [],
-          properties:
-              [{name: 'prop1', description: '', type: 'string | null | undefined'}],
-          summary: '',
-          superClass: 'Polymer.Element',
-          tagName: 'my-app',
-          warningUnderlines: [],
-        }]);
+    assert.deepEqual(elementData, [
+      {
+        attributes: [{name: 'prop1'}],
+        className: 'MyElement',
+        description: '',
+        methods: [],
+        properties: [
+          {name: 'prop1', description: '', type: 'string | null | undefined'}
+        ],
+        summary: '',
+        superClass: 'Polymer.Element',
+        tagName: 'my-app',
+        warningUnderlines: [],
+      }
+    ]);
   });
 });

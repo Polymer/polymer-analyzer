@@ -52,7 +52,7 @@ suite('HtmlParser', () => {
 
     test('can properly determine the base url of a document', async () => {
       const analyzer =
-          Analyzer.createForDirectory(path.resolve(fixtureDir, '../'));
+          await Analyzer.createForDirectory(path.resolve(fixtureDir, '../'));
       const resolvedPath =
           analyzer.resolveUrl(`static/base-href/doc-with-base.html`)!;
       const file = await analyzer.load(resolvedPath);
