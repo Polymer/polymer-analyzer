@@ -152,21 +152,25 @@ export class Analysis implements Queryable {
    * @param sourceRange Source range to search for in a document
    */
    getDocumentContaining(sourceRange: SourceRange|undefined) {
-   if (!sourceRange) {
-     return undefined;
-   }
-   let mostSpecificDocument: undefined|Document = undefined;
-   for (const doc of this.getFeatures({kind: 'document'})) {
-     if (isPositionInsideRange(sourceRange.start, doc.sourceRange)) {
-       if (!mostSpecificDocument ||
-           isPositionInsideRange(
-               doc.sourceRange!.start, mostSpecificDocument.sourceRange)) {
-         mostSpecificDocument = doc;
+     if (!sourceRange) {
+       return undefined;
+     }
+     let mostSpecificDocument: undefined|Document = undefined;
+     const [outerDocument] = this.getFeatures({kind: 'document', id: sourceRange.file});
+     if (!outerDocument) {
+       return undefined;
+     }
+     for (const doc of outerDocument.getFeatures({kind: 'document'})) {
+       if (isPositionInsideRange(sourceRange.start, doc.sourceRange)) {
+         if (!mostSpecificDocument ||
+             isPositionInsideRange(
+                 doc.sourceRange!.start, mostSpecificDocument.sourceRange)) {
+           mostSpecificDocument = doc;
+         }
        }
      }
+     return mostSpecificDocument;
    }
-   return mostSpecificDocument;
- }
 
   private _getDocumentQuery(query: Query = {}): DocumentQuery {
     return {

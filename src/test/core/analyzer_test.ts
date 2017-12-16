@@ -263,6 +263,24 @@ suite('Analyzer', () => {
       assert.equal(narrowedDocument, inlineJsDocument);
     });
 
+    testName = 'a feature in the top level document narrows down to the full document';
+    test(testName, async () => {
+      const url = 'static/script-tags/inline/test-element.html';
+      const result = (await analyzer.analyze([url]));
+      const document = result.getDocument(url);
+      if (!document.successful) {
+        throw new Error(`Could not get document for url: ${url}`);
+      }
+
+      // The inline document can find the container's imported
+      // features
+      const HTMLImport = getOnly(document.value.getFeatures(
+          {kind: 'html-import'}));
+      const narrowedDocument =
+          result.getDocumentContaining(HTMLImport.sourceRange);
+      assert.equal(narrowedDocument, document.value);
+    });
+
     testName =
         'an external script can find features from its container document';
     test(testName, async () => {
