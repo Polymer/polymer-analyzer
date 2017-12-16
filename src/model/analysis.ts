@@ -12,13 +12,16 @@
  * http://polymer.github.io/PATENTS.txt
  */
 
+import {SourceRange} from '../analysis-format/analysis-format';
 import {AnalysisContext} from '../core/analysis-context';
+import {addAll} from '../core/utils';
 import {PackageRelativeUrl} from '../index';
 
 import {Document} from './document';
 import {Feature} from './feature';
 import {ImmutableMap, ImmutableSet} from './immutable';
 import {AnalysisQuery as Query, AnalysisQueryWithKind as QueryWithKind, DocumentQuery, FeatureKind, FeatureKindMap, Queryable} from './queryable';
+import {isPositionInsideRange} from './source-range';
 import {ResolvedUrl} from './url';
 import {Warning} from './warning';
 
@@ -147,26 +150,23 @@ export class Analysis implements Queryable {
    * will narrow down the document to the most specific inline document.
    *
    * @param sourceRange Source range to search for in a document
-   * @param document The document that contains the source range
    */
-  getDocumentContaining(sourceRange: SourceRange|undefined, document: Document):
-      Document|undefined {
-    if (!sourceRange) {
-      return undefined;
-    }
-    let mostSpecificDocument: undefined|Document = undefined;
-    for (const doc of document.getFeatures({kind: 'document'})) {
-      if (isPositionInsideRange(sourceRange.start, doc.sourceRange)) {
-        if (!mostSpecificDocument ||
-            isPositionInsideRange(
-                doc.sourceRange!.start, mostSpecificDocument.sourceRange)) {
-          mostSpecificDocument = doc;
-        }
-      }
-    }
-    mostSpecificDocument = mostSpecificDocument || document;
-    return mostSpecificDocument;
-  }
+   getDocumentContaining(sourceRange: SourceRange|undefined) {
+   if (!sourceRange) {
+     return undefined;
+   }
+   let mostSpecificDocument: undefined|Document = undefined;
+   for (const doc of this.getFeatures({kind: 'document'})) {
+     if (isPositionInsideRange(sourceRange.start, doc.sourceRange)) {
+       if (!mostSpecificDocument ||
+           isPositionInsideRange(
+               doc.sourceRange!.start, mostSpecificDocument.sourceRange)) {
+         mostSpecificDocument = doc;
+       }
+     }
+   }
+   return mostSpecificDocument;
+ }
 
   private _getDocumentQuery(query: Query = {}): DocumentQuery {
     return {
