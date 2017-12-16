@@ -240,7 +240,7 @@ suite('Analyzer', () => {
     });
 
     testName = 'an inline feature can narrow down its containing document';
-    test.only(testName, async () => {
+    test(testName, async () => {
       const url = 'static/script-tags/inline/test-element.html';
       const result = (await analyzer.analyze([url]));
       const document = result.getDocument(url);
@@ -260,7 +260,6 @@ suite('Analyzer', () => {
           {kind: 'polymer-element', id: 'test-element', imported: true}));
       const narrowedDocument =
           result.getDocumentContaining(subBehavior.sourceRange);
-          console.log(inlineJsDocument.type, inlineJsDocument.url)
       assert.equal(narrowedDocument, inlineJsDocument);
     });
 
