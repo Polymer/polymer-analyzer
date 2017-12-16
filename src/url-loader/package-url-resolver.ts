@@ -43,11 +43,8 @@ export class PackageUrlResolver extends UrlResolver {
   constructor(options?: PackageUrlResolverOptions) {
     super();
     options = options || {};
-    this.packageDir = pathlib.resolve(options.packageDir || process.cwd());
-    if (isWindows && /^[a-z]:/.test(this.packageDir)) {
-      // Upper case the drive letter
-      this.packageDir = this.packageDir[0].toUpperCase() + this.packageDir.slice(1);
-    }
+    this.packageDir =
+        normalizeFsPath(pathlib.resolve(options.packageDir || process.cwd()));
     this.packageUrl =
         this.brandAsResolved(Uri.file(this.packageDir).toString());
     if (!this.packageUrl.endsWith('/')) {
@@ -178,11 +175,15 @@ export class PackageUrlResolver extends UrlResolver {
   }
 
   private filesystemPathForPathname(decodedPathname: string) {
-    let path = Uri.file(decodedPathname).fsPath;
-    if (isWindows && /^[a-z]:/.test(path)) {
-      // Upper case the drive letter
-      path = path[0].toUpperCase() + path.slice(1);
-    }
-    return path;
+    return normalizeFsPath(Uri.file(decodedPathname).fsPath);
   }
+}
+
+function normalizeFsPath(fsPath: string) {
+  fsPath = pathlib.normalize(fsPath);
+  if (isWindows && /^[a-z]:/.test(fsPath)) {
+    // Upper case the drive letter
+    fsPath = fsPath[0].toUpperCase() + fsPath.slice(1);
+  }
+  return fsPath;
 }
