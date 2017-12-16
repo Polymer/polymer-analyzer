@@ -1,8 +1,8 @@
-environment:
-  nodejs_version: "node"
-
 install:
-  - ps: Install-Product node $env:nodejs_version
+  # a version of '' means "the latest one"
+  # ... for some reason.
+  # https://www.appveyor.com/docs/lang/nodejs-iojs/#selecting-nodejs-or-iojs-version
+  - ps: Install-Product node ''
   - npm install
 
 test_script:
