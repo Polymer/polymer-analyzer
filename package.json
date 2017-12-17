@@ -60,8 +60,7 @@
     "temp": "^0.8.3",
     "tslint": "^4.1.1",
     "typescript": "^2.6.1",
-    "typescript-json-schema": "^0.19.0",
-    "watchy": "^0.6.6"
+    "typescript-json-schema": "^0.19.0"
   },
   "dependencies": {
     "@types/babel-generator": "^6.25.1",
