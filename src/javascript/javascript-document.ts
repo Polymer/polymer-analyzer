@@ -43,7 +43,7 @@ export interface Options extends ParsedDocumentOptions<Program> {
 }
 
 export class JavaScriptDocument extends ParsedDocument<Node, Visitor> {
-  type = 'js';
+  readonly type = 'js';
   private visitorSkips = new Map<Visitor, SkipRecord>();
   ast: Program;
 
@@ -58,6 +58,10 @@ export class JavaScriptDocument extends ParsedDocument<Node, Visitor> {
   constructor(from: Options) {
     super(from);
     this.parsedAsSourceType = from.parsedAsSourceType;
+  }
+
+  static is(document: ParsedDocument): document is JavaScriptDocument {
+    return document.type === 'js';
   }
 
   visit(visitors: Visitor[]) {

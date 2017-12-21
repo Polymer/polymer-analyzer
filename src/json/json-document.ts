@@ -22,11 +22,16 @@ export interface JsonArray extends Array<Json> {}
 export interface Visitor { visit(node: Json): void; }
 
 export class ParsedJsonDocument extends ParsedDocument<Json, Visitor> {
-  type = 'json';
+  readonly type = 'json';
 
   constructor(from: Options<Json>) {
     super(from);
   }
+
+  static is(document: ParsedDocument): document is ParsedJsonDocument {
+    return document.type === 'json';
+  }
+
 
   visit(visitors: Visitor[]) {
     this._visit(this.ast, visitors);

@@ -27,11 +27,16 @@ import {Options, ParsedDocument, StringifyOptions} from '../parser/document';
 export interface HtmlVisitor { (node: ASTNode): void; }
 
 export class ParsedHtmlDocument extends ParsedDocument<ASTNode, HtmlVisitor> {
-  type = 'html';
+  readonly type = 'html';
 
   constructor(from: Options<ASTNode>) {
     super(from);
   }
+
+  static is(document: ParsedDocument): document is ParsedHtmlDocument {
+    return document.type === 'html';
+  }
+
 
   visit(visitors: HtmlVisitor[]) {
     dom5.nodeWalk(this.ast, (node) => {

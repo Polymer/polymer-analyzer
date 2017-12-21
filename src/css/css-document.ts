@@ -22,10 +22,14 @@ import cssbeautify = require('cssbeautify');
 export interface Visitor { visit(node: shady.Node): void; }
 
 export class ParsedCssDocument extends ParsedDocument<shady.Node, Visitor> {
-  type = 'css';
+  readonly type = 'css';
 
   constructor(from: Options<shady.Node>) {
     super(from);
+  }
+
+  static is(document: ParsedDocument): document is ParsedCssDocument {
+    return document.type === 'css';
   }
 
   visit(visitors: Visitor[]) {

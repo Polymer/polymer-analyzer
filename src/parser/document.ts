@@ -22,7 +22,7 @@ import {ResolvedUrl} from '../model/url';
  * @template Visitor The type of the visitors that can walk the document.
  */
 export abstract class ParsedDocument<AstNode = any, Visitor = any> {
-  abstract type: string;
+  abstract readonly type: string;
   url: ResolvedUrl;
   baseUrl: ResolvedUrl;
   contents: string;
