@@ -55,7 +55,7 @@ export abstract class UrlResolver {
     // double-check is necessary here, since I adapted the existing logic
     // in-place from the prior form to support urls containing search and hash.
     // I'm guessing this is related to Windows...?
-    const {pathname: pathname} = parseUrl(url);
+    const {pathname} = parseUrl(url);
     if (pathname && pathname.endsWith('/')) {
       const resolvedUrl = parseUrl(resolved);
       if (!resolvedUrl.pathname!.endsWith('/')) {
