@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## Unreleased
 * `UrlResolver#resolve()` returns urls containing search and hash
   components where they were previously stripped out.
+* Add FSUrlLoader#getFilePath which will return the file path that would
+  be loaded for a given ResolvedUrl, or an error message explaining why
+  it can't be.
 <!-- Add new, unreleased changes here. -->
 
 ## [3.0.0-pre.6] - 2017-12-18
