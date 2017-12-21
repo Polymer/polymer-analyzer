@@ -153,6 +153,16 @@ suite('PackageUrlResolver', function() {
           resolver.resolve(fileRelativeUrl`%><><%=`, packageRoot), undefined);
     });
 
+    test('resolves a relative URL containing search and hash', () => {
+      assert.equal(
+          resolver.resolve(fileRelativeUrl`foo.html?baz#bat`, packageRoot),
+          rootedFileUrl`1/2/foo.html?baz#bat`);
+      assert.equal(
+          resolver.resolve(
+              fileRelativeUrl`foo.html?baz#bat`, rootedFileUrl`1/2/bar/baz/`),
+          rootedFileUrl`1/2/bar/baz/foo.html?baz#bat`);
+    });
+
     test('resolves a URL with no pathname', () => {
       const foo = rootedFileUrl`1/2/foo.html?baz#bat`;
       const bar = rootedFileUrl`1/2/bar.html`;
@@ -174,7 +184,6 @@ suite('PackageUrlResolver', function() {
           rootedFileUrl`1/2/bar.html?fiz#buz`);
     });
   });
-
   suite('relative', () => {
     // We want process.cwd so that on Windows we test Windows paths and on
     // posix we test posix paths.
