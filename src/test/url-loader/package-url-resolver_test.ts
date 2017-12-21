@@ -155,6 +155,10 @@ suite('PackageUrlResolver', function() {
 
     test('resolves a relative URL containing querystring and fragment', () => {
       assert.equal(
+          resolver.resolve(
+              fileRelativeUrl`foo.html#bat`, rootedFileUrl`1/2/foo.html?bar`),
+          rootedFileUrl`1/2/foo.html#bat`);
+      assert.equal(
           resolver.resolve(fileRelativeUrl`foo.html?baz#bat`, packageRoot),
           rootedFileUrl`1/2/foo.html?baz#bat`);
       assert.equal(
