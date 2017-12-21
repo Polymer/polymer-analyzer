@@ -23,16 +23,6 @@ const sharedRelativeUrlProperties =
     ['protocol', 'slashes', 'auth', 'host', 'port', 'hostname'];
 
 /**
- * TODO(usergenic): Remove this hack if this nodejs bug is ever fixed on
- * Windows: https://github.com/nodejs/node/issues/13683
- */
-function pathPosixRelative(from: string, to: string): string {
-  const relative = path.posix.relative(from, to);
-  return path === path.win32 ? relative.replace(/\.\.\.\./g, '../..') :
-                               relative;
-}
-
-/**
  * Resolves the given URL to the concrete URL that a resource can
  * be loaded from.
  *
@@ -60,10 +50,11 @@ export abstract class UrlResolver {
       baseUrl: ResolvedUrl): ResolvedUrl {
     let resolved = urlLibResolver(baseUrl, url);
 
-    // TODO(usergenic): There is no test coverage for the missing trailing slash
-    // on urlLibResolver'd urls.  Investigate why this double-check is necessary
-    // here, since I adapted the existing logic in-place from the prior form
-    // to support urls containing search and hash.
+    // TODO(usergenic): There is no *explicit* test coverage for the missing
+    // trailing slash on urlLibResolver'd urls.  Investigate why this
+    // double-check is necessary here, since I adapted the existing logic
+    // in-place from the prior form to support urls containing search and hash.
+    // I'm guessing this is related to Windows...?
     const {pathname: pathname} = parseUrl(url);
     if (pathname && pathname.endsWith('/')) {
       const resolvedUrl = parseUrl(resolved);
@@ -90,10 +81,9 @@ export abstract class UrlResolver {
         fromUrl.pathname.replace(/[^/]+$/, '') :
         '';
     const toDir = toUrl.pathname !== undefined ? toUrl.pathname : '';
-    // Note, below, the _ character is appended so that paths with trailing
-    // slash retain the trailing slash in the path.relative result, but only
-    // when the `to` is ultimately different than the `from` location.
-    const relPath = pathPosixRelative(fromDir, toDir + '_').replace(/_$/, '');
+    // Note, below, the _ character is appended to the `toDir` so that paths
+    // with trailing slash will retain the trailing slash in the result.
+    const relPath = path.posix.relative(fromDir, toDir + '_').replace(/_$/, '');
     sharedRelativeUrlProperties.forEach((p) => (toUrl as any)[p] = null);
     toUrl.path = undefined;
     toUrl.pathname = relPath;
