@@ -13,7 +13,7 @@
  */
 import * as pathlib from 'path';
 import {posix as posix} from 'path';
-import {format as formatUrl, Url} from 'url';
+import {format as urlLibFormat, Url} from 'url';
 import Uri from 'vscode-uri';
 
 import {parseUrl} from '../core/utils';
@@ -128,7 +128,7 @@ export class PackageUrlResolver extends UrlResolver {
     const resolvedUrl = parseUrl(Uri.file(path).toString());
     resolvedUrl.search = url.search;
     resolvedUrl.hash = url.hash;
-    return this.brandAsResolved(formatUrl(resolvedUrl));
+    return this.brandAsResolved(urlLibFormat(resolvedUrl));
   }
 
   relative(fromOrTo: ResolvedUrl, maybeTo?: ResolvedUrl, _kind?: string):
@@ -151,7 +151,7 @@ export class PackageUrlResolver extends UrlResolver {
           const toUrl = parseUrl(to);
           reresolvedUrl.search = toUrl.search;
           reresolvedUrl.hash = toUrl.hash;
-          to = this.brandAsResolved(formatUrl(reresolvedUrl));
+          to = this.brandAsResolved(urlLibFormat(reresolvedUrl));
         }
       }
     }
