@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## Unreleased
+* `UrlResolver#resolve()` returns urls containing search and hash
+  components where they were previously stripped out.
+<!-- Add new, unreleased changes here. -->
+
 ## [3.0.0-pre.6] - 2017-12-18
 * [BREAKING] `Analysis#getDocument` now returns a `Result` object. When
   `result.successful` is true, `result.value` is a Document. When
@@ -15,7 +20,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   https://example.com/components/paper-button/paper-button.html
 * Introduce getDocumentContaining to find containing inline document for a
   feature
-<!-- Add new, unreleased changes here. -->
 
 ## [3.0.0-pre.5] - 2017-12-15
 * [BREAKING] Removed `Analyzer#resolveUrl` in favor of just exposing the
