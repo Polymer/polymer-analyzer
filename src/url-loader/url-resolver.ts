@@ -19,9 +19,6 @@ import {parseUrl} from '../core/utils';
 import {PackageRelativeUrl, ScannedImport} from '../index';
 import {FileRelativeUrl, ResolvedUrl} from '../model/url';
 
-const sharedRelativeUrlProperties =
-    ['protocol', 'slashes', 'auth', 'host', 'port', 'hostname'];
-
 /**
  * Resolves the given URL to the concrete URL that a resource can
  * be loaded from.
@@ -48,22 +45,7 @@ export abstract class UrlResolver {
   protected simpleUrlResolve(
       url: FileRelativeUrl|PackageRelativeUrl,
       baseUrl: ResolvedUrl): ResolvedUrl {
-    let resolved = urlLibResolver(baseUrl, url);
-
-    // TODO(usergenic): There is no *explicit* test coverage for the missing
-    // trailing slash on urlLibResolver'd urls.  Investigate why this
-    // double-check is necessary here, since I adapted the existing logic
-    // in-place from the prior form to support urls containing search and hash.
-    // I'm guessing this is related to Windows...?
-    const {pathname} = parseUrl(url);
-    if (pathname && pathname.endsWith('/')) {
-      const resolvedUrl = parseUrl(resolved);
-      if (!resolvedUrl.pathname!.endsWith('/')) {
-        resolvedUrl.pathname += '/';
-        resolved = urlLibFormat(resolvedUrl);
-      }
-    }
-    return this.brandAsResolved(resolved);
+    return this.brandAsResolved(urlLibResolver(baseUrl, url));
   }
 
   protected simpleUrlRelative(from: ResolvedUrl, to: ResolvedUrl):
@@ -72,25 +54,34 @@ export abstract class UrlResolver {
     const toUrl = parseUrl(to);
     // Return the `to` as-is if there are conflicting components which
     // prohibit calculating a relative form.
-    if (sharedRelativeUrlProperties.some(
-            (p) => (toUrl as any)[p] !== null &&
-                (fromUrl as any)[p] !== (toUrl as any)[p])) {
+    if (typeof toUrl.protocol === 'string' &&
+            fromUrl.protocol !== toUrl.protocol ||
+        typeof toUrl.slashes === 'boolean' &&
+            fromUrl.slashes !== toUrl.slashes ||
+        typeof toUrl.host === 'string' && fromUrl.host !== toUrl.host ||
+        typeof toUrl.auth === 'string' && fromUrl.auth !== toUrl.auth) {
       return this.brandAsRelative(to);
     }
     if (fromUrl.pathname === toUrl.pathname) {
       toUrl.pathname = '';
     } else {
-      const fromDir = fromUrl.pathname !== undefined ?
+      const fromDir = typeof fromUrl.pathname === 'string' ?
           fromUrl.pathname.replace(/[^/]+$/, '') :
           '';
-      const toDir = toUrl.pathname !== undefined ? toUrl.pathname : '';
+      const toDir = typeof toUrl.pathname === 'string' &&
+              typeof toUrl.pathname === 'string' ?
+          toUrl.pathname :
+          '';
       // Note, below, the _ character is appended to the `toDir` so that paths
       // with trailing slash will retain the trailing slash in the result.
       toUrl.pathname =
           path.posix.relative(fromDir, toDir + '_').replace(/_$/, '');
     }
-    sharedRelativeUrlProperties.forEach((p) => (toUrl as any)[p] = null);
-    toUrl.path = undefined;
+    delete toUrl.protocol;
+    delete toUrl.slashes;
+    delete toUrl.auth;
+    delete toUrl.host;
+    delete toUrl.path;
     return this.brandAsRelative(urlLibFormat(toUrl));
   }
 
