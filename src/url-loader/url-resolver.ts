@@ -68,8 +68,8 @@ export abstract class UrlResolver {
 
   protected simpleUrlRelative(from: ResolvedUrl, to: ResolvedUrl):
       FileRelativeUrl {
-    const fromUrl = parseUrl(from)!;
-    const toUrl = parseUrl(to)!;
+    const fromUrl = parseUrl(from);
+    const toUrl = parseUrl(to);
     // Return the `to` as-is if there are conflicting components which
     // prohibit calculating a relative form.
     if (sharedRelativeUrlProperties.some(
