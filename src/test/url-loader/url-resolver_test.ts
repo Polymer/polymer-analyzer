@@ -67,7 +67,7 @@ suite('UrlResolver', () => {
       assert.equal(relative('/foo/', '/foo/'), '');
       assert.equal(relative('/foo/', '/bar/'), '../bar/');
       assert.equal(relative('foo/', '/'), '../../');  // 'foo/' ~> '/test/foo/'
-      assert.equal(relative('foo.html', 'foo.html'), 'foo.html');
+      assert.equal(relative('foo.html', 'foo.html'), '');
       assert.equal(relative('foo/', 'bar/'), '../bar/');
       assert.equal(relative('foo.html', 'bar.html'), 'bar.html');
       assert.equal(relative('sub/foo.html', 'bar.html'), '../bar.html');
@@ -81,11 +81,11 @@ suite('UrlResolver', () => {
     });
 
     test('preserves target url searches and hashes', () => {
+      assert.equal(relative('foo.html', 'foo.html?fiz=buz'), '?fiz=buz');
       assert.equal(
-          relative('foo.html', 'foo.html?fiz=buz'), 'foo.html?fiz=buz');
-      assert.equal(relative('foo.html?fiz=buz', 'foo.html'), 'foo.html');
-      assert.equal(
-          relative('foo.html', 'foo.html#anchor-x'), 'foo.html#anchor-x');
+          relative('foo.html', 'bar.html?fiz=buz'), 'bar.html?fiz=buz');
+      assert.equal(relative('foo.html?fiz=buz', 'foo.html'), '');
+      assert.equal(relative('foo.html', 'foo.html#fiz'), '#fiz');
     });
 
     test('will keep absolute urls absolute', () => {

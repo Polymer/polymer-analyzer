@@ -193,7 +193,7 @@ suite('PackageUrlResolver', function() {
       assert.equal(relative('/foo/', '/foo/'), '');
       assert.equal(relative('/foo/', '/bar/'), '../bar/');
       assert.equal(relative('foo/', '/'), '../');
-      assert.equal(relative('foo.html', 'foo.html'), 'foo.html');
+      assert.equal(relative('foo.html', 'foo.html'), '');
       assert.equal(relative('foo/', 'bar/'), '../bar/');
       assert.equal(relative('foo.html', 'bar.html'), 'bar.html');
       assert.equal(relative('sub/foo.html', 'bar.html'), '../bar.html');

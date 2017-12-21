@@ -77,16 +77,20 @@ export abstract class UrlResolver {
                 (fromUrl as any)[p] !== (toUrl as any)[p])) {
       return this.brandAsRelative(toUri);
     }
-    const fromDir = fromUrl.pathname !== undefined ?
-        fromUrl.pathname.replace(/[^/]+$/, '') :
-        '';
-    const toDir = toUrl.pathname !== undefined ? toUrl.pathname : '';
-    // Note, below, the _ character is appended to the `toDir` so that paths
-    // with trailing slash will retain the trailing slash in the result.
-    const relPath = path.posix.relative(fromDir, toDir + '_').replace(/_$/, '');
+    if (fromUrl.pathname === toUrl.pathname) {
+      toUrl.pathname = '';
+    } else {
+      const fromDir = fromUrl.pathname !== undefined ?
+          fromUrl.pathname.replace(/[^/]+$/, '') :
+          '';
+      const toDir = toUrl.pathname !== undefined ? toUrl.pathname : '';
+      // Note, below, the _ character is appended to the `toDir` so that paths
+      // with trailing slash will retain the trailing slash in the result.
+      toUrl.pathname =
+          path.posix.relative(fromDir, toDir + '_').replace(/_$/, '');
+    }
     sharedRelativeUrlProperties.forEach((p) => (toUrl as any)[p] = null);
     toUrl.path = undefined;
-    toUrl.pathname = relPath;
     return this.brandAsRelative(urlLibFormat(toUrl));
   }
 
