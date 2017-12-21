@@ -13,15 +13,15 @@
  */
 
 import {assert} from 'chai';
-import {posix} from 'path';
 
-import {FileRelativeUrl, ResolvedUrl, PackageRelativeUrl} from '../../index';
+import {FileRelativeUrl, PackageRelativeUrl, ResolvedUrl} from '../../index';
 import {UrlResolver} from '../../url-loader/url-resolver';
 
 class SimplestUrlResolver extends UrlResolver {
-  resolve(url: FileRelativeUrl|PackageRelativeUrl) {
-    return this.simpleUrlResolve(
-        url, posix.normalize(process.cwd()) as ResolvedUrl);
+  resolve(
+      url: FileRelativeUrl|PackageRelativeUrl,
+      baseUrl: ResolvedUrl = '/test/' as ResolvedUrl) {
+    return this.simpleUrlResolve(url, baseUrl);
   }
 
   relative(fromOrTo: ResolvedUrl, maybeTo?: ResolvedUrl, _kind?: string):
@@ -39,6 +39,20 @@ class SimplestUrlResolver extends UrlResolver {
 }
 
 suite('UrlResolver', () => {
+  suite('resolve', () => {
+    const resolver = new SimplestUrlResolver();
+    function resolve(url: string, baseUrl: string) {
+      return resolver.resolve(url as FileRelativeUrl, baseUrl as ResolvedUrl);
+    }
+    test('can resolve a url when relative url contains no pathname', () => {
+      assert.equal(resolve('', '/foo.html?fiz#buz'), '/foo.html?fiz');
+      assert.equal(resolve('#fiz', '/foo.html'), '/foo.html#fiz');
+      assert.equal(resolve('#fiz', '/foo.html#buz'), '/foo.html#fiz');
+      assert.equal(resolve('?fiz', '/foo.html'), '/foo.html?fiz');
+      assert.equal(resolve('?fiz', '/foo.html?buz'), '/foo.html?fiz');
+    });
+  });
+
   suite('relative', () => {
     const resolver = new SimplestUrlResolver();
     function relative(from: string, to: string) {
@@ -48,6 +62,12 @@ suite('UrlResolver', () => {
     }
 
     test('can get relative urls between urls', () => {
+      assert.equal(relative('/', '/'), '');
+      assert.equal(relative('/', '/bar/'), 'bar/');
+      assert.equal(relative('/foo/', '/foo/'), '');
+      assert.equal(relative('/foo/', '/bar/'), '../bar/');
+      assert.equal(relative('foo/', '/'), '../../');  // 'foo/' ~> '/test/foo/'
+      assert.equal(relative('foo.html', 'foo.html'), 'foo.html');
       assert.equal(relative('foo/', 'bar/'), '../bar/');
       assert.equal(relative('foo.html', 'bar.html'), 'bar.html');
       assert.equal(relative('sub/foo.html', 'bar.html'), '../bar.html');
@@ -58,6 +78,14 @@ suite('UrlResolver', () => {
       assert.equal(relative('./foo.html', './bar.html'), 'bar.html');
       assert.equal(relative('./foo/', 'sub/bar.html'), '../sub/bar.html');
       assert.equal(relative('./foo/bonk.html', 'sub/bar/'), '../sub/bar/');
+    });
+
+    test('preserves target url searches and hashes', () => {
+      assert.equal(
+          relative('foo.html', 'foo.html?fiz=buz'), 'foo.html?fiz=buz');
+      assert.equal(relative('foo.html?fiz=buz', 'foo.html'), 'foo.html');
+      assert.equal(
+          relative('foo.html', 'foo.html#anchor-x'), 'foo.html#anchor-x');
     });
 
     test('will keep absolute urls absolute', () => {

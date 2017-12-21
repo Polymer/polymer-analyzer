@@ -152,6 +152,27 @@ suite('PackageUrlResolver', function() {
       assert.equal(
           resolver.resolve(fileRelativeUrl`%><><%=`, packageRoot), undefined);
     });
+
+    test('resolves a URL with no pathname', () => {
+      const foo = rootedFileUrl`1/2/foo.html?baz#bat`;
+      const bar = rootedFileUrl`1/2/bar.html`;
+      assert.equal(
+          resolver.resolve(fileRelativeUrl``, foo),
+          rootedFileUrl`1/2/foo.html?baz`);
+      assert.equal(resolver.resolve(fileRelativeUrl``, bar), bar);
+      assert.equal(
+          resolver.resolve(fileRelativeUrl`#buz`, foo),
+          rootedFileUrl`1/2/foo.html?baz#buz`);
+      assert.equal(
+          resolver.resolve(fileRelativeUrl`#buz`, bar),
+          rootedFileUrl`1/2/bar.html#buz`);
+      assert.equal(
+          resolver.resolve(fileRelativeUrl`?fiz#buz`, foo),
+          rootedFileUrl`1/2/foo.html?fiz#buz`);
+      assert.equal(
+          resolver.resolve(fileRelativeUrl`?fiz#buz`, bar),
+          rootedFileUrl`1/2/bar.html?fiz#buz`);
+    });
   });
 
   suite('relative', () => {
@@ -167,6 +188,12 @@ suite('PackageUrlResolver', function() {
     }
 
     test('can get relative urls between urls', () => {
+      assert.equal(relative('/', '/'), '');
+      assert.equal(relative('/', '/bar/'), 'bar/');
+      assert.equal(relative('/foo/', '/foo/'), '');
+      assert.equal(relative('/foo/', '/bar/'), '../bar/');
+      assert.equal(relative('foo/', '/'), '../');
+      assert.equal(relative('foo.html', 'foo.html'), 'foo.html');
       assert.equal(relative('foo/', 'bar/'), '../bar/');
       assert.equal(relative('foo.html', 'bar.html'), 'bar.html');
       assert.equal(relative('sub/foo.html', 'bar.html'), '../bar.html');

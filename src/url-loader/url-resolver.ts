@@ -12,12 +12,25 @@
  * http://polymer.github.io/PATENTS.txt
  */
 
-import {posix} from 'path';
-import {resolve as urlLibResolver} from 'url';
+import * as path from 'path';
+import {format as urlLibFormat, resolve as urlLibResolver} from 'url';
 
 import {parseUrl} from '../core/utils';
 import {PackageRelativeUrl, ScannedImport} from '../index';
 import {FileRelativeUrl, ResolvedUrl} from '../model/url';
+
+const sharedRelativeUrlProperties =
+    ['protocol', 'slashes', 'auth', 'host', 'port', 'hostname'];
+
+/**
+ * TODO(usergenic): Remove this hack if this nodejs bug is ever fixed on
+ * Windows: https://github.com/nodejs/node/issues/13683
+ */
+function pathPosixRelative(from: string, to: string): string {
+  const relative = path.posix.relative(from, to);
+  return path === path.win32 ? relative.replace(/\.\.\.\./g, '../..') :
+                               relative;
+}
 
 /**
  * Resolves the given URL to the concrete URL that a resource can
@@ -46,32 +59,45 @@ export abstract class UrlResolver {
       url: FileRelativeUrl|PackageRelativeUrl,
       baseUrl: ResolvedUrl): ResolvedUrl {
     let resolved = urlLibResolver(baseUrl, url);
-    if (url.endsWith('/') && !resolved.endsWith('/')) {
-      resolved += '/';
+
+    // TODO(usergenic): There is no test coverage for the missing trailing slash
+    // on urlLibResolver'd urls.  Investigate why this double-check is necessary
+    // here, since I adapted the existing logic in-place from the prior form
+    // to support urls containing search and hash.
+    const {pathname: pathname} = parseUrl(url);
+    if (pathname && pathname.endsWith('/')) {
+      const resolvedUrl = parseUrl(resolved);
+      if (!resolvedUrl.pathname!.endsWith('/')) {
+        resolvedUrl.pathname += '/';
+        resolved = urlLibFormat(resolvedUrl);
+      }
     }
     return this.brandAsResolved(resolved);
   }
 
-  protected simpleUrlRelative(from: ResolvedUrl, to: ResolvedUrl):
+  protected simpleUrlRelative(fromUri: ResolvedUrl, toUri: ResolvedUrl):
       FileRelativeUrl {
-    const fromUrl = parseUrl(from);
-    const toUrl = parseUrl(to);
-    if (toUrl.protocol && toUrl.protocol !== fromUrl.protocol) {
-      return this.brandAsRelative(to);
+    const fromUrl = parseUrl(fromUri)!;
+    const toUrl = parseUrl(toUri)!;
+    // Return the toUri as-is if there are conflicting components which
+    // prohibit calculating a relative form.
+    if (sharedRelativeUrlProperties.some(
+            (p) => (toUrl as any)[p] !== null &&
+                (fromUrl as any)[p] !== (toUrl as any)[p])) {
+      return this.brandAsRelative(toUri);
     }
-    if (toUrl.host && toUrl.host !== fromUrl.host) {
-      return this.brandAsRelative(to);
-    }
-    let fromPath = decodeURIComponent(fromUrl.pathname || '');
-    const toPath = decodeURIComponent(toUrl.pathname || '');
-    if (!fromPath.endsWith('/')) {
-      fromPath = posix.dirname(fromPath);
-    }
-    let relativized = encodeURI(posix.relative(fromPath, toPath));
-    if (toPath.endsWith('/') && !relativized.endsWith('/')) {
-      relativized += '/';
-    }
-    return this.brandAsRelative(relativized);
+    const fromDir = fromUrl.pathname !== undefined ?
+        fromUrl.pathname.replace(/[^/]+$/, '') :
+        '';
+    const toDir = toUrl.pathname !== undefined ? toUrl.pathname : '';
+    // Note, below, the _ character is appended so that paths with trailing
+    // slash retain the trailing slash in the path.relative result, but only
+    // when the `to` is ultimately different than the `from` location.
+    const relPath = pathPosixRelative(fromDir, toDir + '_').replace(/_$/, '');
+    sharedRelativeUrlProperties.forEach((p) => (toUrl as any)[p] = null);
+    toUrl.path = undefined;
+    toUrl.pathname = relPath;
+    return this.brandAsRelative(urlLibFormat(toUrl));
   }
 
   protected brandAsRelative(url: string): FileRelativeUrl {
