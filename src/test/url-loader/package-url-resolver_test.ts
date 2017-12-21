@@ -164,24 +164,28 @@ suite('PackageUrlResolver', function() {
     });
 
     test('resolves a URL with no pathname', () => {
-      const foo = rootedFileUrl`1/2/foo.html?baz#bat`;
-      const bar = rootedFileUrl`1/2/bar.html`;
       assert.equal(
-          resolver.resolve(fileRelativeUrl``, foo),
+          resolver.resolve(fileRelativeUrl``, rootedFileUrl`1/2/foo.html`),
+          rootedFileUrl`1/2/foo.html`);
+      assert.equal(
+          resolver.resolve(
+              fileRelativeUrl``, rootedFileUrl`1/2/foo.html?baz#bat`),
           rootedFileUrl`1/2/foo.html?baz`);
-      assert.equal(resolver.resolve(fileRelativeUrl``, bar), bar);
       assert.equal(
-          resolver.resolve(fileRelativeUrl`#buz`, foo),
+          resolver.resolve(fileRelativeUrl`#buz`, rootedFileUrl`1/2/foo.html`),
+          rootedFileUrl`1/2/foo.html#buz`);
+      assert.equal(
+          resolver.resolve(
+              fileRelativeUrl`#buz`, rootedFileUrl`1/2/foo.html?baz#bat`),
           rootedFileUrl`1/2/foo.html?baz#buz`);
       assert.equal(
-          resolver.resolve(fileRelativeUrl`#buz`, bar),
-          rootedFileUrl`1/2/bar.html#buz`);
-      assert.equal(
-          resolver.resolve(fileRelativeUrl`?fiz#buz`, foo),
-          rootedFileUrl`1/2/foo.html?fiz#buz`);
-      assert.equal(
-          resolver.resolve(fileRelativeUrl`?fiz#buz`, bar),
+          resolver.resolve(
+              fileRelativeUrl`?fiz#buz`, rootedFileUrl`1/2/foo.html`),
           rootedFileUrl`1/2/bar.html?fiz#buz`);
+      assert.equal(
+          resolver.resolve(
+              fileRelativeUrl`?fiz#buz`, rootedFileUrl`1/2/foo.html?bar`),
+          rootedFileUrl`1/2/foo.html?fiz#buz`);
     });
   });
   suite('relative', () => {
