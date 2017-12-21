@@ -80,7 +80,7 @@ suite('UrlResolver', () => {
       assert.equal(relative('./foo/bonk.html', 'sub/bar/'), '../sub/bar/');
     });
 
-    test('preserves target url searches and hashes', () => {
+    test('preserves target url querystrings and fragments', () => {
       assert.equal(relative('foo.html', 'foo.html?fiz=buz'), '?fiz=buz');
       assert.equal(
           relative('foo.html', 'bar.html?fiz=buz'), 'bar.html?fiz=buz');

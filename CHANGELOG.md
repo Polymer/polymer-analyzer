@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
-* `UrlResolver#resolve()` returns urls containing search and hash
+* `UrlResolver#resolve()` returns urls containing querystring and fragment
   components where they were previously stripped out.
 * Add FSUrlLoader#getFilePath which will return the file path that would
   be loaded for a given ResolvedUrl, or an error message explaining why

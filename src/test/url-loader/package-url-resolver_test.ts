@@ -153,7 +153,7 @@ suite('PackageUrlResolver', function() {
           resolver.resolve(fileRelativeUrl`%><><%=`, packageRoot), undefined);
     });
 
-    test('resolves a relative URL containing search and hash', () => {
+    test('resolves a relative URL containing querystring and fragment', () => {
       assert.equal(
           resolver.resolve(fileRelativeUrl`foo.html?baz#bat`, packageRoot),
           rootedFileUrl`1/2/foo.html?baz#bat`);
