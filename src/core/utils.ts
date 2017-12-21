@@ -1,7 +1,20 @@
+/**
+ * @license
+ * Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+ * This code may only be used under the BSD style license found at
+ * http://polymer.github.io/LICENSE.txt
+ * The complete set of authors may be found at
+ * http://polymer.github.io/AUTHORS.txt
+ * The complete set of contributors may be found at
+ * http://polymer.github.io/CONTRIBUTORS.txt
+ * Code distributed by Google as part of the polymer project is also
+ * subject to an additional IP rights grant found at
+ * http://polymer.github.io/PATENTS.txt
+ */
+
 import {parse as parseUrl_, Url} from 'url';
 
 const unspecifiedProtocol = '-:';
-
 export function parseUrl(url: string): Url {
   if (!url.startsWith('//')) {
     return parseUrl_(url);
@@ -20,9 +33,13 @@ export function trimLeft(str: string, char: string): string {
   return str.substring(leftEdge);
 }
 
+/**
+ * Returns whether the given file path points to a location inside the given
+ * directory.
+ */
 export function isPathInside(directory: string, filePath: string): boolean {
   if (process.platform === 'win32') {
-    return filePath.toLowerCase().startsWith(directory);
+    return filePath.toLowerCase().startsWith(directory.toLowerCase());
   }
   return filePath.startsWith(directory);
 }
