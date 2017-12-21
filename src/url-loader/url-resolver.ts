@@ -66,16 +66,16 @@ export abstract class UrlResolver {
     return this.brandAsResolved(resolved);
   }
 
-  protected simpleUrlRelative(fromUri: ResolvedUrl, toUri: ResolvedUrl):
+  protected simpleUrlRelative(from: ResolvedUrl, to: ResolvedUrl):
       FileRelativeUrl {
-    const fromUrl = parseUrl(fromUri)!;
-    const toUrl = parseUrl(toUri)!;
-    // Return the toUri as-is if there are conflicting components which
+    const fromUrl = parseUrl(from)!;
+    const toUrl = parseUrl(to)!;
+    // Return the `to` as-is if there are conflicting components which
     // prohibit calculating a relative form.
     if (sharedRelativeUrlProperties.some(
             (p) => (toUrl as any)[p] !== null &&
                 (fromUrl as any)[p] !== (toUrl as any)[p])) {
-      return this.brandAsRelative(toUri);
+      return this.brandAsRelative(to);
     }
     if (fromUrl.pathname === toUrl.pathname) {
       toUrl.pathname = '';
