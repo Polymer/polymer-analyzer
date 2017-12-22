@@ -184,6 +184,10 @@ suite('PackageUrlResolver', function() {
           rootedFileUrl`1/2/foo.html?baz#buz`);
       assert.equal(
           resolver.resolve(
+              fileRelativeUrl`?fiz`, rootedFileUrl`1/2/foo.html?bar#buz`),
+          rootedFileUrl`1/2/foo.html?fiz`);
+      assert.equal(
+          resolver.resolve(
               fileRelativeUrl`?fiz#buz`, rootedFileUrl`1/2/foo.html`),
           rootedFileUrl`1/2/foo.html?fiz#buz`);
       assert.equal(

@@ -50,6 +50,7 @@ suite('UrlResolver', () => {
       assert.equal(resolve('#fiz', '/foo.html#buz'), '/foo.html#fiz');
       assert.equal(resolve('?fiz', '/foo.html'), '/foo.html?fiz');
       assert.equal(resolve('?fiz', '/foo.html?buz'), '/foo.html?fiz');
+      assert.equal(resolve(`?fiz`, `/foo.html?bar#buz`), `/foo.html?fiz`);
     });
   });
 
