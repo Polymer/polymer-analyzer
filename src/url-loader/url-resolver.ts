@@ -62,8 +62,10 @@ export abstract class UrlResolver {
         typeof toUrl.auth === 'string' && fromUrl.auth !== toUrl.auth) {
       return this.brandAsRelative(to);
     }
+    let pathname;
+    const {search, hash} = toUrl;
     if (fromUrl.pathname === toUrl.pathname) {
-      toUrl.pathname = '';
+      pathname = '';
     } else {
       const fromDir = typeof fromUrl.pathname === 'string' ?
           fromUrl.pathname.replace(/[^/]+$/, '') :
@@ -74,15 +76,9 @@ export abstract class UrlResolver {
           '';
       // Note, below, the _ character is appended to the `toDir` so that paths
       // with trailing slash will retain the trailing slash in the result.
-      toUrl.pathname =
-          path.posix.relative(fromDir, toDir + '_').replace(/_$/, '');
+      pathname = path.posix.relative(fromDir, toDir + '_').replace(/_$/, '');
     }
-    delete toUrl.protocol;
-    delete toUrl.slashes;
-    delete toUrl.auth;
-    delete toUrl.host;
-    delete toUrl.path;
-    return this.brandAsRelative(urlLibFormat(toUrl));
+    return this.brandAsRelative(urlLibFormat({pathname, search, hash}));
   }
 
   protected brandAsRelative(url: string): FileRelativeUrl {
