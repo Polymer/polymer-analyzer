@@ -9,11 +9,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Add FSUrlLoader#getFilePath which will return the file path that would
   be loaded for a given ResolvedUrl, or an error message explaining why
   it can't be.
-* Add a static `.is()` method on parsed document classes to easily check
-  if a given parsed document is an instance of the given class. This is
-  more robust than `instanceof` in cases where there are multiple versions
-  of polymer-analyzer in use (usually this is a mistake, but we want to
-  deal with such cases anyways).
+* Add an `.is()` method on ParsedDocument to check if a given parsed document
+  is an instance of the given class. This is more robust than `instanceof` in
+  cases where there are multiple versions of polymer-analyzer in use (usually
+  this is a mistake, but we want to deal with such cases when possible).
+* Renamed JavaScriptDocument to ParsedJavaScriptDocument for consistency.
 
 ## [3.0.0-pre.6] - 2017-12-18
 * [BREAKING] `Analysis#getDocument` now returns a `Result` object. When
