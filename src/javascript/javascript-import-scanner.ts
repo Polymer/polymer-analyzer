@@ -18,12 +18,12 @@ import {ScannedImport} from '../model/model';
 import {FileRelativeUrl} from '../model/url';
 
 import {Visitor} from './estree-visitor';
-import {JavaScriptDocument} from './javascript-document';
+import {ParsedJavaScriptDocument} from './javascript-document';
 import {JavaScriptScanner} from './javascript-scanner';
 
 export class JavaScriptImportScanner implements JavaScriptScanner {
   async scan(
-      document: JavaScriptDocument,
+      document: ParsedJavaScriptDocument,
       visit: (visitor: Visitor) => Promise<void>) {
     const imports: ScannedImport[] = [];
 

@@ -22,13 +22,13 @@ import {getIdentifierName, getNamespacedIdentifier} from './ast-value';
 import {Visitor} from './estree-visitor';
 import {getAttachedComment, getOrInferPrivacy, objectKeyToString} from './esutil';
 import {ScannedFunction} from './function';
-import {JavaScriptDocument} from './javascript-document';
+import {ParsedJavaScriptDocument} from './javascript-document';
 import {JavaScriptScanner} from './javascript-scanner';
 import * as jsdoc from './jsdoc';
 
 export class FunctionScanner implements JavaScriptScanner {
   async scan(
-      document: JavaScriptDocument,
+      document: ParsedJavaScriptDocument,
       visit: (visitor: Visitor) => Promise<void>) {
     const visitor = new FunctionVisitor(document);
     await visit(visitor);
@@ -43,10 +43,10 @@ export class FunctionScanner implements JavaScriptScanner {
 
 class FunctionVisitor implements Visitor {
   functions = new Set<ScannedFunction>();
-  document: JavaScriptDocument;
+  document: ParsedJavaScriptDocument;
   warnings: Warning[] = [];
 
-  constructor(document: JavaScriptDocument) {
+  constructor(document: ParsedJavaScriptDocument) {
     this.document = document;
   }
 

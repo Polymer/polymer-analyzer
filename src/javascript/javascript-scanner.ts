@@ -17,7 +17,7 @@ import {Node} from 'babel-types';
 import {Scanner} from '../scanning/scanner';
 
 import {Visitor} from './estree-visitor';
-import {JavaScriptDocument} from './javascript-document';
+import {ParsedJavaScriptDocument} from './javascript-document';
 
 export interface JavaScriptScanner extends
-    Scanner<JavaScriptDocument, Node, Visitor>, Visitor {}
+    Scanner<ParsedJavaScriptDocument, Node, Visitor>, Visitor {}

@@ -20,7 +20,7 @@ import {Demo, FileRelativeUrl} from '../index';
 import {Privacy} from '../model/model';
 import {ScannedReference, Severity, Warning} from '../model/model';
 
-import {JavaScriptDocument} from './javascript-document';
+import {ParsedJavaScriptDocument} from './javascript-document';
 
 export {Annotation, Tag} from 'doctrine';
 
@@ -140,7 +140,7 @@ export function getPrivacy(jsdoc: Annotation|undefined): Privacy|undefined {
  * up the prototype chain to closest to the subclass.
  */
 export function getMixinApplications(
-    document: JavaScriptDocument,
+    document: ParsedJavaScriptDocument,
     node: babel.Node,
     docs: Annotation,
     warnings: Warning[]): ScannedReference[] {

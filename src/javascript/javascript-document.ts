@@ -42,7 +42,7 @@ export interface Options extends ParsedDocumentOptions<Program> {
   parsedAsSourceType: 'script'|'module';
 }
 
-export class JavaScriptDocument extends ParsedDocument<Node, Visitor> {
+export class ParsedJavaScriptDocument extends ParsedDocument<Node, Visitor> {
   readonly type = 'js';
   private visitorSkips = new Map<Visitor, SkipRecord>();
   ast: Program;
@@ -60,7 +60,7 @@ export class JavaScriptDocument extends ParsedDocument<Node, Visitor> {
     this.parsedAsSourceType = from.parsedAsSourceType;
   }
 
-  static is(document: ParsedDocument): document is JavaScriptDocument {
+  static is(document: ParsedDocument): document is ParsedJavaScriptDocument {
     return document.type === 'js';
   }
 

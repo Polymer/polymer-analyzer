@@ -16,7 +16,7 @@ import {assert} from 'chai';
 
 import {Analyzer} from '../../core/analyzer';
 import {HtmlScriptScanner} from '../../html/html-script-scanner';
-import {JavaScriptDocument} from '../../javascript/javascript-document';
+import {ParsedJavaScriptDocument} from '../../javascript/javascript-document';
 import {Analysis} from '../../model/analysis';
 import {ScannedImport, ScannedInlineDocument} from '../../model/model';
 import {fixtureDir, runScannerOnContents} from '../test-utils';
@@ -70,7 +70,7 @@ suite('HtmlScriptScanner', () => {
       }
       const htmlScripts = [...result.value.getFeatures({kind: 'html-script'})];
       assert.equal(htmlScripts.length, 1);
-      const js = htmlScripts[0].document.parsedDocument as JavaScriptDocument;
+      const js = htmlScripts[0].document.parsedDocument as ParsedJavaScriptDocument;
       assert.equal(js.url, analyzer.resolveUrl('javascript/module.js')!);
       assert.equal(js.parsedAsSourceType, 'module');
       assert.equal(
@@ -85,7 +85,7 @@ suite('HtmlScriptScanner', () => {
       const inlineDocuments =
           [...result.value.getFeatures({kind: 'inline-document'})];
       assert.equal(inlineDocuments.length, 1);
-      const js = inlineDocuments[0].parsedDocument as JavaScriptDocument;
+      const js = inlineDocuments[0].parsedDocument as ParsedJavaScriptDocument;
       assert.equal(js.url, analyzer.resolveUrl('js-modules.html'));
       assert.equal(js.parsedAsSourceType, 'module');
       assert.equal(
@@ -103,7 +103,7 @@ suite('HtmlScriptScanner', () => {
       assert.equal(jsImports.length, 2);
 
       // import statement in inline module script in 'js-modules.html'
-      const js0 = jsImports[0].document.parsedDocument as JavaScriptDocument;
+      const js0 = jsImports[0].document.parsedDocument as ParsedJavaScriptDocument;
       assert.equal(
           js0.url, analyzer.resolveUrl('javascript/module-with-export.js'));
       assert.equal(js0.parsedAsSourceType, 'module');
@@ -111,7 +111,7 @@ suite('HtmlScriptScanner', () => {
           js0.contents.trim(), `export const someValue = 'value goes here';`);
 
       // import statement in external module script 'javascript/module.js'
-      const js1 = jsImports[1].document.parsedDocument as JavaScriptDocument;
+      const js1 = jsImports[1].document.parsedDocument as ParsedJavaScriptDocument;
       assert.equal(js1.url, analyzer.resolveUrl('javascript/submodule.js'));
       assert.equal(js1.parsedAsSourceType, 'module');
       assert.equal(js1.contents.trim(), `export const subThing = 'sub-thing';`);
@@ -130,7 +130,7 @@ suite('HtmlScriptScanner', () => {
 
       // import statement in inline module script in
       // 'imports-js-module-with-base.html'
-      const js0 = jsImports[0].document.parsedDocument as JavaScriptDocument;
+      const js0 = jsImports[0].document.parsedDocument as ParsedJavaScriptDocument;
       assert.equal(
           js0.url, analyzer.resolveUrl('javascript/module-with-export.js'));
       assert.equal(js0.parsedAsSourceType, 'module');

@@ -19,7 +19,7 @@ import {extractPropertiesFromConstructor} from '../javascript/class-scanner';
 import {Visitor} from '../javascript/estree-visitor';
 import * as esutil from '../javascript/esutil';
 import {getMethods, getOrInferPrivacy, getStaticMethods} from '../javascript/esutil';
-import {JavaScriptDocument} from '../javascript/javascript-document';
+import {ParsedJavaScriptDocument} from '../javascript/javascript-document';
 import * as jsdoc from '../javascript/jsdoc';
 import {Warning} from '../model/model';
 
@@ -28,14 +28,14 @@ import {getPolymerProperties} from './polymer2-config';
 
 export class MixinVisitor implements Visitor {
   mixins: ScannedPolymerElementMixin[] = [];
-  private _document: JavaScriptDocument;
+  private _document: ParsedJavaScriptDocument;
 
   private _currentMixin: ScannedPolymerElementMixin|null = null;
   private _currentMixinNode: babel.Node|null = null;
   private _currentMixinFunction: babel.Function|null = null;
   readonly warnings: Warning[] = [];
 
-  constructor(document: JavaScriptDocument) {
+  constructor(document: ParsedJavaScriptDocument) {
     this._document = document;
   }
 

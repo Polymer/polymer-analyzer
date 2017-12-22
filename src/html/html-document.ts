@@ -33,11 +33,6 @@ export class ParsedHtmlDocument extends ParsedDocument<ASTNode, HtmlVisitor> {
     super(from);
   }
 
-  static is(document: ParsedDocument): document is ParsedHtmlDocument {
-    return document.type === 'html';
-  }
-
-
   visit(visitors: HtmlVisitor[]) {
     dom5.nodeWalk(this.ast, (node) => {
       visitors.forEach((visitor) => visitor(node));

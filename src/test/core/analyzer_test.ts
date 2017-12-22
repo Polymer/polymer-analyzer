@@ -26,7 +26,7 @@ import {ParsedCssDocument} from '../../css/css-document';
 import {ParsedHtmlDocument} from '../../html/html-document';
 import {HtmlParser} from '../../html/html-parser';
 import {ScriptTagImport} from '../../html/html-script-tag';
-import {JavaScriptDocument} from '../../javascript/javascript-document';
+import {ParsedJavaScriptDocument} from '../../javascript/javascript-document';
 import {Document, ScannedImport, ScannedInlineDocument, Severity, Warning} from '../../model/model';
 import {FSUrlLoader} from '../../url-loader/fs-url-loader';
 import {InMemoryOverlayUrlLoader} from '../../url-loader/overlay-loader';
@@ -558,7 +558,7 @@ suite('Analyzer', () => {
       const context = await getContext(analyzer);
       const doc = await context['_parse'](
           analyzer.resolveUrl(`static/js-elements.js`)!);
-      assert.instanceOf(doc, JavaScriptDocument);
+      assert.instanceOf(doc, ParsedJavaScriptDocument);
       assert.equal(doc.url, analyzer.resolveUrl(`static/js-elements.js`));
     });
 
@@ -667,7 +667,7 @@ suite('Analyzer', () => {
           document.getFeatures({kind: 'js-document', imported: true});
       assert.equal(1, jsDocs.size);
       const jsDoc = getOnly(jsDocs);
-      (jsDoc.parsedDocument as JavaScriptDocument).visit([{
+      (jsDoc.parsedDocument as ParsedJavaScriptDocument).visit([{
         enterCallExpression(node: babel.CallExpression) {
           node.arguments =
               [{type: 'StringLiteral', value: 'bar'}] as babel.StringLiteral[];

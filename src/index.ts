@@ -52,6 +52,6 @@ export {DomModule} from './polymer/dom-module-scanner';
 
 // ParsedDocuments
 export {ParsedJsonDocument, Json, Visitor as JsonVisitor} from './json/json-document';
-export {JavaScriptDocument as ParsedJavaScriptDocument, Visitor as JavascriptVisitor} from './javascript/javascript-document';
+export {ParsedJavaScriptDocument as ParsedJavaScriptDocument, Visitor as JavascriptVisitor} from './javascript/javascript-document';
 export {ParsedHtmlDocument, HtmlVisitor} from './html/html-document';
 export {ParsedCssDocument, Visitor as CssVisitor} from './css/css-document';

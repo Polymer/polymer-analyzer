@@ -66,6 +66,10 @@ export abstract class ParsedDocument<AstNode = any, Visitor = any> {
     this.sourceRange = this.offsetsToSourceRange(0, this.contents.length);
   }
 
+  is<X extends ParsedDocument>(constructor: {new(): X}): this is X {
+    return this.constructor.name === constructor.name;
+  }
+
   /**
    * Runs a set of document-type specific visitors against the document.
    */

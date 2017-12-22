@@ -28,11 +28,6 @@ export class ParsedJsonDocument extends ParsedDocument<Json, Visitor> {
     super(from);
   }
 
-  static is(document: ParsedDocument): document is ParsedJsonDocument {
-    return document.type === 'json';
-  }
-
-
   visit(visitors: Visitor[]) {
     this._visit(this.ast, visitors);
   }

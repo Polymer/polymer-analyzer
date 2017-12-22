@@ -17,7 +17,7 @@ import * as babel from 'babel-types';
 import {Visitor} from '../javascript/estree-visitor';
 import * as esutil from '../javascript/esutil';
 import {toScannedMethod} from '../javascript/esutil';
-import {JavaScriptDocument} from '../javascript/javascript-document';
+import {ParsedJavaScriptDocument} from '../javascript/javascript-document';
 import {JavaScriptScanner} from '../javascript/javascript-scanner';
 import * as jsdoc from '../javascript/jsdoc';
 import {Severity, Warning} from '../model/model';
@@ -37,7 +37,7 @@ import {ScannedPolymerCoreFeature} from './polymer-core-feature';
  */
 export class PolymerCoreFeatureScanner implements JavaScriptScanner {
   async scan(
-      document: JavaScriptDocument,
+      document: ParsedJavaScriptDocument,
       visit: (visitor: Visitor) => Promise<void>) {
     const visitor = new PolymerCoreFeatureVisitor(document);
     await visit(visitor);
@@ -48,7 +48,7 @@ export class PolymerCoreFeatureScanner implements JavaScriptScanner {
 class PolymerCoreFeatureVisitor implements Visitor {
   features: ScannedPolymerCoreFeature[] = [];
 
-  constructor(private document: JavaScriptDocument) {
+  constructor(private document: ParsedJavaScriptDocument) {
   }
 
   /**

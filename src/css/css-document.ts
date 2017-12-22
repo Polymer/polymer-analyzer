@@ -28,10 +28,6 @@ export class ParsedCssDocument extends ParsedDocument<shady.Node, Visitor> {
     super(from);
   }
 
-  static is(document: ParsedDocument): document is ParsedCssDocument {
-    return document.type === 'css';
-  }
-
   visit(visitors: Visitor[]) {
     for (const node of this) {
       for (const visitor of visitors) {

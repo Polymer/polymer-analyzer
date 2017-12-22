@@ -33,10 +33,6 @@ export class ParsedTypeScriptDocument extends ParsedDocument<Node, Visitor> {
     super(from);
   }
 
-  static is(document: ParsedDocument): document is ParsedTypeScriptDocument {
-    return document.type === 'typescript';
-  }
-
   visit(visitors: Visitor[]) {
     const sourceFile = this.ast;
     for (const visitor of visitors) {

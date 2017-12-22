@@ -17,7 +17,7 @@ import * as doctrine from 'doctrine';
 
 import * as astValue from '../javascript/ast-value';
 import * as esutil from '../javascript/esutil';
-import {JavaScriptDocument} from '../javascript/javascript-document';
+import {ParsedJavaScriptDocument} from '../javascript/javascript-document';
 import * as jsdoc from '../javascript/jsdoc';
 import {Severity, Warning} from '../model/model';
 
@@ -34,7 +34,7 @@ import {ScannedPolymerProperty} from './polymer-element';
  * @param document The containing JS document.
  */
 export function analyzeProperties(
-    node: babel.Node, document: JavaScriptDocument): ScannedPolymerProperty[] {
+    node: babel.Node, document: ParsedJavaScriptDocument): ScannedPolymerProperty[] {
   const analyzedProps: ScannedPolymerProperty[] = [];
 
   if (!babel.isObjectExpression(node)) {

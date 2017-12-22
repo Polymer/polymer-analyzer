@@ -17,7 +17,7 @@ import {getIdentifierName} from '../javascript/ast-value';
 import {VisitorOption} from '../javascript/estraverse-shim';
 import {Visitor} from '../javascript/estree-visitor';
 import {getAttachedComment, getEventComments, getOrInferPrivacy, objectKeyToString, toScannedMethod} from '../javascript/esutil';
-import {JavaScriptDocument} from '../javascript/javascript-document';
+import {ParsedJavaScriptDocument} from '../javascript/javascript-document';
 import {JavaScriptScanner} from '../javascript/javascript-scanner';
 import * as jsdoc from '../javascript/jsdoc';
 import {Severity, Warning, WarningCarryingException} from '../model/model';
@@ -31,7 +31,7 @@ import {ScannedPolymerElement, ScannedPolymerProperty} from './polymer-element';
 
 export class PolymerElementScanner implements JavaScriptScanner {
   async scan(
-      document: JavaScriptDocument,
+      document: ParsedJavaScriptDocument,
       visit: (visitor: Visitor) => Promise<void>) {
     const visitor = new ElementVisitor(document);
     await visit(visitor);
@@ -50,8 +50,8 @@ class ElementVisitor implements Visitor {
   classDetected: boolean = false;
   warnings: Warning[] = [];
 
-  document: JavaScriptDocument;
-  constructor(document: JavaScriptDocument) {
+  document: ParsedJavaScriptDocument;
+  constructor(document: ParsedJavaScriptDocument) {
     this.document = document;
   }
 

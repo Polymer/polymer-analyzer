@@ -18,7 +18,7 @@ import * as parse5 from 'parse5';
 
 import {ParsedHtmlDocument} from '../html/html-document';
 import * as astValue from '../javascript/ast-value';
-import {JavaScriptDocument} from '../javascript/javascript-document';
+import {ParsedJavaScriptDocument} from '../javascript/javascript-document';
 import {parseJs} from '../javascript/javascript-parser';
 import {correctSourceRange, LocationOffset, Severity, SourceRange, Warning} from '../model/model';
 import {ParsedDocument} from '../parser/document';
@@ -284,7 +284,7 @@ export class JavascriptDatabindingExpression extends DatabindingExpression {
   constructor(
       astNode: babel.Node, sourceRange: SourceRange, expressionText: string,
       ast: babel.Program, kind: ExpressionLimitation,
-      document: JavaScriptDocument) {
+      document: ParsedJavaScriptDocument) {
     super(sourceRange, expressionText, ast, kind, document);
     this.astNode = astNode;
   }
@@ -483,7 +483,7 @@ function parseExpression(content: string, expressionSourceRange: SourceRange) {
 }
 
 export function parseExpressionInJsStringLiteral(
-    document: JavaScriptDocument,
+    document: ParsedJavaScriptDocument,
     stringLiteral: babel.Node,
     kind: 'identifierOnly'|'callExpression'|'full') {
   const warnings: Warning[] = [];

@@ -15,7 +15,7 @@
 import * as babel from 'babel-types';
 
 import * as astValue from '../javascript/ast-value';
-import {JavaScriptDocument} from '../javascript/javascript-document';
+import {ParsedJavaScriptDocument} from '../javascript/javascript-document';
 import {Severity, Warning} from '../model/model';
 import {ScannedBehaviorAssignment} from '../polymer/behavior';
 
@@ -30,7 +30,7 @@ export type BehaviorAssignmentOrWarning = {
 
 export function getBehaviorAssignmentOrWarning(
     argNode: babel.Node,
-    document: JavaScriptDocument): BehaviorAssignmentOrWarning {
+    document: ParsedJavaScriptDocument): BehaviorAssignmentOrWarning {
   const behaviorName = astValue.getIdentifierName(argNode);
   if (!behaviorName) {
     return {
@@ -65,7 +65,7 @@ export type PropertyHandlers = {
  */
 export function declarationPropertyHandlers(
     declaration: ScannedPolymerElement,
-    document: JavaScriptDocument): PropertyHandlers {
+    document: ParsedJavaScriptDocument): PropertyHandlers {
   return {
     is(node: babel.Node) {
       if (babel.isLiteral(node)) {
@@ -137,7 +137,7 @@ export function declarationPropertyHandlers(
 
 
 export function extractObservers(
-    observersArray: babel.Node, document: JavaScriptDocument): undefined|
+    observersArray: babel.Node, document: ParsedJavaScriptDocument): undefined|
     {observers: Observer[], warnings: Warning[]} {
   if (!babel.isArrayExpression(observersArray)) {
     return;

@@ -17,7 +17,7 @@ import * as babel from 'babel-types';
 import {getIdentifierName, getNamespacedIdentifier} from '../javascript/ast-value';
 import {Visitor} from '../javascript/estree-visitor';
 import * as esutil from '../javascript/esutil';
-import {JavaScriptDocument} from '../javascript/javascript-document';
+import {ParsedJavaScriptDocument} from '../javascript/javascript-document';
 import {JavaScriptScanner} from '../javascript/javascript-scanner';
 import * as jsdoc from '../javascript/jsdoc';
 import {Severity, Warning} from '../model/model';
@@ -31,7 +31,7 @@ const templatizer = 'Polymer.Templatizer';
 
 export class BehaviorScanner implements JavaScriptScanner {
   async scan(
-      document: JavaScriptDocument,
+      document: ParsedJavaScriptDocument,
       visit: (visitor: Visitor) => Promise<void>) {
     const visitor = new BehaviorVisitor(document);
     await visit(visitor);
@@ -49,8 +49,8 @@ class BehaviorVisitor implements Visitor {
   currentBehavior: ScannedBehavior|null = null;
   propertyHandlers: PropertyHandlers|null = null;
 
-  document: JavaScriptDocument;
-  constructor(document: JavaScriptDocument) {
+  document: ParsedJavaScriptDocument;
+  constructor(document: ParsedJavaScriptDocument) {
     this.document = document;
   }
 

@@ -16,7 +16,7 @@ import * as babel from 'babel-types';
 
 import * as astValue from '../javascript/ast-value';
 import {getIdentifierName} from '../javascript/ast-value';
-import {JavaScriptDocument} from '../javascript/javascript-document';
+import {ParsedJavaScriptDocument} from '../javascript/javascript-document';
 
 import {analyzeProperties} from './analyze-properties';
 import {ScannedPolymerProperty} from './polymer-element';
@@ -68,7 +68,7 @@ export function getIsValue(node: babel.ClassDeclaration|
  * Returns the properties defined in a Polymer config object literal.
  */
 export function getPolymerProperties(
-    node: babel.Node, document: JavaScriptDocument): ScannedPolymerProperty[] {
+    node: babel.Node, document: ParsedJavaScriptDocument): ScannedPolymerProperty[] {
   if (!babel.isClassDeclaration(node) && !babel.isClassExpression(node)) {
     return [];
   }

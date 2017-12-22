@@ -26,7 +26,7 @@ import {annotateEvent} from '../polymer/docs';
 
 import * as astValue from './ast-value';
 import * as estraverse from './estraverse-shim';
-import {JavaScriptDocument} from './javascript-document';
+import {ParsedJavaScriptDocument} from './javascript-document';
 import * as jsdoc from './jsdoc';
 
 /**
@@ -354,7 +354,7 @@ export const configurationProperties: ImmutableSet<string> = new Set([
 /**
  * Scan any methods on the given node, if it's a class expression/declaration.
  */
-export function getMethods(node: babel.Node, document: JavaScriptDocument):
+export function getMethods(node: babel.Node, document: ParsedJavaScriptDocument):
     Map<string, ScannedMethod> {
   const methods = new Map<string, ScannedMethod>();
   for (const statement of _getMethods(node)) {
@@ -374,7 +374,7 @@ export function getMethods(node: babel.Node, document: JavaScriptDocument):
  */
 export function getStaticMethods(
     node: babel.Node,
-    document: JavaScriptDocument): Map<string, ScannedMethod> {
+    document: ParsedJavaScriptDocument): Map<string, ScannedMethod> {
   const methods = new Map<string, ScannedMethod>();
   for (const method of _getMethods(node)) {
     if (method.static === true) {

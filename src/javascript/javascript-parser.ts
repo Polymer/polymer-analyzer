@@ -20,7 +20,7 @@ import {ResolvedUrl} from '../model/url';
 import {Parser} from '../parser/parser';
 import {UrlResolver} from '../url-loader/url-resolver';
 
-import {JavaScriptDocument} from './javascript-document';
+import {ParsedJavaScriptDocument} from './javascript-document';
 
 export type SourceType = 'script'|'module';
 
@@ -43,19 +43,19 @@ const baseParseOptions: babylon.BabylonOptions = {
 // @types/babylon has been updated to include `ranges`.
 (baseParseOptions as any)['ranges'] = true;
 
-export class JavaScriptParser implements Parser<JavaScriptDocument> {
+export class JavaScriptParser implements Parser<ParsedJavaScriptDocument> {
   sourceType: SourceType;
 
   parse(
       contents: string, url: ResolvedUrl, _urlResolver: UrlResolver,
-      inlineInfo?: InlineDocInfo<any>): JavaScriptDocument {
+      inlineInfo?: InlineDocInfo<any>): ParsedJavaScriptDocument {
     const isInline = !!inlineInfo;
     inlineInfo = inlineInfo || {};
     const result = parseJs(
         contents, url, inlineInfo.locationOffset, undefined, this.sourceType);
     if (result.type === 'failure') {
       // TODO(rictic): define and return a ParseResult instead of throwing.
-      const minimalDocument = new JavaScriptDocument({
+      const minimalDocument = new ParsedJavaScriptDocument({
         url,
         contents,
         ast: null as any,
@@ -68,7 +68,7 @@ export class JavaScriptParser implements Parser<JavaScriptDocument> {
           new Warning({parsedDocument: minimalDocument, ...result.warningish}));
     }
 
-    return new JavaScriptDocument({
+    return new ParsedJavaScriptDocument({
       url,
       contents,
       ast: result.program,

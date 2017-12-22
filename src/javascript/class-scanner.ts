@@ -28,7 +28,7 @@ import {getIdentifierName, getNamespacedIdentifier} from './ast-value';
 import {Visitor} from './estree-visitor';
 import * as esutil from './esutil';
 import {getMethods, getOrInferPrivacy, getStaticMethods} from './esutil';
-import {JavaScriptDocument} from './javascript-document';
+import {ParsedJavaScriptDocument} from './javascript-document';
 import {JavaScriptScanner} from './javascript-scanner';
 import * as jsdoc from './jsdoc';
 
@@ -69,7 +69,7 @@ export interface ScannedAttribute extends ScannedFeature {
  */
 export class ClassScanner implements JavaScriptScanner {
   async scan(
-      document: JavaScriptDocument,
+      document: ParsedJavaScriptDocument,
       visit: (visitor: Visitor) => Promise<void>) {
     const classFinder = new ClassFinder(document);
     const mixinFinder = new MixinVisitor(document);
@@ -167,7 +167,7 @@ export class ClassScanner implements JavaScriptScanner {
 
   private _makeElementFeature(
       element: CustomElementDefinition,
-      document: JavaScriptDocument): ScannedPolymerElement {
+      document: ParsedJavaScriptDocument): ScannedPolymerElement {
     const class_ = element.class_;
     const astNode = element.class_.astNode;
     const docs = element.class_.jsdoc;
@@ -259,7 +259,7 @@ export class ClassScanner implements JavaScriptScanner {
 
   private _getObservers(
       node: babel.ClassDeclaration|babel.ClassExpression,
-      document: JavaScriptDocument) {
+      document: ParsedJavaScriptDocument) {
     const returnedValue = getStaticGetterValue(node, 'observers');
     if (returnedValue) {
       return extractObservers(returnedValue, document);
@@ -268,7 +268,7 @@ export class ClassScanner implements JavaScriptScanner {
 
   private _getObservedAttributes(
       node: babel.ClassDeclaration|babel.ClassExpression,
-      document: JavaScriptDocument) {
+      document: ParsedJavaScriptDocument) {
     const returnedValue = getStaticGetterValue(node, 'observedAttributes');
     if (returnedValue && babel.isArrayExpression(returnedValue)) {
       return this._extractAttributesFromObservedAttributes(
@@ -291,7 +291,7 @@ export class ClassScanner implements JavaScriptScanner {
    *     }
    */
   private _extractAttributesFromObservedAttributes(
-      arry: babel.ArrayExpression, document: JavaScriptDocument) {
+      arry: babel.ArrayExpression, document: ParsedJavaScriptDocument) {
     const results: ScannedAttribute[] = [];
     for (const expr of arry.elements) {
       const value = astValue.expressionToValue(expr);
@@ -342,9 +342,9 @@ class ClassFinder implements Visitor {
   readonly classes: ScannedClass[] = [];
   readonly warnings: Warning[] = [];
   private readonly alreadyMatched = new Set<babel.ClassExpression>();
-  private readonly _document: JavaScriptDocument;
+  private readonly _document: ParsedJavaScriptDocument;
 
-  constructor(document: JavaScriptDocument) {
+  constructor(document: ParsedJavaScriptDocument) {
     this._document = document;
   }
 
@@ -440,7 +440,7 @@ class ClassFinder implements Visitor {
    */
   private _getExtends(
       node: babel.Node, docs: jsdoc.Annotation, warnings: Warning[],
-      document: JavaScriptDocument): ScannedReference|undefined {
+      document: ParsedJavaScriptDocument): ScannedReference|undefined {
     const extendsAnnotations =
         docs.tags!.filter((tag) => tag.title === 'extends');
 
@@ -492,9 +492,9 @@ type ElementClassExpression = babel.ClassExpression|{
 class CustomElementsDefineCallFinder implements Visitor {
   readonly warnings: Warning[] = [];
   readonly calls: ElementDefineCall[] = [];
-  private readonly _document: JavaScriptDocument;
+  private readonly _document: ParsedJavaScriptDocument;
 
-  constructor(document: JavaScriptDocument) {
+  constructor(document: ParsedJavaScriptDocument) {
     this._document = document;
   }
 
@@ -587,7 +587,7 @@ class CustomElementsDefineCallFinder implements Visitor {
 }
 
 export function extractPropertiesFromConstructor(
-    astNode: babel.Node, document: JavaScriptDocument) {
+    astNode: babel.Node, document: ParsedJavaScriptDocument) {
   const properties = new Map<string, ScannedProperty>();
   if (!(babel.isClassExpression(astNode) ||
         babel.isClassDeclaration(astNode))) {
