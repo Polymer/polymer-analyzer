@@ -58,11 +58,7 @@ suite('Analyzer', () => {
   async function analyzeDocument(
       url: string, localAnalyzer?: Analyzer): Promise<Document> {
     localAnalyzer = localAnalyzer || analyzer;
-    const result = (await localAnalyzer.analyze([url])).getDocument(url);
-    if (!result.successful) {
-      throw new Error(`Could not get document for url: ${url}`);
-    }
-    return result.value;
+    return (await localAnalyzer.analyze([url])).getDocument(url).unwrap();
   };
 
   setup(() => {
@@ -245,42 +241,35 @@ suite('Analyzer', () => {
     test(testName, async () => {
       const url = 'static/script-tags/inline/test-element.html';
       const result = (await analyzer.analyze([url]));
-      const document = result.getDocument(url);
-      if (!document.successful) {
-        throw new Error(`Could not get document for url: ${url}`);
-      }
-      const inlineDocuments = Array
-                                  .from(document.value.getFeatures(
-                                      {kind: 'document', imported: false}))
-                                  .filter((d) => d.isInline);
+      const document = result.getDocument(url).unwrap();
+      const inlineDocuments =
+          Array.from(document.getFeatures({kind: 'document', imported: false}))
+              .filter((d) => d.isInline);
       assert.equal(inlineDocuments.length, 1);
       const inlineJsDocument = inlineDocuments[0];
 
       // The inline document can find the container's imported
       // features
-      const subBehavior = getOnly(document.value.getFeatures(
+      const subBehavior = getOnly(document.getFeatures(
           {kind: 'polymer-element', id: 'test-element', imported: true}));
       const narrowedDocument =
           result.getDocumentContaining(subBehavior.sourceRange);
       assert.equal(narrowedDocument, inlineJsDocument);
     });
 
-    testName = 'a feature in the top level document narrows down to the full document';
+    testName =
+        'a feature in the top level document narrows down to the full document';
     test(testName, async () => {
       const url = 'static/script-tags/inline/test-element.html';
       const result = (await analyzer.analyze([url]));
-      const document = result.getDocument(url);
-      if (!document.successful) {
-        throw new Error(`Could not get document for url: ${url}`);
-      }
+      const document = result.getDocument(url).unwrap();
 
       // The inline document can find the container's imported
       // features
-      const HTMLImport = getOnly(document.value.getFeatures(
-          {kind: 'html-import'}));
+      const HTMLImport = getOnly(document.getFeatures({kind: 'html-import'}));
       const narrowedDocument =
           result.getDocumentContaining(HTMLImport.sourceRange);
-      assert.equal(narrowedDocument, document.value);
+      assert.equal(narrowedDocument, document);
     });
 
     testName =
@@ -447,11 +436,8 @@ suite('Analyzer', () => {
     test(`warns for files that don't exist`, async () => {
       const url = '/static/does_not_exist';
       const analysis = await analyzer.analyze([url]);
-      const result = analysis.getDocument(url);
-      if (result.successful) {
-        throw new Error('Expected a failed result from getDocument');
-      }
-      assert.isTrue(result.error instanceof Warning);
+      const warning = analysis.getDocument(url).unwrapFailure();
+      assert.isTrue(warning instanceof Warning);
     });
 
     test('handles documents from multiple calls to analyze()', async () => {
@@ -1234,21 +1220,15 @@ var DuplicateNamespace = {};
             ['static/diamond/a.html', 'static/diamond/root.html'];
         let result = await analyzer.analyze(initialPaths);
 
-        const resultA = result.getDocument(initialPaths[0]);
-        if (!resultA.successful) {
-          throw new Error(`Could not get document a`);
-        }
+        const documentA = result.getDocument(initialPaths[0]).unwrap();
         inMemoryOverlay.urlContentsMap.set(
             analyzer.resolveUrl('static/diamond/a.html')!,
-            resultA.value.parsedDocument.contents);
+            documentA.parsedDocument.contents);
         await analyzer.filesChanged(['static/diamond/a.html']);
         result = await analyzer.analyze(initialPaths);
 
-        const rootResult = result.getDocument(initialPaths[1]);
-        if (!rootResult.successful) {
-          throw new Error(`Could not get root document`);
-        }
-        const localFeatures = rootResult.value.getFeatures({imported: false});
+        const rootDocument = result.getDocument(initialPaths[1]).unwrap();
+        const localFeatures = rootDocument.getFeatures({imported: false});
         const kinds = Array.from(localFeatures).map((f) => Array.from(f.kinds));
         assert.deepEqual(kinds, [
           ['document', 'html-document'],

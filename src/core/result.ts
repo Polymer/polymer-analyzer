@@ -12,19 +12,19 @@
  * http://polymer.github.io/PATENTS.txt
  */
 
-export type Result<V, E> = Success<V, E>| Failure<V, E>;
+export type Result<V, E> = Success<V, E>|Failure<V, E>;
 
 export namespace Result {
   export function succeed<V>(value: V) {
-    return new Success<V, any>(value);
+    return new Success<V, never>(value);
   }
   export function fail<E>(error: E) {
-    return new Failure<any, E>(error);
+    return new Failure<never, E>(error);
   }
 }
 
 export class Success<V, E> {
-  readonly successful: true = true;
+  readonly successful: true;
   readonly value: V;
   constructor(value: V) {
     this.value = value;
@@ -43,7 +43,7 @@ export class Success<V, E> {
   }
 
   mapFailure<F>(_f: (e: E) => F): Result<V, F> {
-    return this as Result<V, any>as Result<V, F>;
+    return this as Result<V, any>;
   }
 
   and<U>(res: Result<U, E>): Result<U, E> {
@@ -51,11 +51,11 @@ export class Success<V, E> {
   }
 
   or<F>(_res: Result<V, F>): Result<V, F> {
-    return this as Result<V, any>as Result<V, F>;
+    return this as Result<V, any>;
   }
 
   orElse<F>(_op: (e: E) => Result<V, F>): Result<V, F> {
-    return this as Result<V, any>as Result<V, F>;
+    return this as Result<V, any>;
   }
 
   unwrap(): V {
@@ -67,22 +67,19 @@ export class Success<V, E> {
         `Expected Result to be failed, it succeeded with: ${this.value}`);
   }
 
-  unwrapOrDefault(): V|undefined {
-    return this.value;
-  }
-
   * [Symbol.iterator](): Iterable<V> {
     if (this.successful) {
       yield this.value as V;
     }
   }
 }
+(Success.prototype as any).successful = true;
 
 export class Failure<V, E> {
-  readonly successful: false = false;
-  readonly value: E;
-  constructor(value: E) {
-    this.value = value;
+  readonly successful: false;
+  readonly error: E;
+  constructor(error: E) {
+    this.error = error;
   }
 
   unwrapOr(fallback: V): V {
@@ -98,11 +95,11 @@ export class Failure<V, E> {
   }
 
   mapFailure<F>(f: (e: E) => F): Result<V, F> {
-    return Result.fail(f(this.value));
+    return Result.fail(f(this.error));
   }
 
   and<U>(_res: Result<U, E>): Result<U, E> {
-    return this as Result<any, E>as Result<U, E>;
+    return this as Result<any, E>;
   }
 
   or<F>(res: Result<V, F>): Result<V, F> {
@@ -110,71 +107,18 @@ export class Failure<V, E> {
   }
 
   orElse<F>(op: (e: E) => Result<V, F>): Result<V, F> {
-    return op(this.value);
+    return op(this.error);
   }
 
   unwrap(): V {
-    throw new Error(`Tried to unwrap a failed Result of: ${this.value}`);
+    throw new Error(`Tried to unwrap a failed Result of: ${this.error}`);
   }
 
   unwrapFailure(): E {
-    return this.value;
-  }
-
-  unwrapOrDefault(): V|undefined {
-    return undefined;
+    return this.error;
   }
 
   * [Symbol.iterator](): Iterable<V> {
   }
 }
-
-function resultLiteral() {
-  if (Math.random() < 0.5) {
-    return {successful: false, value: 'sad'};
-  }
-  return {successful: true, value: 10};
-}
-
-function resultInstance() {
-  if (Math.random() < 0.5) {
-    return Result.fail('sad');
-  }
-  return Result.succeed(10);
-}
-
-const N = 1000 * 1000 * 10;
-
-function instanceTest() {
-  const start = +new Date;
-  const arr = [];
-  for (let i = 0; i < N; i++) {
-    arr.push(resultInstance());
-  }
-  console.log(`${MiB()} memory used`);
-  console.log(`${((+new Date) - start)
-                  .toFixed(0)}ms to create ${arr.length} instances.`);
-}
-
-function literalTest() {
-  const start = +new Date;
-  const arr = [];
-  for (let i = 0; i < N; i++) {
-    arr.push(resultLiteral());
-  }
-  console.log(`${MiB()} memory used`);
-  console.log(`${((+new Date) - start)
-                  .toFixed(0)}ms to create ${arr.length} literals.`);
-}
-
-function MiB() {
-  const usage = process.memoryUsage().rss;
-  return `${(usage / (1024 * 1024)).toFixed(1)}MiB`;
-}
-
-
-if (process.argv[2] === 'literal') {
-  literalTest();
-} else if (process.argv[2] === 'instance') {
-  instanceTest();
-}
+(Failure.prototype as any).successful = false;

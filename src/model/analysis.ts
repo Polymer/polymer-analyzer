@@ -14,6 +14,7 @@
 
 import {SourceRange} from '../analysis-format/analysis-format';
 import {AnalysisContext} from '../core/analysis-context';
+import {Result} from '../core/result';
 import {addAll} from '../core/utils';
 import {PackageRelativeUrl} from '../index';
 
@@ -25,21 +26,6 @@ import {isPositionInsideRange} from './source-range';
 import {ResolvedUrl} from './url';
 import {Warning} from './warning';
 
-
-/**
- * Represents the result of a computation that may fail.
- *
- * This lets us represent errors in a type-safe way, as well as
- * in a way that makes it clear to the caller that the computation
- * may fail.
- */
-export type Result<T, E> = {
-  successful: true,
-  value: T,
-}|{
-  successful: false,
-  error: E,
-};
 
 // A regexp that matches paths to external code.
 // TODO(rictic): Make this part of the URL Resolver.
@@ -95,14 +81,14 @@ export class Analysis implements Queryable {
     const url =
         this.context.resolver.resolve(packageRelativeUrl as PackageRelativeUrl);
     if (url === undefined) {
-      return {successful: false, error: undefined};
+      return Result.fail(undefined);
     }
     const result = this._results.get(url);
     if (result != null) {
       if (result instanceof Document) {
-        return {successful: true, value: result};
+        return Result.succeed(result);
       } else {
-        return {successful: false, error: result};
+        return Result.fail(result);
       }
     }
     const documents =
@@ -111,9 +97,9 @@ export class Analysis implements Queryable {
                 {kind: 'document', id: url, externalPackages: true}))
             .filter((d) => !d.isInline);
     if (documents.length !== 1) {
-      return {successful: false, error: undefined};
+      return Result.fail(undefined);
     }
-    return {successful: true, value: documents[0]!};
+    return Result.succeed(documents[0]!);
   }
 
   /**

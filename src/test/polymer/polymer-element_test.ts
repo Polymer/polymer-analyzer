@@ -26,11 +26,8 @@ suite('PolymerElement', () => {
       Analyzer.createForDirectory(path.resolve(fixtureDir, 'polymer2/'));
 
   async function getElements(filename: string): Promise<Set<PolymerElement>> {
-    const result = (await analyzer.analyze([filename])).getDocument(filename);
-    if (!result.successful) {
-      throw new Error(`Could not get filename: ${filename}`);
-    }
-    const document = result.value;
+    const document =
+        (await analyzer.analyze([filename])).getDocument(filename).unwrap();
     const elements = document.getFeatures({kind: 'polymer-element'});
     return elements;
   };

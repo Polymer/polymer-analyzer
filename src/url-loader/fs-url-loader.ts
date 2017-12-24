@@ -16,9 +16,9 @@ import * as fs from 'fs';
 import * as pathlib from 'path';
 import Uri from 'vscode-uri';
 
+import {Result} from '../core/result';
 import {isPathInside} from '../core/utils';
 import {ResolvedUrl} from '../index';
-import {Result} from '../model/analysis';
 import {PackageRelativeUrl} from '../model/url';
 
 import {UrlLoader} from './url-loader';
@@ -65,16 +65,14 @@ export class FSUrlLoader implements UrlLoader {
    */
   getFilePath(url: ResolvedUrl): Result<string, string> {
     if (!this.canLoad(url)) {
-      return {successful: false, error: 'Not a local file:// url.'};
+      return Result.fail('Not a local file:// url.');
     }
     const path = Uri.parse(url).fsPath;
     if (!isPathInside(this.root, path)) {
-      return {
-        successful: false,
-        error: `Path is not inside root directory: ${JSON.stringify(this.root)}`
-      };
+      return Result.fail(
+          `Path is not inside root directory: ${JSON.stringify(this.root)}`);
     }
-    return {successful: true, value: path};
+    return Result.succeed(path);
   }
 
   async readDirectory(pathFromRoot: string, deep?: boolean):
