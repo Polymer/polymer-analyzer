@@ -34,6 +34,10 @@ export class Success<V, E> {
     return this.value;
   }
 
+  unwrapOrCompute(_compute: (e: E) => V): V {
+    return this.value;
+  }
+
   andThen<U>(f: (v: V) => Result<U, E>): Result<U, E> {
     return f(this.value);
   }
@@ -84,6 +88,10 @@ export class Failure<V, E> {
 
   unwrapOr(fallback: V): V {
     return fallback;
+  }
+
+  unwrapOrCompute(compute: (e: E) => V): V {
+    return compute(this.error);
   }
 
   andThen<U>(_f: (v: V) => Result<U, E>): Result<U, E> {
