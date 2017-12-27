@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
+* `UrlResolver#resolve()` returns urls containing querystring and fragment
+  components where they were previously stripped out.
 * Add FSUrlLoader#getFilePath which will return the file path that would
   be loaded for a given ResolvedUrl, or an error message explaining why
   it can't be.
@@ -14,6 +16,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   cases where there are multiple versions of polymer-analyzer in use (usually
   this is a mistake, but we want to deal with such cases when possible).
 * Renamed JavaScriptDocument to ParsedJavaScriptDocument for consistency.
+* Add a `resolver` option when converting warnings to string, or when
+  using the WarningPrinter. This will resolve file urls in warnings using
+  `resolver.relative`, to avoid super long urls in warning messages.
+<!-- Add new, unreleased changes here. -->
 
 ## [3.0.0-pre.6] - 2017-12-18
 * [BREAKING] `Analysis#getDocument` now returns a `Result` object. When
@@ -25,7 +31,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   https://example.com/components/paper-button/paper-button.html
 * Introduce getDocumentContaining to find containing inline document for a
   feature
-<!-- Add new, unreleased changes here. -->
 
 ## [3.0.0-pre.5] - 2017-12-15
 * [BREAKING] Removed `Analyzer#resolveUrl` in favor of just exposing the
