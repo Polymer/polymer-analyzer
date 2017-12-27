@@ -50,7 +50,8 @@ export class HtmlScriptScanner implements HtmlScanner {
               node,
               false));
         } else {
-          const locationOffset = getLocationOffsetOfStartOfTextContent(node);
+          const locationOffset =
+              getLocationOffsetOfStartOfTextContent(node, document);
           const attachedCommentText = getAttachedCommentText(node) || '';
           const contents = dom5.getTextContent(node);
 

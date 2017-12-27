@@ -14,11 +14,10 @@
 
 import * as babel from 'babel-types';
 import * as dom5 from 'dom5';
-import * as parse5 from 'parse5';
 import {ASTNode} from 'parse5';
 import * as util from 'util';
 
-import {isFakeNode} from '../html/html-document';
+import {isFakeNode, ParsedHtmlDocument} from '../html/html-document';
 import * as jsdoc from '../javascript/jsdoc';
 
 import {Document, ScannedDocument} from './document';
@@ -48,20 +47,20 @@ export type AstNodeWithLanguage = {
  * @template N The AST node type
  */
 export class ScannedInlineDocument implements ScannedFeature, Resolvable {
-  type: 'html'|'js'|'css'|/* etc */ string;
+  readonly type: 'html'|'js'|'css'|/* etc */ string;
 
-  contents: string;
+  readonly contents: string;
 
   /** The location offset of this document within the containing document. */
-  locationOffset: LocationOffset;
-  attachedComment?: string;
+  readonly locationOffset: LocationOffset;
+  readonly attachedComment?: string;
 
   scannedDocument?: ScannedDocument;
 
-  sourceRange: SourceRange;
-  warnings: Warning[] = [];
+  readonly sourceRange: SourceRange;
+  readonly warnings: Warning[] = [];
 
-  astNode: AstNodeWithLanguage;
+  readonly astNode: AstNodeWithLanguage;
 
   constructor(
       type: string, contents: string, locationOffset: LocationOffset,
@@ -189,29 +188,13 @@ function* iterReverse<V>(arr: Array<V>): Iterable<V> {
   }
 }
 
-function isLocationInfo(loc: (parse5.LocationInfo|parse5.ElementLocationInfo)):
-    loc is parse5.LocationInfo {
-  return 'line' in loc;
-}
-
-export function getLocationOffsetOfStartOfTextContent(node: ASTNode):
-    LocationOffset {
-  const childNodes = node.childNodes || [];
-  const firstChildNodeWithLocation = childNodes.find((n) => !!n.__location);
-  const bestLocation = firstChildNodeWithLocation ?
-      firstChildNodeWithLocation.__location :
-      node.__location;
-  if (!bestLocation) {
+export function getLocationOffsetOfStartOfTextContent(
+    node: ASTNode, parsedDocument: ParsedHtmlDocument): LocationOffset {
+  const sourceRange = parsedDocument.sourceRangeForStartTag(node);
+  if (!sourceRange) {
     throw new Error(
         `Couldn't extract a location offset from HTML node: ` +
         `${util.inspect(node)}`);
   }
-  if (isLocationInfo(bestLocation)) {
-    return {line: bestLocation.line - 1, col: bestLocation.col - 1};
-  } else {
-    return {
-      line: bestLocation.startTag.line - 1,
-      col: bestLocation.startTag.endOffset - 1,
-    };
-  }
+  return {line: sourceRange.end.line, col: sourceRange.end.column};
 }

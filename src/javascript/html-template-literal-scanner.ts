@@ -65,11 +65,23 @@ export function getInlineDocument(
       column: sourceRangeForLiteral.end.column - 1
     }
   };
-  const [start, end] = parsedDocument.sourceRangeToOffsets(
-      parsedDocument.absoluteToRelativeSourceRange(sourceRangeForContents));
 
-  // TODO(rictic): handle quasis and expressions in contents here.
-  const contents = parsedDocument.contents.slice(start, end);
+  let contents = '';
+  let previousEnd: number|undefined;
+  for (let i = 0; i < node.quasi.quasis.length; i++) {
+    const quasi = node.quasi.quasis[i];
+    if (previousEnd !== undefined) {
+      const fullExpressionTextWithDelimitors =
+          parsedDocument.contents.slice(previousEnd, quasi.start);
+      // Replace everything but whitespace in ${expressions} (including the
+      // ${} delimitor part) with whitespace.
+      // This skips over the problem of handling expressions, and there's lots
+      // of cases it doesn't handle correctly, but it's a start.
+      contents += fullExpressionTextWithDelimitors.replace(/\S/g, ' ');
+    }
+    contents += quasi.value.cooked;
+    previousEnd = quasi.end;
+  }
 
   let commentText;
   if (node.leadingComments != null) {
