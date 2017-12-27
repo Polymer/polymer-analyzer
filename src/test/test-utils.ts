@@ -145,6 +145,12 @@ export function fileRelativeUrl(
   return noOpTag(strings, ...values) as FileRelativeUrl;
 }
 
+export function packageRelativeUrl(
+    strings: TemplateStringsArray, ...values: any[]): PackageRelativeUrl {
+  return noOpTag(strings, ...values) as PackageRelativeUrl;
+}
+
+
 export function resolvedUrl(
     strings: TemplateStringsArray, ...values: any[]): ResolvedUrl {
   return noOpTag(strings, ...values) as ResolvedUrl;

@@ -187,18 +187,27 @@ export class ParsedHtmlDocument extends ParsedDocument<ASTNode, HtmlVisitor> {
     const selfClone = mutableDocuments.shift()!;
 
     for (const doc of mutableDocuments) {
+      if (doc.astNode == null || doc.astNode.language !== 'html') {
+        continue;
+      }
+      const docContainingNode = doc.astNode.node;
+      const docContainingLocation = docContainingNode.__location;
       let expectedIndentation;
-      if (doc.astNode.__location) {
-        expectedIndentation = doc.astNode.__location.col;
+      if (docContainingLocation &&
+          !isElementLocationInfo(docContainingLocation)) {
+        expectedIndentation = docContainingLocation.col;
 
-        if (doc.astNode.parentNode && doc.astNode.parentNode.__location) {
-          expectedIndentation -= doc.astNode.parentNode.__location.col;
+        const parentLocation = docContainingNode.parentNode &&
+            docContainingNode.parentNode.__location;
+        if (parentLocation && !isElementLocationInfo(parentLocation)) {
+          expectedIndentation -= parentLocation.col;
         }
-      } else {
+      }
+      if (expectedIndentation === undefined) {
         expectedIndentation = 2;
       }
 
-      dom5.setTextContent(doc.astNode, '\n' + doc.stringify({
+      dom5.setTextContent(docContainingNode, '\n' + doc.stringify({
         indent: expectedIndentation
       }) + '  '.repeat(expectedIndentation - 1));
     }

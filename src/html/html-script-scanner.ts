@@ -60,7 +60,7 @@ export class HtmlScriptScanner implements HtmlScanner {
               locationOffset,
               attachedCommentText,
               document.sourceRangeForNode(node)!,
-              node));
+              {language: 'html', node}));
         }
       }
     };

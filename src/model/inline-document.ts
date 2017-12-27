@@ -12,6 +12,7 @@
  * http://polymer.github.io/PATENTS.txt
  */
 
+import * as babel from 'babel-types';
 import * as dom5 from 'dom5';
 import * as parse5 from 'parse5';
 import {ASTNode} from 'parse5';
@@ -31,6 +32,14 @@ export interface InlineDocInfo<AstNode> {
   astNode?: AstNode;
   locationOffset?: LocationOffset;
 }
+
+export type AstNodeWithLanguage = {
+  language: 'html',
+  node: dom5.Node,
+}|{
+  language: 'js',
+  node: babel.Node,
+};
 
 /**
  * Represents an inline document, usually a <script> or <style> tag in an HTML
@@ -52,11 +61,12 @@ export class ScannedInlineDocument implements ScannedFeature, Resolvable {
   sourceRange: SourceRange;
   warnings: Warning[] = [];
 
-  astNode: dom5.Node;
+  astNode: AstNodeWithLanguage;
 
   constructor(
       type: string, contents: string, locationOffset: LocationOffset,
-      attachedComment: string, sourceRange: SourceRange, ast: dom5.Node) {
+      attachedComment: string, sourceRange: SourceRange,
+      ast: AstNodeWithLanguage) {
     this.type = type;
     this.contents = contents;
     this.locationOffset = locationOffset;
