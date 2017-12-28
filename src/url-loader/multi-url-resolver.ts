@@ -29,7 +29,7 @@ export class MultiUrlResolver extends UrlResolver {
       firstUrl: ResolvedUrl|PackageRelativeUrl, secondUrl?: FileRelativeUrl,
       import_?: ScannedImport): ResolvedUrl|undefined {
     for (const resolver of this._resolvers) {
-      const resolved = typeof secondUrl === 'undefined' ?
+      const resolved = secondUrl === undefined ?
           resolver.resolve(firstUrl as PackageRelativeUrl) :
           resolver.resolve(
               firstUrl as ResolvedUrl, secondUrl as FileRelativeUrl, import_);

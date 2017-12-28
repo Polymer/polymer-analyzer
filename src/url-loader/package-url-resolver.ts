@@ -59,7 +59,7 @@ export class PackageUrlResolver extends UrlResolver {
   resolve(
       firstHref: ResolvedUrl|PackageRelativeUrl, secondHref?: FileRelativeUrl,
       _import?: ScannedImport): ResolvedUrl|undefined {
-    const [baseUrl, unresolvedHref] = typeof secondHref === 'undefined' ?
+    const [baseUrl, unresolvedHref] = secondHref === undefined ?
         [this.packageUrl, firstHref as PackageRelativeUrl] :
         [this.brandAsResolved(firstHref), secondHref];
     const resolvedHref = this.simpleUrlResolve(baseUrl, unresolvedHref);
