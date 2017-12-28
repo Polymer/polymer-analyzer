@@ -136,4 +136,26 @@ suite('HtmlTemplateLiteralScanner', () => {
                 --working: yes;
                 ~~~~~~~~~`);
   });
+
+  // See: https://github.com/Polymer/polymer-analyzer/issues/818
+  testName = 'can handle escape characters properly';
+  test.skip(testName, async () => {
+    const {document, underliner, url} = await analyzeContents('index.js', `
+      html\`\\n\\n<div>Hello world</div>\`;
+    `);
+    const documents = document.getFeatures({kind: 'document'});
+    assert.deepEqual(
+        [...documents].map((d) => [d.url, d.type, d.isInline]),
+        [[url, 'js', false], [url, 'html', true]]);
+    const [htmlDocument] = document.getFeatures({kind: 'html-document'});
+    assert.deepEqual(
+        htmlDocument.parsedDocument.contents, '\n\n<div>Hello world</div>');
+    const elements = dom5.queryAll(
+        htmlDocument.parsedDocument.ast, dom5.predicates.hasTagName('div'));
+    const ranges = elements.map(
+        (el) => htmlDocument.parsedDocument.sourceRangeForStartTag(el));
+    assert.deepEqual(await underliner.underline(ranges), [`
+      html\`\\n\\n<div>Hello world</div>\`;
+                ~~~~~`]);
+  });
 });
