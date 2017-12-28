@@ -41,6 +41,14 @@ export abstract class UrlResolver {
   abstract relative(from: ResolvedUrl, to?: ResolvedUrl, kind?: string):
       FileRelativeUrl;
 
+  protected getBaseAndUnresolved(
+      url1: PackageRelativeUrl|ResolvedUrl, url2?: FileRelativeUrl):
+      [ResolvedUrl|undefined, FileRelativeUrl|PackageRelativeUrl] {
+    return url2 === undefined ?
+        [undefined, url1 as PackageRelativeUrl] :
+        [this.brandAsResolved(url1), this.brandAsRelative(url2)];
+  }
+
   protected simpleUrlResolve(
       baseUrl: ResolvedUrl,
       url: FileRelativeUrl|PackageRelativeUrl): ResolvedUrl {

@@ -20,9 +20,8 @@ import {UrlResolver} from '../../url-loader/url-resolver';
 class SimplestUrlResolver extends UrlResolver {
   resolve(
       firstUrl: ResolvedUrl|PackageRelativeUrl, secondUrl?: FileRelativeUrl) {
-    const [baseUrl, url] = secondUrl === undefined ?
-        [this.brandAsResolved('/test/'), firstUrl as PackageRelativeUrl] :
-        [this.brandAsResolved(firstUrl), secondUrl];
+    const [baseUrl = '/test/' as ResolvedUrl, url] =
+        this.getBaseAndUnresolved(firstUrl, secondUrl);
     return this.simpleUrlResolve(baseUrl, url);
   }
 
