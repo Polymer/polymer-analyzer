@@ -25,12 +25,12 @@ suite('RedirectResolver', function() {
           new RedirectResolver(resolvedUrl``, 'proto://site/', 'some/path/');
       assert.equal(
           resolver.resolve(
-              fileRelativeUrl`proto://site/something.html`, resolvedUrl``),
+              resolvedUrl``, fileRelativeUrl`proto://site/something.html`),
           resolvedUrl`some/path/something.html`);
       resolver = new RedirectResolver(resolvedUrl``, '/site/', 'some/path/');
       assert.equal(
           resolver.resolve(
-              fileRelativeUrl`/site/something.html`, resolvedUrl``),
+              resolvedUrl``, fileRelativeUrl`/site/something.html`),
           resolvedUrl`some/path/something.html`);
     });
 
@@ -39,7 +39,7 @@ suite('RedirectResolver', function() {
           new RedirectResolver(resolvedUrl``, 'proto://site/', 'some/path/');
       assert.equal(
           resolver.resolve(
-              fileRelativeUrl`protoz://site/something.html`, resolvedUrl``),
+              resolvedUrl``, fileRelativeUrl`protoz://site/something.html`),
           undefined);
     });
   });

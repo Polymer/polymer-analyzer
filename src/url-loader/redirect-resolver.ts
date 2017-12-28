@@ -31,9 +31,11 @@ export class RedirectResolver extends UrlResolver {
   }
 
   resolve(
-      fileRelativeUrl: FileRelativeUrl|PackageRelativeUrl,
-      baseUrl: ResolvedUrl = this.packageUrl,
+      firstUrl: ResolvedUrl|PackageRelativeUrl, secondUrl?: FileRelativeUrl,
       _import?: ScannedImport): ResolvedUrl|undefined {
+    const [baseUrl, fileRelativeUrl] = typeof secondUrl === 'undefined' ?
+        [this.packageUrl, firstUrl as PackageRelativeUrl] :
+        [firstUrl as ResolvedUrl, secondUrl];
     const packageRelativeUrl =
         this.brandAsResolved(urlLibResolver(baseUrl, fileRelativeUrl));
     if (packageRelativeUrl === undefined ||
