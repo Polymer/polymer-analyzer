@@ -369,11 +369,7 @@ class PrototypeMemberFinder implements Visitor {
 
     const leftExpr = expr.left.object;
     const leftProperty = expr.left.property;
-
-    if (!babel.isIdentifier(leftExpr.object) ||
-        !babel.isIdentifier(leftExpr.property) ||
-        leftExpr.object.name !== this._name ||
-        leftExpr.property.name !== 'prototype') {
+    if (getIdentifierName(leftExpr) !== `${this._name}.prototype`) {
       return;
     }
 
@@ -501,12 +497,8 @@ class PrototypeMemberFinder implements Visitor {
     const left = node.expression.object;
 
     // we only want `something.prototype.member`
-    if (!babel.isMemberExpression(left) ||
-        !babel.isIdentifier(left.object) ||
-        !babel.isIdentifier(left.property) ||
-        !babel.isIdentifier(node.expression.property) ||
-        left.property.name !== 'prototype' ||
-        left.object.name !== this._name) {
+    if (!babel.isIdentifier(node.expression.property) ||
+        getIdentifierName(left) !== `${this._name}.prototype`) {
       return;
     }
 
