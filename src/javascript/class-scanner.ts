@@ -380,7 +380,7 @@ class PrototypeMemberFinder implements Visitor {
     const annotation = getJSDocAnnotationForNode(node);
 
     if (babel.isFunctionExpression(expr.right)) {
-      const method = this._createMethodFromFunctionExpression(leftProperty.name,
+      const method = this._createMethodFromExpression(leftProperty.name,
         expr.right, annotation);
       if (method) {
         this.methods.set(method.name, method);
@@ -436,43 +436,8 @@ class PrototypeMemberFinder implements Visitor {
     };
   }
 
-  private _createMethodFromFunctionExpression(
-      name: string, node: babel.FunctionExpression, jsdocAnn?: jsdoc.Annotation) {
-    let description;
-    let type;
-    let privacy: Privacy = 'public';
-    let ret;
-    let params: MethodParam[] = [];
-
-    if (jsdocAnn) {
-      description = getDescription(jsdocAnn);
-      privacy = getOrInferPrivacy(name, jsdocAnn);
-      ret = getReturnFromAnnotation(jsdocAnn);
-      type = ret ? ret.type : undefined;
-      params = (node.params || []).map((nodeParam) =>
-        toMethodParam(nodeParam, jsdocAnn));
-    }
-    return {
-      name,
-      type,
-      description,
-      sourceRange: this._document.sourceRangeForNode(node)!,
-      warnings: [],
-      astNode: node,
-      jsdoc: jsdocAnn,
-      params,
-      return: ret,
-      privacy
-    };
-  }
-
-  private _createMethodFromFunctionMemberExpression(
-      node: babel.MemberExpression, jsdocAnn?: jsdoc.Annotation) {
-    if (!babel.isIdentifier(node.property)) {
-      return;
-    }
-
-    const member = node.property.name;
+  private _createMethodFromExpression(
+      name: string, node: babel.FunctionExpression|babel.MemberExpression, jsdocAnn?: jsdoc.Annotation) {
     let description;
     let type;
     let privacy: Privacy = 'public';
@@ -481,31 +446,39 @@ class PrototypeMemberFinder implements Visitor {
 
     if (jsdocAnn) {
       description = getDescription(jsdocAnn);
-      privacy = getOrInferPrivacy(member, jsdocAnn);
+      privacy = getOrInferPrivacy(name, jsdocAnn);
       ret = getReturnFromAnnotation(jsdocAnn);
       type = ret ? ret.type : undefined;
 
-      for (const tag of (jsdocAnn.tags || [])) {
-        if (tag.title !== 'param' || !tag.name) {
-          continue;
-        }
-        let tagType;
-        let tagDescription;
-        if (tag.type) {
-          tagType = doctrine.type.stringify(tag.type);
-        }
-        if (tag.description) {
-          tagDescription = tag.description;
-        }
-        params.set(tag.name, {
-          name: tag.name,
-          type: tagType,
-          description: tagDescription
+      if (babel.isFunctionExpression(node)) {
+        (node.params || []).forEach((nodeParam) => {
+          const param = toMethodParam(nodeParam, jsdocAnn);
+          params.set(param.name, param);
         });
+      } else {
+        for (const tag of (jsdocAnn.tags || [])) {
+          if (tag.title !== 'param' || !tag.name) {
+            continue;
+          }
+          let tagType;
+          let tagDescription;
+          if (tag.type) {
+            tagType = doctrine.type.stringify(tag.type);
+          }
+          if (tag.description) {
+            tagDescription = tag.description;
+          }
+          params.set(tag.name, {
+            name: tag.name,
+            type: tagType,
+            description: tagDescription
+          });
+        }
       }
     }
+
     return {
-      name: member,
+      name,
       type,
       description,
       sourceRange: this._document.sourceRangeForNode(node)!,
@@ -570,7 +543,8 @@ class PrototypeMemberFinder implements Visitor {
     const annotation = getJSDocAnnotationForNode(node);
 
     if (jsdoc.hasTag(annotation, 'function')) {
-      const method = this._createMethodFromFunctionMemberExpression(node.expression, annotation);
+      const method = this._createMethodFromExpression(node.expression.property.name,
+        node.expression, annotation);
       if (method) {
         this.methods.set(method.name, method);
       }
