@@ -47,3 +47,16 @@ class Class {
     this.customPropertyWithJSDoc;
   }
 }
+
+/** @type {string} */
+Class.prototype.customPropertyOnProto;
+
+Class.prototype.customPropertyOnProtoValue = 5;
+
+/**
+ * A property
+ * @type {boolean|number}
+ * @private
+ * @readonly
+ */
+Class.prototype.customPropertyOnProtoDoc = true;

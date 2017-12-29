@@ -175,6 +175,24 @@ suite('Class', () => {
         readOnly: true
       });
 
+      assert.deepInclude(cls.properties.get('customPropertyOnProto'), {
+        name: 'customPropertyOnProto',
+        type: 'string'
+      });
+
+      assert.deepInclude(cls.properties.get('customPropertyOnProtoValue'), {
+        name: 'customPropertyOnProtoValue',
+        type: 'number'
+      });
+
+      assert.deepInclude(cls.properties.get('customPropertyOnProtoDoc'), {
+        name: 'customPropertyOnProtoDoc',
+        description: 'A property',
+        type: '(boolean | number)',
+        privacy: 'private',
+        readOnly: true
+      });
+
       assert.deepEqual(await getTestProps(cls), {
         name: 'Class',
         description: '',
@@ -186,7 +204,10 @@ suite('Class', () => {
           { name: 'customPropertyWithSetterFirst' },
           { name: 'customPropertyWithReadOnlyGetter' },
           { name: 'customPropertyWithValue' },
-          { name: 'customPropertyWithJSDoc' }
+          { name: 'customPropertyWithJSDoc' },
+          { name: 'customPropertyOnProto' },
+          { name: 'customPropertyOnProtoValue' },
+          { name: 'customPropertyOnProtoDoc' }
         ]
       });
     });
@@ -293,6 +314,43 @@ suite('Class', () => {
                 desc: 'The number 10, always.',
                 type: 'Number',
               },
+            },
+            {
+              description: undefined,
+              name: 'customInstanceFunctionOnProto',
+              params: [
+                {
+                  description: 'a bool',
+                  name: 'foo',
+                  type: 'boolean'
+                }
+              ],
+              return: {
+                type: 'void'
+              }
+            },
+            {
+              description: undefined,
+              name: 'customInstanceFunctionOnProtoWithBody'
+            },
+            {
+              description: 'Returns the sum of two numbers',
+              name: 'customInstanceFunctionOnProtoWithBodyDoc',
+              params: [
+                {
+                  description: 'some number',
+                  name: 'a',
+                  type: 'number'
+                },
+                {
+                  description: 'another number',
+                  name: 'b',
+                  type: 'number'
+                }
+              ],
+              return: {
+                type: 'number'
+              }
             },
           ]
         },
@@ -509,6 +567,43 @@ suite('Class', () => {
                 desc: 'The number 10, always.',
                 type: 'Number',
               },
+            },
+            {
+              description: undefined,
+              name: 'customInstanceFunctionOnProto',
+              params: [
+                {
+                  description: 'a bool',
+                  name: 'foo',
+                  type: 'boolean'
+                }
+              ],
+              return: {
+                type: 'void'
+              }
+            },
+            {
+              description: undefined,
+              name: 'customInstanceFunctionOnProtoWithBody'
+            },
+            {
+              description: 'Returns the sum of two numbers',
+              name: 'customInstanceFunctionOnProtoWithBodyDoc',
+              params: [
+                {
+                  description: 'some number',
+                  name: 'a',
+                  type: 'number'
+                },
+                {
+                  description: 'another number',
+                  name: 'b',
+                  type: 'number'
+                }
+              ],
+              return: {
+                type: 'number'
+              }
             },
           ]
         },
