@@ -386,23 +386,22 @@ class PrototypeMemberFinder implements Visitor {
         this.methods.set(method.name, method);
       }
     } else {
-      const prop = this._createPropertyFromAssignment(leftProperty.name,
-        expr.right, annotation);
+      const prop = this._createPropertyFromExpression(leftProperty.name,
+        expr, annotation);
       if (prop) {
         this.properties.set(prop.name, prop);
       }
     }
   }
 
-  private _createPropertyFromAssignment(
-      name: string, node: babel.Expression, jsdocAnn?: jsdoc.Annotation) {
+  private _createPropertyFromExpression(
+      name: string, node: babel.AssignmentExpression|babel.MemberExpression, jsdocAnn?: jsdoc.Annotation) {
     let description;
     let type;
     let privacy: Privacy = 'public';
     let readOnly = false;
     const sourceRange = this._document.sourceRangeForNode(node)!;
     const warnings: Warning[] = [];
-    const detectedType = closureType(node, sourceRange, this._document);
 
     if (jsdocAnn) {
       const typeTag = jsdoc.getTag(jsdocAnn, 'type');
@@ -414,12 +413,15 @@ class PrototypeMemberFinder implements Visitor {
       readOnly = jsdoc.hasTag(jsdocAnn, 'readonly');
     }
 
-    if (!type) {
-      if (detectedType instanceof Warning) {
-        warnings.push(detectedType);
-        type = 'Function';
-      } else {
-        type = detectedType;
+    if (babel.isAssignmentExpression(node)) {
+      if (!type) {
+        const detectedType = closureType(node.right, sourceRange, this._document);
+        if (detectedType instanceof Warning) {
+          warnings.push(detectedType);
+          type = 'Function';
+        } else {
+          type = detectedType;
+        }
       }
     }
 
@@ -491,38 +493,6 @@ class PrototypeMemberFinder implements Visitor {
     };
   }
 
-  private _createPropertyFromMemberExpression(
-      node: babel.MemberExpression, jsdocAnn?: jsdoc.Annotation) {
-    if (!babel.isIdentifier(node.property)) {
-      return;
-    }
-
-    const member = node.property.name;
-    let description;
-    let type;
-    let privacy: Privacy = 'public';
-    let readOnly = false;
-
-    if (jsdocAnn) {
-      type = getTypeFromAnnotation(jsdocAnn);
-      description = getDescription(jsdocAnn);
-      privacy = getOrInferPrivacy(member, jsdocAnn);
-      readOnly = jsdoc.hasTag(jsdocAnn, 'readonly');
-    }
-
-    return {
-      name: member,
-      astNode: node,
-      type,
-      jsdoc: jsdocAnn,
-      sourceRange: this._document.sourceRangeForNode(node)!,
-      description,
-      privacy,
-      warnings: [],
-      readOnly,
-    };
-  }
-
   private _createMemberFromMemberExpression(node: babel.ExpressionStatement) {
     if (!babel.isMemberExpression(node.expression)) {
       return;
@@ -549,7 +519,8 @@ class PrototypeMemberFinder implements Visitor {
         this.methods.set(method.name, method);
       }
     } else {
-      const prop = this._createPropertyFromMemberExpression(node.expression, annotation);
+      const prop = this._createPropertyFromExpression(node.expression.property.name,
+        node.expression, annotation);
       if (prop) {
         this.properties.set(prop.name, prop);
       }
