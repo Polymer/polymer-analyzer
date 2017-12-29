@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
+* [BREAKING] Removed scriptElement and domModule from PolymerElementMixin.
+  They were always undefined.
 * `UrlResolver#resolve()` returns urls containing querystring and fragment
   components where they were previously stripped out.
 * Add FSUrlLoader#getFilePath which will return the file path that would
@@ -14,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Add a `resolver` option when converting warnings to string, or when
   using the WarningPrinter. This will resolve file urls in warnings using
   `resolver.relative`, to avoid super long urls in warning messages.
+* Add `Element#template` for getting the template of an element.
 <!-- Add new, unreleased changes here. -->
 
 ## [3.0.0-pre.6] - 2017-12-18
