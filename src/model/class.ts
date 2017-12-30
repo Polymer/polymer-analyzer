@@ -82,6 +82,12 @@ export class ScannedClass implements ScannedFeature, Resolvable {
     return new Class(this, document);
   }
 
+  /**
+   * Allows additional properties and methods
+   * to be added to the class after initialization.
+   * For example, members found attached to the
+   * prototype at a later place in the document
+   */
   finishInitialization(
       methods: Map<string, ScannedMethod>,
       properties: Map<string, ScannedProperty>) {
