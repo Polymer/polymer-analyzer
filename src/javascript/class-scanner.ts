@@ -16,7 +16,7 @@ import generate from 'babel-generator';
 import * as babel from 'babel-types';
 import * as doctrine from 'doctrine';
 
-import {MethodParam, Privacy, ScannedClass, ScannedFeature, ScannedMethod, ScannedProperty, ScannedReference, Severity, SourceRange, Warning, MapWithDefault} from '../model/model';
+import {MapWithDefault, MethodParam, Privacy, ScannedClass, ScannedFeature, ScannedMethod, ScannedProperty, ScannedReference, Severity, SourceRange, Warning} from '../model/model';
 import {extractObservers} from '../polymer/declaration-property-handlers';
 import {mergePropertyDeclarations, Observer, ScannedPolymerElement} from '../polymer/polymer-element';
 import {ScannedPolymerElementMixin} from '../polymer/polymer-element-mixin';
@@ -27,7 +27,7 @@ import * as astValue from './ast-value';
 import {getIdentifierName, getNamespacedIdentifier} from './ast-value';
 import {Visitor} from './estree-visitor';
 import * as esutil from './esutil';
-import {closureType, toMethodParam, getReturnFromAnnotation, getMethods, getOrInferPrivacy, getStaticMethods} from './esutil';
+import {closureType, getMethods, getOrInferPrivacy, getReturnFromAnnotation, getStaticMethods, toMethodParam} from './esutil';
 import {JavaScriptDocument} from './javascript-document';
 import {JavaScriptScanner} from './javascript-scanner';
 import * as jsdoc from './jsdoc';
@@ -75,8 +75,7 @@ export class ClassScanner implements JavaScriptScanner {
     const mixinFinder = new MixinVisitor(document);
     const elementDefinitionFinder =
         new CustomElementsDefineCallFinder(document);
-    const prototypeMemberFinder =
-        new PrototypeMemberFinder(document);
+    const prototypeMemberFinder = new PrototypeMemberFinder(document);
     // Find all classes and all calls to customElements.define()
     await Promise.all([
       visit(classFinder),
@@ -351,11 +350,13 @@ interface CustomElementDefinition {
 }
 
 class PrototypeMemberFinder implements Visitor {
-  readonly members = new MapWithDefault<string,
-    {methods: Map<string, ScannedMethod>, properties: Map<string, ScannedProperty>}>(() => ({
-      methods: new Map<string, ScannedMethod>(),
-      properties: new Map<string, ScannedProperty>()
-    }));
+  readonly members = new MapWithDefault<string, {
+    methods: Map<string, ScannedMethod>,
+    properties: Map<string, ScannedProperty>
+  }>(() => ({
+       methods: new Map<string, ScannedMethod>(),
+       properties: new Map<string, ScannedProperty>()
+     }));
   private readonly _document: JavaScriptDocument;
 
   constructor(document: JavaScriptDocument) {
@@ -364,11 +365,11 @@ class PrototypeMemberFinder implements Visitor {
 
   enterExpressionStatement(node: babel.ExpressionStatement) {
     if (babel.isAssignmentExpression(node.expression)) {
-      this._createMemberFromAssignment(node.expression,
-        getJSDocAnnotationForNode(node));
+      this._createMemberFromAssignment(
+          node.expression, getJSDocAnnotationForNode(node));
     } else if (babel.isMemberExpression(node.expression)) {
-      this._createMemberFromMemberExpression(node.expression,
-        getJSDocAnnotationForNode(node));
+      this._createMemberFromMemberExpression(
+          node.expression, getJSDocAnnotationForNode(node));
     }
   }
 
@@ -388,14 +389,14 @@ class PrototypeMemberFinder implements Visitor {
     }
 
     if (babel.isFunctionExpression(node.right)) {
-      const member = this._createMethodFromExpression(leftProperty.name,
-        node.right, jsdocAnn);
+      const member = this._createMethodFromExpression(
+          leftProperty.name, node.right, jsdocAnn);
       if (member) {
         this._addMethodToClass(cls, member);
       }
     } else {
-      const member = this._createPropertyFromExpression(leftProperty.name,
-        node, jsdocAnn);
+      const member =
+          this._createPropertyFromExpression(leftProperty.name, node, jsdocAnn);
       if (member) {
         this._addPropertyToClass(cls, member);
       }
@@ -417,8 +418,7 @@ class PrototypeMemberFinder implements Visitor {
     const left = node.object;
 
     // we only want `something.prototype.member`
-    if (!babel.isIdentifier(node.property) ||
-        !babel.isMemberExpression(left) ||
+    if (!babel.isIdentifier(node.property) || !babel.isMemberExpression(left) ||
         getIdentifierName(left.property) !== 'prototype') {
       return;
     }
@@ -430,14 +430,14 @@ class PrototypeMemberFinder implements Visitor {
     }
 
     if (jsdoc.hasTag(jsdocAnn, 'function')) {
-      const member = this._createMethodFromExpression(node.property.name,
-        node, jsdocAnn);
+      const member =
+          this._createMethodFromExpression(node.property.name, node, jsdocAnn);
       if (member) {
         this._addMethodToClass(cls, member);
       }
     } else {
-      const member = this._createPropertyFromExpression(node.property.name,
-        node, jsdocAnn);
+      const member = this._createPropertyFromExpression(
+          node.property.name, node, jsdocAnn);
       if (member) {
         this._addPropertyToClass(cls, member);
       }
@@ -445,7 +445,8 @@ class PrototypeMemberFinder implements Visitor {
   }
 
   private _createPropertyFromExpression(
-      name: string, node: babel.AssignmentExpression|babel.MemberExpression, jsdocAnn?: jsdoc.Annotation) {
+      name: string, node: babel.AssignmentExpression|babel.MemberExpression,
+      jsdocAnn?: jsdoc.Annotation) {
     let description;
     let type;
     let privacy: Privacy = 'public';
@@ -465,7 +466,8 @@ class PrototypeMemberFinder implements Visitor {
 
     if (babel.isAssignmentExpression(node)) {
       if (!type) {
-        const detectedType = closureType(node.right, sourceRange, this._document);
+        const detectedType =
+            closureType(node.right, sourceRange, this._document);
         if (detectedType instanceof Warning) {
           warnings.push(detectedType);
           type = 'Function';
@@ -489,7 +491,8 @@ class PrototypeMemberFinder implements Visitor {
   }
 
   private _createMethodFromExpression(
-      name: string, node: babel.FunctionExpression|babel.MemberExpression, jsdocAnn?: jsdoc.Annotation) {
+      name: string, node: babel.FunctionExpression|babel.MemberExpression,
+      jsdocAnn?: jsdoc.Annotation) {
     let description;
     let type;
     let privacy: Privacy = 'public';
@@ -520,11 +523,9 @@ class PrototypeMemberFinder implements Visitor {
           if (tag.description) {
             tagDescription = tag.description;
           }
-          params.set(tag.name, {
-            name: tag.name,
-            type: tagType,
-            description: tagDescription
-          });
+          params.set(
+              tag.name,
+              {name: tag.name, type: tagType, description: tagDescription});
         }
       }
     }
@@ -978,7 +979,8 @@ function getJSDocAnnotationForNode(node: babel.Node) {
   return jsdocAnn;
 }
 
-function getReturnTypeFromAnnotation(jsdocAnn: jsdoc.Annotation): string|undefined {
+function getReturnTypeFromAnnotation(jsdocAnn: jsdoc.Annotation): string|
+    undefined {
   const ret = getReturnFromAnnotation(jsdocAnn);
   return ret ? ret.type : undefined;
 }

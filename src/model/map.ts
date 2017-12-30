@@ -28,4 +28,3 @@ export class MapWithDefault<K, V> extends Map<K, V> {
     return super.get(key)!;
   }
 }
-

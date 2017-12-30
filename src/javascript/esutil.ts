@@ -245,16 +245,18 @@ export function toScannedMethod(
       }
     }
 
-    scannedMethod.params = (value.params || []).map((nodeParam) =>
-      toMethodParam(nodeParam, scannedMethod.jsdoc));
+    scannedMethod.params =
+        (value.params ||
+         []).map((nodeParam) => toMethodParam(nodeParam, scannedMethod.jsdoc));
   }
 
   return scannedMethod;
 }
 
-export function getReturnFromAnnotation(jsdocAnn: jsdoc.Annotation): {type?: string, desc?: string}|undefined {
-  const tag = jsdoc.getTag(jsdocAnn, 'return') ||
-    jsdoc.getTag(jsdocAnn, 'returns');
+export function getReturnFromAnnotation(jsdocAnn: jsdoc.Annotation):
+    {type?: string, desc?: string}|undefined {
+  const tag =
+      jsdoc.getTag(jsdocAnn, 'return') || jsdoc.getTag(jsdocAnn, 'returns');
 
   if (!tag || (!tag.type && !tag.description)) {
     return undefined;
@@ -274,7 +276,8 @@ export function getReturnFromAnnotation(jsdocAnn: jsdoc.Annotation): {type?: str
   return type;
 }
 
-export function toMethodParam(nodeParam: babel.LVal, jsdocAnn?: jsdoc.Annotation): MethodParam {
+export function toMethodParam(
+    nodeParam: babel.LVal, jsdocAnn?: jsdoc.Annotation): MethodParam {
   const paramTags = new Map<string, doctrine.Tag>();
   let name;
   let defaultValue;
@@ -301,8 +304,7 @@ export function toMethodParam(nodeParam: babel.LVal, jsdocAnn?: jsdoc.Annotation
 
   } else if (
       babel.isAssignmentPattern(nodeParam) &&
-      babel.isIdentifier(nodeParam.left) &&
-      babel.isLiteral(nodeParam.right)) {
+      babel.isIdentifier(nodeParam.left) && babel.isLiteral(nodeParam.right)) {
     // Parameter with a default: method(param = "default")
     name = nodeParam.left.name;
     defaultValue = generate(nodeParam.right).code;
