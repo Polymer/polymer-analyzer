@@ -361,43 +361,38 @@ class PrototypeMemberFinder implements Visitor {
 
   enterExpressionStatement(node: babel.ExpressionStatement) {
     if (babel.isAssignmentExpression(node.expression)) {
-      this._createMemberFromAssignment(node);
+      this._createMemberFromAssignment(node.expression,
+        getJSDocAnnotationForNode(node));
     } else if (babel.isMemberExpression(node.expression)) {
-      this._createMemberFromMemberExpression(node);
+      this._createMemberFromMemberExpression(node.expression,
+        getJSDocAnnotationForNode(node));
     }
   }
 
-  private _createMemberFromAssignment(node: babel.ExpressionStatement) {
-    if (!babel.isAssignmentExpression(node.expression)) {
+  private _createMemberFromAssignment(
+      node: babel.AssignmentExpression, jsdocAnn?: jsdoc.Annotation) {
+    if (!babel.isMemberExpression(node.left) ||
+        !babel.isMemberExpression(node.left.object) ||
+        !babel.isIdentifier(node.left.property)) {
       return;
     }
 
-    const expr = node.expression;
-
-    if (!babel.isMemberExpression(expr.left) ||
-        !babel.isMemberExpression(expr.left.object) ||
-        !babel.isIdentifier(expr.left.property)) {
-      return;
-    }
-
-    const leftExpr = expr.left.object;
-    const leftProperty = expr.left.property;
+    const leftExpr = node.left.object;
+    const leftProperty = node.left.property;
     const cls = getIdentifierName(leftExpr.object);
     if (!cls || getIdentifierName(leftExpr.property) !== 'prototype') {
       return;
     }
 
-    const annotation = getJSDocAnnotationForNode(node);
-
-    if (babel.isFunctionExpression(expr.right)) {
+    if (babel.isFunctionExpression(node.right)) {
       const method = this._createMethodFromExpression(leftProperty.name,
-        expr.right, annotation);
+        node.right, jsdocAnn);
       if (method) {
         this._addMethodToClass(cls, method);
       }
     } else {
       const prop = this._createPropertyFromExpression(leftProperty.name,
-        expr, annotation);
+        node, jsdocAnn);
       if (prop) {
         this._addPropertyToClass(cls, prop);
       }
@@ -428,15 +423,12 @@ class PrototypeMemberFinder implements Visitor {
     classMembers.properties.set(member.name, member);
   }
 
-  private _createMemberFromMemberExpression(node: babel.ExpressionStatement) {
-    if (!babel.isMemberExpression(node.expression)) {
-      return;
-    }
-
-    const left = node.expression.object;
+  private _createMemberFromMemberExpression(
+      node: babel.MemberExpression, jsdocAnn?: jsdoc.Annotation) {
+    const left = node.object;
 
     // we only want `something.prototype.member`
-    if (!babel.isIdentifier(node.expression.property) ||
+    if (!babel.isIdentifier(node.property) ||
         !babel.isMemberExpression(left) ||
         getIdentifierName(left.property) !== 'prototype') {
       return;
@@ -448,17 +440,15 @@ class PrototypeMemberFinder implements Visitor {
       return;
     }
 
-    const annotation = getJSDocAnnotationForNode(node);
-
-    if (jsdoc.hasTag(annotation, 'function')) {
-      const method = this._createMethodFromExpression(node.expression.property.name,
-        node.expression, annotation);
+    if (jsdoc.hasTag(jsdocAnn, 'function')) {
+      const method = this._createMethodFromExpression(node.property.name,
+        node, jsdocAnn);
       if (method) {
         this._addMethodToClass(cls, method);
       }
     } else {
-      const prop = this._createPropertyFromExpression(node.expression.property.name,
-        node.expression, annotation);
+      const prop = this._createPropertyFromExpression(node.property.name,
+        node, jsdocAnn);
       if (prop) {
         this._addPropertyToClass(cls, prop);
       }
