@@ -114,10 +114,15 @@ export class ClassScanner implements JavaScriptScanner {
     // Next we want to distinguish custom elements from other classes.
     const customElements: CustomElementDefinition[] = [];
     const normalClasses = [];
+    const classMap = new Map<string, ScannedClass>();
+
     for (const class_ of classFinder.classes) {
       if (mixinClassExpressions.has(class_.astNode)) {
         // This class is a mixin and has already been handled as such.
         continue;
+      }
+      if (class_.name) {
+        classMap.set(class_.name, class_);
       }
       // Class expressions inside the customElements.define call
       if (babel.isClassExpression(class_.astNode)) {
@@ -146,13 +151,11 @@ export class ClassScanner implements JavaScriptScanner {
       normalClasses.push(class_);
     }
 
-    for (const [cls, members] of prototypeMemberFinder.members) {
-      const foundClass = normalClasses.find((c) =>
-        c.name === cls);
-      if (!foundClass) {
-        continue;
+    for (const [name, members] of prototypeMemberFinder.members) {
+      if (classMap.has(name)) {
+        const cls = classMap.get(name)!;
+        cls.finishInitialization(members.methods, members.properties);
       }
-      foundClass.finishInitialization(members.methods, members.properties);
     }
 
     const scannedFeatures: (ScannedPolymerElement|ScannedClass|
