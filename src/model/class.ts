@@ -93,14 +93,10 @@ export class ScannedClass implements ScannedFeature, Resolvable {
       properties: Map<string, ScannedProperty>) {
     const mutableMethods = unsafeAsMutable(this.methods);
     for (const [name, method] of methods) {
-      if (!mutableMethods.has(name)) {
-        mutableMethods.set(name, method);
-      }
+      mutableMethods.set(name, method);
     }
     for (const [name, prop] of properties) {
-      if (!this.properties.has(name)) {
-        this.properties.set(name, prop);
-      }
+      this.properties.set(name, prop);
     }
   }
 }
