@@ -16,7 +16,7 @@ import generate from 'babel-generator';
 import * as babel from 'babel-types';
 import * as doctrine from 'doctrine';
 
-import {MethodParam, Privacy, ScannedClass, ScannedFeature, ScannedMethod, ScannedProperty, ScannedReference, Severity, SourceRange, Warning} from '../model/model';
+import {MethodParam, Privacy, ScannedClass, ScannedFeature, ScannedMethod, ScannedProperty, ScannedReference, Severity, SourceRange, Warning, MapWithDefault} from '../model/model';
 import {extractObservers} from '../polymer/declaration-property-handlers';
 import {mergePropertyDeclarations, Observer, ScannedPolymerElement} from '../polymer/polymer-element';
 import {ScannedPolymerElementMixin} from '../polymer/polymer-element-mixin';
@@ -351,8 +351,11 @@ interface CustomElementDefinition {
 }
 
 class PrototypeMemberFinder implements Visitor {
-  readonly members = new Map<string,
-    {methods: Map<string, ScannedMethod>, properties: Map<string, ScannedProperty>}>();
+  readonly members = new MapWithDefault<string,
+    {methods: Map<string, ScannedMethod>, properties: Map<string, ScannedProperty>}>(() => ({
+      methods: new Map<string, ScannedMethod>(),
+      properties: new Map<string, ScannedProperty>()
+    }));
   private readonly _document: JavaScriptDocument;
 
   constructor(document: JavaScriptDocument) {
@@ -385,41 +388,27 @@ class PrototypeMemberFinder implements Visitor {
     }
 
     if (babel.isFunctionExpression(node.right)) {
-      const method = this._createMethodFromExpression(leftProperty.name,
+      const member = this._createMethodFromExpression(leftProperty.name,
         node.right, jsdocAnn);
-      if (method) {
-        this._addMethodToClass(cls, method);
+      if (member) {
+        this._addMethodToClass(cls, member);
       }
     } else {
-      const prop = this._createPropertyFromExpression(leftProperty.name,
+      const member = this._createPropertyFromExpression(leftProperty.name,
         node, jsdocAnn);
-      if (prop) {
-        this._addPropertyToClass(cls, prop);
+      if (member) {
+        this._addPropertyToClass(cls, member);
       }
     }
   }
 
   private _addMethodToClass(cls: string, member: ScannedMethod) {
-    let classMembers = this.members.get(cls);
-    if (!classMembers) {
-      classMembers = {
-        methods: new Map<string, ScannedMethod>(),
-        properties: new Map<string, ScannedProperty>()
-      };
-      this.members.set(cls, classMembers);
-    }
+    const classMembers = this.members.get(cls);
     classMembers.methods.set(member.name, member);
   }
 
   private _addPropertyToClass(cls: string, member: ScannedProperty) {
-    let classMembers = this.members.get(cls);
-    if (!classMembers) {
-      classMembers = {
-        methods: new Map<string, ScannedMethod>(),
-        properties: new Map<string, ScannedProperty>()
-      };
-      this.members.set(cls, classMembers);
-    }
+    const classMembers = this.members.get(cls);
     classMembers.properties.set(member.name, member);
   }
 
@@ -441,16 +430,16 @@ class PrototypeMemberFinder implements Visitor {
     }
 
     if (jsdoc.hasTag(jsdocAnn, 'function')) {
-      const method = this._createMethodFromExpression(node.property.name,
+      const member = this._createMethodFromExpression(node.property.name,
         node, jsdocAnn);
-      if (method) {
-        this._addMethodToClass(cls, method);
+      if (member) {
+        this._addMethodToClass(cls, member);
       }
     } else {
-      const prop = this._createPropertyFromExpression(node.property.name,
+      const member = this._createPropertyFromExpression(node.property.name,
         node, jsdocAnn);
-      if (prop) {
-        this._addPropertyToClass(cls, prop);
+      if (member) {
+        this._addPropertyToClass(cls, member);
       }
     }
   }
