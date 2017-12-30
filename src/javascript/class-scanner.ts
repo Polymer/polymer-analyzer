@@ -75,11 +75,14 @@ export class ClassScanner implements JavaScriptScanner {
     const mixinFinder = new MixinVisitor(document);
     const elementDefinitionFinder =
         new CustomElementsDefineCallFinder(document);
+    const prototypeMemberFinder =
+        new PrototypeMemberFinder(document);
     // Find all classes and all calls to customElements.define()
     await Promise.all([
       visit(classFinder),
       visit(elementDefinitionFinder),
-      visit(mixinFinder)
+      visit(mixinFinder),
+      visit(prototypeMemberFinder),
     ]);
     const mixins = mixinFinder.mixins;
 
@@ -141,6 +144,15 @@ export class ClassScanner implements JavaScriptScanner {
       }
       // Classes that aren't custom elements, or at least, aren't obviously.
       normalClasses.push(class_);
+    }
+
+    for (const [cls, members] of prototypeMemberFinder.members) {
+      const foundClass = normalClasses.find((c) =>
+        c.name === cls);
+      if (!foundClass) {
+        continue;
+      }
+      foundClass.finishInitialization(members.methods, members.properties);
     }
 
     const scannedFeatures: (ScannedPolymerElement|ScannedClass|
@@ -336,14 +348,12 @@ interface CustomElementDefinition {
 }
 
 class PrototypeMemberFinder implements Visitor {
-  readonly properties = new Map<string, ScannedProperty>();
-  readonly methods = new Map<string, ScannedMethod>();
+  readonly members = new Map<string,
+    {methods: Map<string, ScannedMethod>, properties: Map<string, ScannedProperty>}>();
   private readonly _document: JavaScriptDocument;
-  private readonly _name: string;
 
-  constructor(document: JavaScriptDocument, name: string) {
+  constructor(document: JavaScriptDocument) {
     this._document = document;
-    this._name = name;
   }
 
   enterExpressionStatement(node: babel.ExpressionStatement) {
@@ -369,7 +379,8 @@ class PrototypeMemberFinder implements Visitor {
 
     const leftExpr = expr.left.object;
     const leftProperty = expr.left.property;
-    if (getIdentifierName(leftExpr) !== `${this._name}.prototype`) {
+    const cls = getIdentifierName(leftExpr.object);
+    if (!cls || getIdentifierName(leftExpr.property) !== 'prototype') {
       return;
     }
 
@@ -379,13 +390,74 @@ class PrototypeMemberFinder implements Visitor {
       const method = this._createMethodFromExpression(leftProperty.name,
         expr.right, annotation);
       if (method) {
-        this.methods.set(method.name, method);
+        this._addMethodToClass(cls, method);
       }
     } else {
       const prop = this._createPropertyFromExpression(leftProperty.name,
         expr, annotation);
       if (prop) {
-        this.properties.set(prop.name, prop);
+        this._addPropertyToClass(cls, prop);
+      }
+    }
+  }
+
+  private _addMethodToClass(cls: string, member: ScannedMethod) {
+    let classMembers = this.members.get(cls);
+    if (!classMembers) {
+      classMembers = {
+        methods: new Map<string, ScannedMethod>(),
+        properties: new Map<string, ScannedProperty>()
+      };
+      this.members.set(cls, classMembers);
+    }
+    classMembers.methods.set(member.name, member);
+  }
+
+  private _addPropertyToClass(cls: string, member: ScannedProperty) {
+    let classMembers = this.members.get(cls);
+    if (!classMembers) {
+      classMembers = {
+        methods: new Map<string, ScannedMethod>(),
+        properties: new Map<string, ScannedProperty>()
+      };
+      this.members.set(cls, classMembers);
+    }
+    classMembers.properties.set(member.name, member);
+  }
+
+  private _createMemberFromMemberExpression(node: babel.ExpressionStatement) {
+    if (!babel.isMemberExpression(node.expression)) {
+      return;
+    }
+
+    const left = node.expression.object;
+
+    // we only want `something.prototype.member`
+    if (!babel.isIdentifier(node.expression.property) ||
+        !babel.isMemberExpression(left) ||
+        getIdentifierName(left.property) !== 'prototype') {
+      return;
+    }
+
+    const cls = getIdentifierName(left.object);
+
+    if (!cls) {
+      return;
+    }
+
+    const annotation = getJSDocAnnotationForNode(node);
+
+    if (jsdoc.hasTag(annotation, 'function')) {
+      const method = this._createMethodFromExpression(node.expression.property.name,
+        node.expression, annotation);
+      if (method) {
+        this._addMethodToClass(cls, method);
+      }
+    } else {
+      const prop = this._createPropertyFromExpression(node.expression.property.name,
+        node.expression, annotation);
+      if (prop) {
+        this._addPropertyToClass(cls, prop);
       }
     }
   }
@@ -488,36 +560,6 @@ class PrototypeMemberFinder implements Visitor {
       privacy
     };
   }
-
-  private _createMemberFromMemberExpression(node: babel.ExpressionStatement) {
-    if (!babel.isMemberExpression(node.expression)) {
-      return;
-    }
-
-    const left = node.expression.object;
-
-    // we only want `something.prototype.member`
-    if (!babel.isIdentifier(node.expression.property) ||
-        getIdentifierName(left) !== `${this._name}.prototype`) {
-      return;
-    }
-
-    const annotation = getJSDocAnnotationForNode(node);
-
-    if (jsdoc.hasTag(annotation, 'function')) {
-      const method = this._createMethodFromExpression(node.expression.property.name,
-        node.expression, annotation);
-      if (method) {
-        this.methods.set(method.name, method);
-      }
-    } else {
-      const prop = this._createPropertyFromExpression(node.expression.property.name,
-        node.expression, annotation);
-      if (prop) {
-        this.properties.set(prop.name, prop);
-      }
-    }
-  }
 }
 
 /**
@@ -598,23 +640,6 @@ class ClassFinder implements Visitor {
     const warnings: Warning[] = [];
     const properties = extractPropertiesFromClass(astNode, this._document);
     const methods = getMethods(astNode, this._document);
-
-    if (name) {
-      const protoFinder = new PrototypeMemberFinder(this._document, name);
-      this._document.visit([protoFinder]);
-
-      for (const prop of protoFinder.properties.values()) {
-        if (!properties.has(prop.name)) {
-          properties.set(prop.name, prop);
-        }
-      }
-
-      for (const method of protoFinder.methods.values()) {
-        if (!methods.has(method.name)) {
-          methods.set(method.name, method);
-        }
-      }
-    }
 
     this.classes.push(new ScannedClass(
         namespacedName,

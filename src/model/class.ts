@@ -19,7 +19,7 @@ import {Document, Feature, Method, Privacy, Property, Reference, Resolvable, Sca
 import {ParsedDocument} from '../parser/document';
 
 import {Demo} from './element-base';
-import {ImmutableMap} from './immutable';
+import {ImmutableMap, unsafeAsMutable} from './immutable';
 
 /**
  * Represents a JS class as encountered in source code.
@@ -80,6 +80,22 @@ export class ScannedClass implements ScannedFeature, Resolvable {
 
   resolve(document: Document): Feature|undefined {
     return new Class(this, document);
+  }
+
+  finishInitialization(
+      methods: Map<string, ScannedMethod>,
+      properties: Map<string, ScannedProperty>) {
+    const mutableMethods = unsafeAsMutable(this.methods);
+    for (const [name, method] of methods) {
+      if (!mutableMethods.has(name)) {
+        mutableMethods.set(name, method);
+      }
+    }
+    for (const [name, prop] of properties) {
+      if (!this.properties.has(name)) {
+        this.properties.set(name, prop);
+      }
+    }
   }
 }
 
