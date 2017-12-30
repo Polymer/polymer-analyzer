@@ -60,3 +60,5 @@ Class.prototype.customPropertyOnProtoValue = 5;
  * @readonly
  */
 Class.prototype.customPropertyOnProtoDoc = true;
+
+Class.prototype.__customPropertyOnProtoPrivate = true;

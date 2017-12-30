@@ -193,6 +193,11 @@ suite('Class', () => {
         readOnly: true
       });
 
+      assert.deepInclude(cls.properties.get('__customPropertyOnProtoPrivate'), {
+        name: '__customPropertyOnProtoPrivate',
+        privacy: 'private'
+      });
+
       assert.deepEqual(await getTestProps(cls), {
         name: 'Class',
         description: '',
@@ -207,7 +212,8 @@ suite('Class', () => {
           { name: 'customPropertyWithJSDoc' },
           { name: 'customPropertyOnProto' },
           { name: 'customPropertyOnProtoValue' },
-          { name: 'customPropertyOnProtoDoc' }
+          { name: 'customPropertyOnProtoDoc' },
+          { name: '__customPropertyOnProtoPrivate' }
         ]
       });
     });
@@ -328,6 +334,10 @@ suite('Class', () => {
               return: {
                 type: 'void'
               }
+            },
+            {
+              description: undefined,
+              name: '__customInstanceFunctionOnProtoPrivate'
             },
             {
               description: undefined,
@@ -581,6 +591,10 @@ suite('Class', () => {
               return: {
                 type: 'void'
               }
+            },
+            {
+              description: undefined,
+              name: '__customInstanceFunctionOnProtoPrivate'
             },
             {
               description: undefined,

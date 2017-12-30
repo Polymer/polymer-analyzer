@@ -75,6 +75,9 @@ class Class {
  */
 Class.prototype.customInstanceFunctionOnProto;
 
+/** @function */
+Class.prototype.__customInstanceFunctionOnProtoPrivate;
+
 Class.prototype.customInstanceFunctionOnProtoWithBody = function() {
   return true;
 };

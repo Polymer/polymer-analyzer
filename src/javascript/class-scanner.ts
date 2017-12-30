@@ -449,8 +449,8 @@ class PrototypeMemberFinder implements Visitor {
       jsdocAnn?: jsdoc.Annotation) {
     let description;
     let type;
-    let privacy: Privacy = 'public';
     let readOnly = false;
+    const privacy = getOrInferPrivacy(name, jsdocAnn);
     const sourceRange = this._document.sourceRangeForNode(node)!;
     const warnings: Warning[] = [];
 
@@ -460,7 +460,6 @@ class PrototypeMemberFinder implements Visitor {
         type = doctrine.type.stringify(typeTag.type);
       }
       description = getDescription(jsdocAnn);
-      privacy = getOrInferPrivacy(name, jsdocAnn);
       readOnly = jsdoc.hasTag(jsdocAnn, 'readonly');
     }
 
@@ -495,13 +494,12 @@ class PrototypeMemberFinder implements Visitor {
       jsdocAnn?: jsdoc.Annotation) {
     let description;
     let type;
-    let privacy: Privacy = 'public';
     let ret;
+    const privacy = getOrInferPrivacy(name, jsdocAnn);
     const params = new Map<string, MethodParam>();
 
     if (jsdocAnn) {
       description = getDescription(jsdocAnn);
-      privacy = getOrInferPrivacy(name, jsdocAnn);
       ret = getReturnFromAnnotation(jsdocAnn);
       type = ret ? ret.type : undefined;
 
