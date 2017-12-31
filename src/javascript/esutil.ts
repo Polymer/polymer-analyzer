@@ -223,13 +223,7 @@ export function toScannedMethod(
   const value = babel.isObjectProperty(node) ? node.value : node;
 
   const result = getClosureType(value, parsedJsdoc, sourceRange, document);
-  let type;
-  if (result.successful) {
-    type = result.value;
-  } else {
-    warnings.push(result.error);
-    type = 'Function';
-  }
+  const type = result.successful === true ? result.value : 'Function';
 
   const name = maybeName || '';
   const scannedMethod: ScannedMethod = {
