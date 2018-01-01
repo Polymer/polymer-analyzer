@@ -186,7 +186,7 @@ suite('PolymerElement', () => {
         methods: [{
           name: 'customMethodOnBaseElement',
           params: [],
-          return: undefined,
+          return: { type: 'string' },
           inheritedFrom: undefined
         }],
       },
@@ -238,19 +238,19 @@ suite('PolymerElement', () => {
           {
             name: 'customMethodOnBaseElement',
             params: [],
-            return: undefined,
+            return: { type: 'string' },
             inheritedFrom: 'BaseElement'
           },
           {
             name: 'customMethodOnMixin',
             params: [],
-            return: undefined,
+            return: { type: 'string' },
             inheritedFrom: 'Mixin'
           },
           {
             name: 'customMethodOnSubElement',
             params: [],
-            return: undefined,
+            return: { type: 'string' },
             inheritedFrom: undefined
           },
         ],

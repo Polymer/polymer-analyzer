@@ -142,7 +142,7 @@ suite('PolymerElement with old jsdoc annotations', () => {
         methods: [{
           name: 'customMethodOnBaseElement',
           params: [],
-          return: undefined,
+          return: { type: 'string' },
           inheritedFrom: undefined
         }],
       },
@@ -194,19 +194,19 @@ suite('PolymerElement with old jsdoc annotations', () => {
           {
             name: 'customMethodOnBaseElement',
             params: [],
-            return: undefined,
+            return: { type: 'string' },
             inheritedFrom: 'BaseElement'
           },
           {
             name: 'customMethodOnMixin',
             params: [],
-            return: undefined,
+            return: { type: 'string' },
             inheritedFrom: 'Mixin'
           },
           {
             name: 'customMethodOnSubElement',
             params: [],
-            return: undefined,
+            return: { type: 'string' },
             inheritedFrom: undefined
           },
         ],

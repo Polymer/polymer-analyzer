@@ -150,6 +150,9 @@
           "name": "frob",
           "description": "",
           "privacy": "public",
+          "return": {
+            "type": "void"
+          },
           "sourceRange": {
             "start": {
               "line": 45,
@@ -178,6 +181,9 @@
           "name": "glob",
           "params": [],
           "privacy": "public",
+          "return": {
+            "type": "void"
+          },
           "sourceRange": {
             "end": {
               "column": 5,
@@ -261,6 +267,9 @@
           "name": "frob",
           "description": "",
           "privacy": "public",
+          "return": {
+            "type": "void"
+          },
           "sourceRange": {
             "start": {
               "line": 45,
@@ -291,6 +300,9 @@
           "name": "glob",
           "params": [],
           "privacy": "public",
+          "return": {
+            "type": "void"
+          },
           "sourceRange": {
             "end": {
               "column": 5,

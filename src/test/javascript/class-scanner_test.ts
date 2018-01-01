@@ -205,6 +205,34 @@ suite('Class', () => {
             {
               name: 'customInstanceFunction',
               description: '',
+              return: {
+                type: 'number'
+              }
+            },
+            {
+              name: 'customInstanceFunctionWithNoReturn',
+              description: '',
+              return: {
+                type: 'void'
+              }
+            },
+            {
+              name: 'customInstanceFunctionWithInferredReturn',
+              description: '',
+              return: {
+                type: 'number'
+              }
+            },
+            {
+              name: 'customInstanceFunctionWithInferredMultipleReturn',
+              description: '',
+              return: {
+                type: '(number | boolean)'
+              }
+            },
+            {
+              name: 'customInstanceFunctionWithUninferrableReturn',
+              description: ''
             },
             {
               name: 'customInstanceFunctionWithJSDoc',
@@ -219,6 +247,9 @@ suite('Class', () => {
               name: 'customInstanceFunctionWithParams',
               description: '',
               params: [{name: 'a'}, {name: 'b'}, {name: 'c'}],
+              return: {
+                type: 'number'
+              }
             },
             {
               name: 'customInstanceFunctionWithParamsAndJSDoc',
@@ -249,6 +280,9 @@ suite('Class', () => {
               name: 'customInstanceFunctionWithParamsAndPrivateJSDoc',
               description: 'This is the description for\n' +
                   'customInstanceFunctionWithParamsAndPrivateJSDoc.',
+              return: {
+                type: 'number'
+              }
             },
             {
               name: 'customInstanceFunctionWithRestParam',
@@ -312,10 +346,12 @@ suite('Class', () => {
             {
               description: 'This is a base method.',
               name: 'baseMethod',
+              return: { type: 'void' },
             },
             {
               description: 'Will be overriden by Subclass.',
               name: 'overriddenMethod',
+              return: { type: 'void' },
             }
           ]
         },
@@ -328,10 +364,12 @@ suite('Class', () => {
             {
               description: 'Overrides the method on Base.',
               name: 'overriddenMethod',
+              return: { type: 'void' },
             },
             {
               description: 'This method only exists on Subclass.',
               name: 'subMethod',
+              return: { type: 'void' },
             }
           ]
         }
@@ -420,6 +458,34 @@ suite('Class', () => {
             {
               name: 'customInstanceFunction',
               description: '',
+              return: {
+                type: 'number'
+              }
+            },
+            {
+              name: 'customInstanceFunctionWithNoReturn',
+              description: '',
+              return: {
+                type: 'void'
+              }
+            },
+            {
+              name: 'customInstanceFunctionWithInferredReturn',
+              description: '',
+              return: {
+                type: 'number'
+              }
+            },
+            {
+              name: 'customInstanceFunctionWithInferredMultipleReturn',
+              description: '',
+              return: {
+                type: '(number | boolean)'
+              }
+            },
+            {
+              name: 'customInstanceFunctionWithUninferrableReturn',
+              description: ''
             },
             {
               name: 'customInstanceFunctionWithJSDoc',
@@ -434,7 +500,7 @@ suite('Class', () => {
               name: 'customInstanceFunctionWithParams',
               description: '',
               params: [{name: 'a'}, {name: 'b'}, {name: 'c'}],
-
+              return: { type: 'number' },
             },
             {
               name: 'customInstanceFunctionWithParamsAndJSDoc',
@@ -465,6 +531,9 @@ suite('Class', () => {
               name: 'customInstanceFunctionWithParamsAndPrivateJSDoc',
               description: 'This is the description for\n' +
                   'customInstanceFunctionWithParamsAndPrivateJSDoc.',
+              return: {
+                type: 'number'
+              }
             },
             {
               name: 'customInstanceFunctionWithRestParam',
@@ -528,10 +597,12 @@ suite('Class', () => {
             {
               description: 'This is a base method.',
               name: 'baseMethod',
+              return: { type: 'void' },
             },
             {
               description: 'Will be overriden by Subclass.',
               name: 'overriddenMethod',
+              return: { type: 'void' },
             }
           ]
         },
@@ -544,15 +615,18 @@ suite('Class', () => {
             {
               description: 'This is a base method.',
               name: 'baseMethod',
+              return: { type: 'void' },
               inheritedFrom: 'Base'
             },
             {
               description: 'Overrides the method on Base.',
               name: 'overriddenMethod',
+              return: { type: 'void' },
             },
             {
               description: 'This method only exists on Subclass.',
               name: 'subMethod',
+              return: { type: 'void' },
             },
           ]
         }

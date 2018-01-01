@@ -183,6 +183,9 @@
           "name": "created",
           "description": "",
           "privacy": "protected",
+          "return": {
+            "type": "void"
+          },
           "sourceRange": {
             "start": {
               "line": 26,

@@ -341,7 +341,11 @@ Polymer.TestMixin = Polymer.woohoo(function TestMixin(base) {
             name: 'foo',
           }],
           methods: [
-            {name: 'customInstanceFunction', params: [], return: undefined},
+            {
+              name: 'customInstanceFunction',
+              params: [],
+              return: { type: 'number' },
+            },
             {
               name: 'customInstanceFunctionWithJSDoc',
               params: [],
@@ -353,7 +357,7 @@ Polymer.TestMixin = Polymer.woohoo(function TestMixin(base) {
             {
               name: 'customInstanceFunctionWithParams',
               params: [{name: 'a'}, {name: 'b'}, {name: 'c'}],
-              return: undefined,
+              return: { type: 'number' },
             },
             {
               name: 'customInstanceFunctionWithParamsAndJSDoc',
@@ -381,7 +385,7 @@ Polymer.TestMixin = Polymer.woohoo(function TestMixin(base) {
             {
               name: 'customInstanceFunctionWithParamsAndPrivateJSDoc',
               params: [],
-              return: undefined,
+              return: { type: 'number' },
             },
           ],
           underlinedWarnings: [],
@@ -398,10 +402,26 @@ Polymer.TestMixin = Polymer.woohoo(function TestMixin(base) {
         summary: '',
         attributes: [{name: 'foo'}],
         methods: [
-          {name: 'baseMethod', params: [], return: undefined},
-          {name: 'privateMethod', params: [], return: undefined},
-          {name: 'privateOverriddenMethod', params: [], return: undefined},
-          {name: 'overrideMethod', params: [], return: undefined},
+          {
+            name: 'baseMethod',
+            params: [],
+            return: { type: 'void' },
+          },
+          {
+            name: 'privateMethod',
+            params: [],
+            return: { type: 'void' },
+          },
+          {
+            name: 'privateOverriddenMethod',
+            params: [],
+            return: { type: 'void' },
+          },
+          {
+            name: 'overrideMethod',
+            params: [],
+            return: { type: 'void' },
+          },
         ],
         properties: [{name: 'foo'}],
         underlinedWarnings: [],
@@ -411,11 +431,31 @@ Polymer.TestMixin = Polymer.woohoo(function TestMixin(base) {
         attributes: [{name: 'foo'}],
         description: '',
         methods: [
-          {name: 'baseMethod', params: [], return: undefined},
-          {name: 'privateMethod', params: [], return: undefined},
-          {name: 'privateOverriddenMethod', params: [], return: undefined},
-          {name: 'overrideMethod', params: [], return: undefined},
-          {name: 'middleMethod', params: [], return: undefined},
+          {
+            name: 'baseMethod',
+            params: [],
+            return: { type: 'void' },
+          },
+          {
+            name: 'privateMethod',
+            params: [],
+            return: { type: 'void' },
+          },
+          {
+            name: 'privateOverriddenMethod',
+            params: [],
+            return: { type: 'void' },
+          },
+          {
+            name: 'overrideMethod',
+            params: [],
+            return: { type: 'void' },
+          },
+          {
+            name: 'middleMethod',
+            params: [],
+            return: { type: 'void' },
+          },
         ],
         properties: [{name: 'foo'}],
         summary: '',
