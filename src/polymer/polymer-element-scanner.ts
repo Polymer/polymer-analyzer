@@ -40,21 +40,14 @@ export class PolymerElementScanner implements JavaScriptScanner {
 }
 
 class ElementVisitor implements Visitor {
-  features: ScannedPolymerElement[] = [];
-
-  /**
-   * The element being built during a traversal;
-   */
-  element: ScannedPolymerElement|null = null;
-  propertyHandlers: PropertyHandlers|null = null;
-  classDetected: boolean = false;
-  warnings: Warning[] = [];
-
-  document: JavaScriptDocument;
+  readonly features: ScannedPolymerElement[] = [];
+  readonly warnings: Warning[] = [];
+  readonly document: JavaScriptDocument;
   constructor(document: JavaScriptDocument) {
     this.document = document;
   }
 
+  /*
   enterClassDeclaration(node: babel.ClassDeclaration, _: babel.Node) {
     this.classDetected = true;
     const className = node.id.name;
@@ -185,144 +178,122 @@ class ElementVisitor implements Visitor {
     }
   }
 
+  */
+
   enterCallExpression(node: babel.CallExpression, parent: babel.Node) {
-    // When dealing with a class, enterCallExpression is called after the
-    // parsing actually starts
-    if (this.classDetected) {
-      return VisitorOption.Skip;
+    const callee = node.callee;
+    if (!babel.isIdentifier(callee) || callee.name !== 'Polymer') {
+      return;
+    }
+    const rawDescription = getAttachedComment(parent);
+    let className: undefined|string = undefined;
+    if (babel.isAssignmentExpression(parent)) {
+      className = getIdentifierName(parent.left);
+    } else if (babel.isVariableDeclarator(parent)) {
+      className = getIdentifierName(parent.id);
+    }
+    const jsDoc = jsdoc.parseJsdoc(rawDescription || '');
+    const element = new ScannedPolymerElement({
+      className,
+      astNode: node,
+      description: jsDoc.description,
+      events: getEventComments(parent),
+      sourceRange: this.document.sourceRangeForNode(node.arguments[0]),
+      privacy: getOrInferPrivacy('', jsDoc),
+      abstract: jsdoc.hasTag(jsDoc, 'abstract'),
+      attributes: new Map(),
+      properties: [],
+      behaviors: [],
+      extends: undefined,
+      jsdoc: jsDoc,
+      listeners: [],
+      methods: new Map(),
+      staticMethods: new Map(),
+      mixins: [],
+      observers: [],
+      superClass: undefined,
+      tagName: undefined
+    });
+    element.description = (element.description || '').trim();
+    const propertyHandlers =
+        declarationPropertyHandlers(element, this.document);
+
+    const argument = node.arguments[0];
+    if (babel.isObjectExpression(argument)) {
+      this.handleObjectExpression(argument, propertyHandlers, element);
     }
 
-    const callee = node.callee;
-    if (babel.isIdentifier(callee)) {
-      if (callee.name === 'Polymer') {
-        const rawDescription = getAttachedComment(parent);
-        let className: undefined|string = undefined;
-        if (babel.isAssignmentExpression(parent)) {
-          className = getIdentifierName(parent.left);
-        } else if (babel.isVariableDeclarator(parent)) {
-          className = getIdentifierName(parent.id);
-        }
-        const jsDoc = jsdoc.parseJsdoc(rawDescription || '');
-        this.element = new ScannedPolymerElement({
-          className,
-          astNode: node,
-          description: jsDoc.description,
-          events: getEventComments(parent),
-          sourceRange: this.document.sourceRangeForNode(node.arguments[0]),
-          privacy: getOrInferPrivacy('', jsDoc),
-          abstract: jsdoc.hasTag(jsDoc, 'abstract'),
-          attributes: new Map(),
-          properties: [],
-          behaviors: [],
-          extends: undefined,
-          jsdoc: jsDoc,
-          listeners: [],
-          methods: new Map(),
-          staticMethods: new Map(),
-          mixins: [],
-          observers: [],
-          superClass: undefined,
-          tagName: undefined
-        });
-        this.element.description = (this.element.description || '').trim();
-        this.propertyHandlers =
-            declarationPropertyHandlers(this.element, this.document);
-      }
-    }
+    this.features.push(element);
   }
 
-  leaveCallExpression(node: babel.CallExpression, _: babel.Node) {
-    const callee = node.callee;
-    const args = node.arguments;
-    if (babel.isIdentifier(callee) && args.length === 1 &&
-        babel.isObjectExpression(args[0])) {
-      if (callee.name === 'Polymer') {
-        if (this.element) {
-          this.features.push(this.element);
-          this.element = null;
-          this.propertyHandlers = null;
-        }
+  private handleObjectExpression(
+      node: babel.ObjectExpression, propertyHandlers: PropertyHandlers,
+      element: ScannedPolymerElement) {
+    const getters: {[name: string]: ScannedPolymerProperty} = {};
+    const setters: {[name: string]: ScannedPolymerProperty} = {};
+    const definedProperties: {[name: string]: ScannedPolymerProperty} = {};
+    for (const prop of node.properties) {
+      if (babel.isSpreadProperty(prop)) {
+        continue;
       }
-    }
-  }
+      const name = objectKeyToString(prop.key);
+      if (!name) {
+        element.warnings.push(new Warning({
+          message: `Can't determine name for property key from expression ` +
+              `with type ${prop.key.type}.`,
+          code: 'cant-determine-property-name',
+          severity: Severity.WARNING,
+          sourceRange: this.document.sourceRangeForNode(prop.key)!,
+          parsedDocument: this.document
+        }));
+        continue;
+      }
 
-  enterObjectExpression(node: babel.ObjectExpression, _: babel.Node) {
-    // When dealing with a class, there is no single object that we can
-    // parse to retrieve all properties.
-    if (this.classDetected) {
-      return VisitorOption.Skip;
-    }
+      if (!propertyHandlers) {
+        continue;
+      }
 
-    const element = this.element;
-    if (element) {
-      const getters: {[name: string]: ScannedPolymerProperty} = {};
-      const setters: {[name: string]: ScannedPolymerProperty} = {};
-      const definedProperties: {[name: string]: ScannedPolymerProperty} = {};
-      for (const prop of node.properties) {
-        if (babel.isSpreadProperty(prop)) {
-          continue;
-        }
-        const name = objectKeyToString(prop.key);
-        if (!name) {
-          element.warnings.push(new Warning({
-            message: `Can't determine name for property key from expression ` +
-                `with type ${prop.key.type}.`,
-            code: 'cant-determine-property-name',
-            severity: Severity.WARNING,
-            sourceRange: this.document.sourceRangeForNode(prop.key)!,
-            parsedDocument: this.document
-          }));
-          continue;
-        }
+      if (name in propertyHandlers) {
+        propertyHandlers[name](prop.value);
+        continue;
+      }
 
-        if (!this.propertyHandlers) {
-          continue;
-        }
-
-        if (name in this.propertyHandlers) {
-          this.propertyHandlers[name](prop.value);
-          continue;
-        }
-
-        try {
-          const scannedPolymerProperty = toScannedPolymerProperty(
+      try {
+        const scannedPolymerProperty = toScannedPolymerProperty(
+            prop, this.document.sourceRangeForNode(prop)!, this.document);
+        if (babel.isObjectMethod(prop) && prop.kind === 'get') {
+          getters[scannedPolymerProperty.name] = scannedPolymerProperty;
+        } else if (babel.isObjectMethod(prop) && prop.kind === 'set') {
+          setters[scannedPolymerProperty.name] = scannedPolymerProperty;
+        } else if (babel.isObjectMethod(prop) || babel.isFunction(prop.value)) {
+          const scannedPolymerMethod = toScannedMethod(
               prop, this.document.sourceRangeForNode(prop)!, this.document);
-          if (babel.isObjectMethod(prop) && prop.kind === 'get') {
-            getters[scannedPolymerProperty.name] = scannedPolymerProperty;
-          } else if (babel.isObjectMethod(prop) && prop.kind === 'set') {
-            setters[scannedPolymerProperty.name] = scannedPolymerProperty;
-          } else if (
-              babel.isObjectMethod(prop) || babel.isFunction(prop.value)) {
-            const scannedPolymerMethod = toScannedMethod(
-                prop, this.document.sourceRangeForNode(prop)!, this.document);
-            element.addMethod(scannedPolymerMethod);
-          } else {
-            element.addProperty(scannedPolymerProperty);
-          }
-        } catch (e) {
-          if (e instanceof WarningCarryingException) {
-            element.warnings.push(e.warning);
-            continue;
-          }
-          throw e;
+          element.addMethod(scannedPolymerMethod);
+        } else {
+          element.addProperty(scannedPolymerProperty);
         }
+      } catch (e) {
+        if (e instanceof WarningCarryingException) {
+          element.warnings.push(e.warning);
+          continue;
+        }
+        throw e;
       }
-      Object.keys(getters).forEach((name) => {
-        const prop = getters[name];
-        definedProperties[prop.name] = prop;
-        prop.readOnly = !!setters[prop.name];
-      });
-      Object.keys(setters).forEach((name) => {
-        const prop = setters[name];
-        if (!(prop.name in definedProperties)) {
-          definedProperties[prop.name] = prop;
-        }
-      });
-      Object.keys(definedProperties).forEach((name) => {
-        const prop = definedProperties[name];
-        element.addProperty(prop);
-      });
-      return VisitorOption.Skip;
     }
+    Object.keys(getters).forEach((name) => {
+      const prop = getters[name];
+      definedProperties[prop.name] = prop;
+      prop.readOnly = !!setters[prop.name];
+    });
+    Object.keys(setters).forEach((name) => {
+      const prop = setters[name];
+      if (!(prop.name in definedProperties)) {
+        definedProperties[prop.name] = prop;
+      }
+    });
+    Object.keys(definedProperties).forEach((name) => {
+      const prop = definedProperties[name];
+      element.addProperty(prop);
+    });
   }
 }
