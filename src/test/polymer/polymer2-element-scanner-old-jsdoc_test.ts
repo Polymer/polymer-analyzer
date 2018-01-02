@@ -412,7 +412,7 @@ namespaced name.`,
                 name: 'customInstanceFunction',
                 description: '',
                 params: [],
-                return: undefined
+                return: { type: 'number' },
               },
               {
                 name: 'customInstanceFunctionWithJSDoc',
@@ -450,7 +450,7 @@ namespaced name.`,
                     description: undefined
                   }
                 ],
-                return: undefined,
+                return: { type: 'number' },
               },
               {
                 name: 'customInstanceFunctionWithParamsAndJSDoc',
@@ -489,7 +489,7 @@ namespaced name.`,
                 description: 'This is the description for\n' +
                     'customInstanceFunctionWithParamsAndPrivateJSDoc.',
                 params: [],
-                return: undefined,
+                return: { type: 'number' },
               },
             ],
             warningUnderlines: [],

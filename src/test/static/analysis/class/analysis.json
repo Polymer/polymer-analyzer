@@ -154,6 +154,9 @@
           "name": "baseMethod",
           "description": "This is a base method.",
           "privacy": "public",
+          "return": {
+            "type": "void"
+          },
           "sourceRange": {
             "start": {
               "line": 32,
@@ -171,6 +174,9 @@
           "name": "overriddenMethod",
           "description": "Will be overriden by Subclass.",
           "privacy": "public",
+          "return": {
+            "type": "void"
+          },
           "sourceRange": {
             "start": {
               "line": 35,
@@ -190,6 +196,9 @@
           "name": "baseStaticMethod",
           "description": "",
           "privacy": "public",
+          "return": {
+            "type": "void"
+          },
           "sourceRange": {
             "start": {
               "line": 38,
@@ -207,6 +216,9 @@
           "name": "overriddenStaticMethod",
           "description": "",
           "privacy": "public",
+          "return": {
+            "type": "void"
+          },
           "sourceRange": {
             "start": {
               "line": 41,
@@ -247,6 +259,9 @@
           "name": "baseMethod",
           "description": "This is a base method.",
           "privacy": "public",
+          "return": {
+            "type": "void"
+          },
           "sourceRange": {
             "start": {
               "line": 32,
@@ -265,6 +280,9 @@
           "name": "overriddenMethod",
           "description": "Overrides the method on Base.",
           "privacy": "public",
+          "return": {
+            "type": "void"
+          },
           "sourceRange": {
             "start": {
               "line": 47,
@@ -282,6 +300,9 @@
           "name": "subMethod",
           "description": "This method only exists on Subclass.",
           "privacy": "public",
+          "return": {
+            "type": "void"
+          },
           "sourceRange": {
             "start": {
               "line": 52,
@@ -301,6 +322,9 @@
           "name": "baseStaticMethod",
           "description": "",
           "privacy": "public",
+          "return": {
+            "type": "void"
+          },
           "sourceRange": {
             "start": {
               "line": 38,
@@ -319,6 +343,9 @@
           "name": "overriddenStaticMethod",
           "description": "",
           "privacy": "public",
+          "return": {
+            "type": "void"
+          },
           "sourceRange": {
             "start": {
               "line": 55,
@@ -336,6 +363,9 @@
           "name": "staticSubMethod",
           "description": "",
           "privacy": "public",
+          "return": {
+            "type": "void"
+          },
           "sourceRange": {
             "start": {
               "line": 58,

@@ -15,6 +15,29 @@ class Class {
     return 4;
   }
 
+  customInstanceFunctionWithNoReturn() {
+  }
+
+  customInstanceFunctionWithInferredReturn() {
+    return 4.1;
+  }
+
+  customInstanceFunctionWithInferredMultipleReturn() {
+    if (window.foo) {
+      return 4.2;
+    } else {
+      return true;
+    }
+  }
+
+  customInstanceFunctionWithUninferrableReturn() {
+    if (window.foo) {
+      return 4.3;
+    } else {
+      return (window.bar ? new Set() : new Map());
+    }
+  }
+
   /**
    * This is the description for customInstanceFunctionWithJSDoc.
    * @return {Number} - The number 5, always.

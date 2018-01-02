@@ -14,6 +14,7 @@
 
 import generate from 'babel-generator';
 import * as babel from 'babel-types';
+import traverse from 'babel-traverse';
 import * as doctrine from 'doctrine';
 
 import {MethodParam, ScannedMethod} from '../index';
@@ -248,6 +249,36 @@ export function toScannedMethod(
             scannedMethod.return.desc = tag.description;
           }
         }
+      }
+    }
+
+    if (!scannedMethod.return) {
+      const returnTypes = new Set<string>();
+      let returnWarnings = 0;
+
+      traverse(value, {
+        ReturnStatement(path) {
+          const type = closureType(path.node.argument,
+            document.sourceRangeForNode(path.node)!, document);
+
+          if (!(type instanceof Warning)) {
+            returnTypes.add(type);
+          } else {
+            returnWarnings++;
+          }
+        },
+        noScope: true
+      });
+
+      if (returnWarnings === 0) {
+        if (returnTypes.size === 0) {
+          returnTypes.add('void');
+        }
+
+        const types = [...returnTypes].join(' | ');
+        scannedMethod.return = {
+          type: returnTypes.size > 1 ? `(${types})` : types
+        };
       }
     }
 

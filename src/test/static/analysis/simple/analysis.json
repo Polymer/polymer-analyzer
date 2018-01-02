@@ -160,6 +160,9 @@
           "name": "customFunction",
           "description": "",
           "privacy": "public",
+          "return": {
+            "type": "void"
+          },
           "sourceRange": {
             "start": {
               "line": 24,
@@ -184,6 +187,9 @@
           "name": "_customProtectedFunction",
           "description": "",
           "privacy": "protected",
+          "return": {
+            "type": "void"
+          },
           "sourceRange": {
             "start": {
               "line": 25,
@@ -208,6 +214,9 @@
           "name": "__customPrivateFunction",
           "description": "",
           "privacy": "private",
+          "return": {
+            "type": "void"
+          },
           "sourceRange": {
             "start": {
               "line": 26,
