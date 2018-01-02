@@ -469,7 +469,7 @@ class PrototypeMemberFinder implements Visitor {
             getClosureType(node.right, jsdocAnn, sourceRange, this._document);
         if (!detectedType.successful) {
           warnings.push(detectedType.error);
-          type = 'Function';
+          type = '?';
         } else {
           type = detectedType.value;
         }
