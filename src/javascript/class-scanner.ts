@@ -389,16 +389,16 @@ class PrototypeMemberFinder implements Visitor {
     }
 
     if (babel.isFunctionExpression(node.right)) {
-      const member = this._createMethodFromExpression(
+      const prop = this._createMethodFromExpression(
           leftProperty.name, node.right, jsdocAnn);
-      if (member) {
-        this._addMethodToClass(cls, member);
+      if (prop) {
+        this._addMethodToClass(cls, prop);
       }
     } else {
-      const member =
+      const method =
           this._createPropertyFromExpression(leftProperty.name, node, jsdocAnn);
-      if (member) {
-        this._addPropertyToClass(cls, member);
+      if (method) {
+        this._addPropertyToClass(cls, method);
       }
     }
   }
@@ -414,7 +414,7 @@ class PrototypeMemberFinder implements Visitor {
   }
 
   private _createMemberFromMemberExpression(
-      node: babel.MemberExpression, jsdocAnn?: jsdoc.Annotation) {
+      node: babel.MemberExpression, jsdocAnn: jsdoc.Annotation|undefined) {
     const left = node.object;
 
     // we only want `something.prototype.member`
@@ -430,23 +430,23 @@ class PrototypeMemberFinder implements Visitor {
     }
 
     if (jsdoc.hasTag(jsdocAnn, 'function')) {
-      const member =
+      const prop =
           this._createMethodFromExpression(node.property.name, node, jsdocAnn);
-      if (member) {
-        this._addMethodToClass(cls, member);
+      if (prop) {
+        this._addMethodToClass(cls, prop);
       }
     } else {
-      const member = this._createPropertyFromExpression(
+      const method = this._createPropertyFromExpression(
           node.property.name, node, jsdocAnn);
-      if (member) {
-        this._addPropertyToClass(cls, member);
+      if (method) {
+        this._addPropertyToClass(cls, method);
       }
     }
   }
 
   private _createPropertyFromExpression(
       name: string, node: babel.AssignmentExpression|babel.MemberExpression,
-      jsdocAnn?: jsdoc.Annotation) {
+      jsdocAnn: jsdoc.Annotation|undefined) {
     let description;
     let type;
     let readOnly = false;
@@ -491,7 +491,7 @@ class PrototypeMemberFinder implements Visitor {
 
   private _createMethodFromExpression(
       name: string, node: babel.FunctionExpression|babel.MemberExpression,
-      jsdocAnn?: jsdoc.Annotation) {
+      jsdocAnn: jsdoc.Annotation|undefined) {
     let description;
     let type;
     let ret;
