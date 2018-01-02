@@ -209,6 +209,11 @@ export function addMethod(
   target.methods.set(method.name, method);
 }
 
+export function addStaticMethod(
+    target: ScannedPolymerExtension, method: ScannedMethod) {
+  target.staticMethods.set(method.name, method);
+}
+
 /**
  * The metadata for a single polymer element
  */
@@ -216,6 +221,7 @@ export class ScannedPolymerElement extends ScannedElement implements
     ScannedPolymerExtension {
   properties = new Map<string, ScannedPolymerProperty>();
   methods = new Map<string, ScannedMethod>();
+  staticMethods = new Map<string, ScannedMethod>();
   observers: Observer[] = [];
   listeners: {event: string, handler: string}[] = [];
   behaviorAssignments: ScannedBehaviorAssignment[] = [];
@@ -248,6 +254,9 @@ export class ScannedPolymerElement extends ScannedElement implements
     if (options.methods) {
       options.methods.forEach((m) => this.addMethod(m));
     }
+    if (options.staticMethods) {
+      options.staticMethods.forEach((m) => this.addStaticMethod(m));
+    }
     const summaryTag = jsdoc.getTag(this.jsdoc, 'summary');
     this.summary =
         (summaryTag !== undefined && summaryTag.description != null) ?
@@ -261,6 +270,10 @@ export class ScannedPolymerElement extends ScannedElement implements
 
   addMethod(method: ScannedMethod) {
     addMethod(this, method);
+  }
+
+  addStaticMethod(method: ScannedMethod) {
+    addStaticMethod(this, method);
   }
 
   resolve(document: Document): PolymerElement {
