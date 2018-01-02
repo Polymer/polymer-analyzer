@@ -27,7 +27,7 @@ import * as astValue from './ast-value';
 import {getIdentifierName, getNamespacedIdentifier} from './ast-value';
 import {Visitor} from './estree-visitor';
 import * as esutil from './esutil';
-import {closureType, getMethods, getOrInferPrivacy, getReturnFromAnnotation, getStaticMethods, toMethodParam} from './esutil';
+import {getClosureType, getMethods, getOrInferPrivacy, getReturnFromAnnotation, getStaticMethods, toMethodParam} from './esutil';
 import {JavaScriptDocument} from './javascript-document';
 import {JavaScriptScanner} from './javascript-scanner';
 import * as jsdoc from './jsdoc';
@@ -466,12 +466,12 @@ class PrototypeMemberFinder implements Visitor {
     if (babel.isAssignmentExpression(node)) {
       if (!type) {
         const detectedType =
-            closureType(node.right, sourceRange, this._document);
-        if (detectedType instanceof Warning) {
-          warnings.push(detectedType);
+            getClosureType(node.right, jsdocAnn, sourceRange, this._document);
+        if (!detectedType.successful) {
+          warnings.push(detectedType.error);
           type = 'Function';
         } else {
-          type = detectedType;
+          type = detectedType.value;
         }
       }
     }

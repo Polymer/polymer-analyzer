@@ -112,12 +112,14 @@ const VALID_EXPRESSION_TYPES = new Map([
  */
 export function getClosureType(
     node: babel.Node,
-    parsedJsdoc: doctrine.Annotation,
+    parsedJsdoc: doctrine.Annotation|undefined,
     sourceRange: SourceRange,
     document: ParsedDocument): Result<string, Warning> {
-  const typeTag = jsdoc.getTag(parsedJsdoc, 'type');
-  if (typeTag) {
-    return {successful: true, value: doctrine.type.stringify(typeTag.type!)};
+  if (parsedJsdoc) {
+    const typeTag = jsdoc.getTag(parsedJsdoc, 'type');
+    if (typeTag) {
+      return {successful: true, value: doctrine.type.stringify(typeTag.type!)};
+    }
   }
   const type = VALID_EXPRESSION_TYPES.get(node.type);
   if (type) {
