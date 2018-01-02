@@ -17,6 +17,7 @@ import * as babel from 'babel-types';
 import * as doctrine from 'doctrine';
 
 import {MapWithDefault, MethodParam, Privacy, ScannedClass, ScannedFeature, ScannedMethod, ScannedProperty, ScannedReference, Severity, SourceRange, Warning} from '../model/model';
+import {Result} from '../model/analysis';
 import {extractObservers} from '../polymer/declaration-property-handlers';
 import {mergePropertyDeclarations, Observer, ScannedPolymerElement} from '../polymer/polymer-element';
 import {ScannedPolymerElementMixin} from '../polymer/polymer-element-mixin';
@@ -455,25 +456,25 @@ class PrototypeMemberFinder implements Visitor {
     const warnings: Warning[] = [];
 
     if (jsdocAnn) {
-      const typeTag = jsdoc.getTag(jsdocAnn, 'type');
-      if (typeTag && typeTag.type) {
-        type = doctrine.type.stringify(typeTag.type);
-      }
       description = getDescription(jsdocAnn);
       readOnly = jsdoc.hasTag(jsdocAnn, 'readonly');
     }
 
+    let detectedType: Result<string, Warning>;
+
     if (babel.isAssignmentExpression(node)) {
-      if (!type) {
-        const detectedType =
-            getClosureType(node.right, jsdocAnn, sourceRange, this._document);
-        if (!detectedType.successful) {
-          warnings.push(detectedType.error);
-          type = '?';
-        } else {
-          type = detectedType.value;
-        }
-      }
+      detectedType =
+        getClosureType(node.right, jsdocAnn, sourceRange, this._document);
+    } else {
+      detectedType =
+        getClosureType(node, jsdocAnn, sourceRange, this._document);
+    }
+
+    if (detectedType.successful) {
+      type = detectedType.value;
+    } else {
+      warnings.push(detectedType.error);
+      type = '?';
     }
 
     return {
