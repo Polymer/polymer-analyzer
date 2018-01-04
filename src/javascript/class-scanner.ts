@@ -350,6 +350,42 @@ interface CustomElementDefinition {
   definition?: ElementDefineCall;
 }
 
+/**
+ * Finds any methods or properties added to a class' prototype after
+ * the class has been defined.
+ *
+ * Assignments are detected:
+ *
+ *    MyClass.prototype.MyMethod = function() { ... }
+ *
+ * And expressions without a body:
+ *
+ *    MyClass.prototype.MyMethod;
+ *
+ * For a member to be detected as a method, the `@function` annotation
+ * is required. Otherwise, the default is to treat it as a property.
+ *
+ * When attaching members to a class which has a `@memberof` annotation,
+ * the members should also be annotated identically:
+ *
+ *    @memberof MyNamespace
+ *    MyClass.prototype.MyMethod;
+ *
+ * One exception to this is when the member is not set directly on
+ * the prototype, such as a function which is attached at a later place
+ * in the file:
+ *
+ *    @memberof MyNamespace.MyClass
+ *    @instance
+ *    function MyMethod() {
+ *
+ * As you can see, we must specify `@instance` to define the function
+ * as an instance method, and `@memberof` to define the class along with
+ * its namespace.
+ *
+ * For more information, see [memberof](http://usejsdoc.org/tags-memberof.html)
+ * and [instance](http://usejsdoc.org/tags-instance.html).
+ */
 class PrototypeMemberFinder implements Visitor {
   readonly members = new MapWithDefault<string, {
     methods: Map<string, ScannedMethod>,
