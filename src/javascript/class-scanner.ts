@@ -385,21 +385,24 @@ class PrototypeMemberFinder implements Visitor {
     const leftExpr = node.left.object;
     const leftProperty = node.left.property;
     const cls = getIdentifierName(leftExpr.object);
+
     if (!cls || getIdentifierName(leftExpr.property) !== 'prototype') {
       return;
     }
+
+    const namespacedCls = getNamespacedIdentifier(cls, jsdocAnn);
 
     if (babel.isFunctionExpression(node.right)) {
       const prop = this._createMethodFromExpression(
           leftProperty.name, node.right, jsdocAnn);
       if (prop) {
-        this._addMethodToClass(cls, prop);
+        this._addMethodToClass(namespacedCls, prop);
       }
     } else {
       const method =
           this._createPropertyFromExpression(leftProperty.name, node, jsdocAnn);
       if (method) {
-        this._addPropertyToClass(cls, method);
+        this._addPropertyToClass(namespacedCls, method);
       }
     }
   }
@@ -430,17 +433,19 @@ class PrototypeMemberFinder implements Visitor {
       return;
     }
 
+    const namespacedCls = getNamespacedIdentifier(cls, jsdocAnn);
+
     if (jsdoc.hasTag(jsdocAnn, 'function')) {
       const prop =
           this._createMethodFromExpression(node.property.name, node, jsdocAnn);
       if (prop) {
-        this._addMethodToClass(cls, prop);
+        this._addMethodToClass(namespacedCls, prop);
       }
     } else {
       const method = this._createPropertyFromExpression(
           node.property.name, node, jsdocAnn);
       if (method) {
-        this._addPropertyToClass(cls, method);
+        this._addPropertyToClass(namespacedCls, method);
       }
     }
   }
