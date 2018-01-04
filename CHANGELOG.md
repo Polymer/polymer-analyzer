@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
+* Add namespace detection to the prototype scanner, such that members
+  annotated with `@memberof` are discovered with the correct class name
 * Add `Element#template` for getting the template of an element.
 <!-- Add new, unreleased changes here. -->
 
