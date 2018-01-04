@@ -154,6 +154,70 @@ suite('Class', () => {
       ]);
     });
 
+    test('finds properties', async () => {
+      const cls = (await getScannedClasses('class/class-properties.js'))[0];
+
+      assert.deepInclude(cls.properties.get('customPropertyGetterType'), {
+        name: 'customPropertyGetterType',
+        type: 'boolean',
+        description: 'A boolean getter',
+        readOnly: true
+      });
+
+      assert.deepInclude(cls.properties.get('customPropertyWithGetterSetter'), {
+        name: 'customPropertyWithGetterSetter',
+        description: 'a property with a getter/setter',
+        readOnly: false
+      });
+
+      assert.deepInclude(cls.properties.get('customPropertyWithReadOnlyGetter'), {
+        name: 'customPropertyWithReadOnlyGetter',
+        readOnly: true
+      });
+
+      assert.deepInclude(cls.properties.get('customPropertyOnProto'), {
+        name: 'customPropertyOnProto',
+        type: 'string'
+      });
+
+      assert.deepInclude(cls.properties.get('customPropertyOnProtoValue'), {
+        name: 'customPropertyOnProtoValue',
+        type: 'number'
+      });
+
+      assert.deepInclude(cls.properties.get('customPropertyOnProtoDoc'), {
+        name: 'customPropertyOnProtoDoc',
+        description: 'A property',
+        type: '(boolean | number)',
+        privacy: 'private',
+        readOnly: true
+      });
+
+      assert.deepInclude(cls.properties.get('__customPropertyOnProtoPrivate'), {
+        name: '__customPropertyOnProtoPrivate',
+        privacy: 'private'
+      });
+
+      assert.deepEqual(await getTestProps(cls), {
+        name: 'Class',
+        description: '',
+        privacy: 'public',
+        properties: [
+          { name: 'customPropertyGetter' },
+          { name: 'customPropertyGetterType' },
+          { name: 'customPropertyWithGetterSetter' },
+          { name: 'customPropertyWithSetterFirst' },
+          { name: 'customPropertyWithReadOnlyGetter' },
+          { name: 'customPropertyWithValue' },
+          { name: 'customPropertyWithJSDoc' },
+          { name: 'customPropertyOnProto' },
+          { name: 'customPropertyOnProtoValue' },
+          { name: 'customPropertyOnProtoDoc' },
+          { name: '__customPropertyOnProtoPrivate' }
+        ]
+      });
+    });
+
     test('finds methods', async () => {
       const classes = await getScannedClasses('class/class-methods.js');
       assert.deepEqual(await Promise.all(classes.map((c) => getTestProps(c))), [
@@ -161,6 +225,9 @@ suite('Class', () => {
           name: 'Class',
           description: '',
           privacy: 'public',
+          properties: [
+            { name: 'customInstanceGetter' }
+          ],
           methods: [
             {
               name: 'customInstanceFunction',
@@ -253,6 +320,47 @@ suite('Class', () => {
                 desc: 'The number 10, always.',
                 type: 'Number',
               },
+            },
+            {
+              description: undefined,
+              name: 'customInstanceFunctionOnProto',
+              params: [
+                {
+                  description: 'a bool',
+                  name: 'foo',
+                  type: 'boolean'
+                }
+              ],
+              return: {
+                type: 'void'
+              }
+            },
+            {
+              description: undefined,
+              name: '__customInstanceFunctionOnProtoPrivate'
+            },
+            {
+              description: undefined,
+              name: 'customInstanceFunctionOnProtoWithBody'
+            },
+            {
+              description: 'Returns the sum of two numbers',
+              name: 'customInstanceFunctionOnProtoWithBodyDoc',
+              params: [
+                {
+                  description: 'some number',
+                  name: 'a',
+                  type: 'number'
+                },
+                {
+                  description: 'another number',
+                  name: 'b',
+                  type: 'number'
+                }
+              ],
+              return: {
+                type: 'number'
+              }
             },
           ]
         },
@@ -373,6 +481,9 @@ suite('Class', () => {
           name: 'Class',
           description: '',
           privacy: 'public',
+          properties: [
+            { name: 'customInstanceGetter' }
+          ],
           methods: [
             {
               name: 'customInstanceFunction',
@@ -466,6 +577,47 @@ suite('Class', () => {
                 desc: 'The number 10, always.',
                 type: 'Number',
               },
+            },
+            {
+              description: undefined,
+              name: 'customInstanceFunctionOnProto',
+              params: [
+                {
+                  description: 'a bool',
+                  name: 'foo',
+                  type: 'boolean'
+                }
+              ],
+              return: {
+                type: 'void'
+              }
+            },
+            {
+              description: undefined,
+              name: '__customInstanceFunctionOnProtoPrivate'
+            },
+            {
+              description: undefined,
+              name: 'customInstanceFunctionOnProtoWithBody'
+            },
+            {
+              description: 'Returns the sum of two numbers',
+              name: 'customInstanceFunctionOnProtoWithBodyDoc',
+              params: [
+                {
+                  description: 'some number',
+                  name: 'a',
+                  type: 'number'
+                },
+                {
+                  description: 'another number',
+                  name: 'b',
+                  type: 'number'
+                }
+              ],
+              return: {
+                type: 'number'
+              }
             },
           ]
         },

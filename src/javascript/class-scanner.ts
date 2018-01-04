@@ -16,7 +16,8 @@ import generate from 'babel-generator';
 import * as babel from 'babel-types';
 import * as doctrine from 'doctrine';
 
-import {ScannedClass, ScannedFeature, ScannedMethod, ScannedProperty, ScannedReference, Severity, SourceRange, Warning} from '../model/model';
+import {MapWithDefault, MethodParam, Privacy, ScannedClass, ScannedFeature, ScannedMethod, ScannedProperty, ScannedReference, Severity, SourceRange, Warning} from '../model/model';
+import {Result} from '../model/analysis';
 import {extractObservers} from '../polymer/declaration-property-handlers';
 import {mergePropertyDeclarations, Observer, ScannedPolymerElement} from '../polymer/polymer-element';
 import {ScannedPolymerElementMixin} from '../polymer/polymer-element-mixin';
@@ -28,6 +29,7 @@ import {getIdentifierName, getNamespacedIdentifier} from './ast-value';
 import {Visitor} from './estree-visitor';
 import * as esutil from './esutil';
 import {getMethods, getOrInferPrivacy, getStaticMethods} from './esutil';
+import {getClosureType, getMethods, getOrInferPrivacy, getReturnFromAnnotation, getStaticMethods, toMethodParam} from './esutil';
 import {ParsedJavaScriptDocument} from './javascript-document';
 import {JavaScriptScanner} from './javascript-scanner';
 import * as jsdoc from './jsdoc';
@@ -75,11 +77,13 @@ export class ClassScanner implements JavaScriptScanner {
     const mixinFinder = new MixinVisitor(document);
     const elementDefinitionFinder =
         new CustomElementsDefineCallFinder(document);
+    const prototypeMemberFinder = new PrototypeMemberFinder(document);
     // Find all classes and all calls to customElements.define()
     await Promise.all([
       visit(classFinder),
       visit(elementDefinitionFinder),
-      visit(mixinFinder)
+      visit(mixinFinder),
+      visit(prototypeMemberFinder),
     ]);
     const mixins = mixinFinder.mixins;
 
@@ -111,10 +115,15 @@ export class ClassScanner implements JavaScriptScanner {
     // Next we want to distinguish custom elements from other classes.
     const customElements: CustomElementDefinition[] = [];
     const normalClasses = [];
+    const classMap = new Map<string, ScannedClass>();
+
     for (const class_ of classFinder.classes) {
       if (mixinClassExpressions.has(class_.astNode)) {
         // This class is a mixin and has already been handled as such.
         continue;
+      }
+      if (class_.name) {
+        classMap.set(class_.name, class_);
       }
       // Class expressions inside the customElements.define call
       if (babel.isClassExpression(class_.astNode)) {
@@ -141,6 +150,13 @@ export class ClassScanner implements JavaScriptScanner {
       }
       // Classes that aren't custom elements, or at least, aren't obviously.
       normalClasses.push(class_);
+    }
+
+    for (const [name, members] of prototypeMemberFinder.members) {
+      if (classMap.has(name)) {
+        const cls = classMap.get(name)!;
+        cls.finishInitialization(members.methods, members.properties);
+      }
     }
 
     const scannedFeatures: (ScannedPolymerElement|ScannedClass|
@@ -335,6 +351,200 @@ interface CustomElementDefinition {
   definition?: ElementDefineCall;
 }
 
+class PrototypeMemberFinder implements Visitor {
+  readonly members = new MapWithDefault<string, {
+    methods: Map<string, ScannedMethod>,
+    properties: Map<string, ScannedProperty>
+  }>(() => ({
+       methods: new Map<string, ScannedMethod>(),
+       properties: new Map<string, ScannedProperty>()
+     }));
+  private readonly _document: ParsedJavaScriptDocument;
+
+  constructor(document: ParsedJavaScriptDocument) {
+    this._document = document;
+  }
+
+  enterExpressionStatement(node: babel.ExpressionStatement) {
+    if (babel.isAssignmentExpression(node.expression)) {
+      this._createMemberFromAssignment(
+          node.expression, getJSDocAnnotationForNode(node));
+    } else if (babel.isMemberExpression(node.expression)) {
+      this._createMemberFromMemberExpression(
+          node.expression, getJSDocAnnotationForNode(node));
+    }
+  }
+
+  private _createMemberFromAssignment(
+      node: babel.AssignmentExpression, jsdocAnn?: jsdoc.Annotation) {
+    if (!babel.isMemberExpression(node.left) ||
+        !babel.isMemberExpression(node.left.object) ||
+        !babel.isIdentifier(node.left.property)) {
+      return;
+    }
+
+    const leftExpr = node.left.object;
+    const leftProperty = node.left.property;
+    const cls = getIdentifierName(leftExpr.object);
+    if (!cls || getIdentifierName(leftExpr.property) !== 'prototype') {
+      return;
+    }
+
+    if (babel.isFunctionExpression(node.right)) {
+      const prop = this._createMethodFromExpression(
+          leftProperty.name, node.right, jsdocAnn);
+      if (prop) {
+        this._addMethodToClass(cls, prop);
+      }
+    } else {
+      const method =
+          this._createPropertyFromExpression(leftProperty.name, node, jsdocAnn);
+      if (method) {
+        this._addPropertyToClass(cls, method);
+      }
+    }
+  }
+
+  private _addMethodToClass(cls: string, member: ScannedMethod) {
+    const classMembers = this.members.get(cls);
+    classMembers.methods.set(member.name, member);
+  }
+
+  private _addPropertyToClass(cls: string, member: ScannedProperty) {
+    const classMembers = this.members.get(cls);
+    classMembers.properties.set(member.name, member);
+  }
+
+  private _createMemberFromMemberExpression(
+      node: babel.MemberExpression, jsdocAnn: jsdoc.Annotation|undefined) {
+    const left = node.object;
+
+    // we only want `something.prototype.member`
+    if (!babel.isIdentifier(node.property) || !babel.isMemberExpression(left) ||
+        getIdentifierName(left.property) !== 'prototype') {
+      return;
+    }
+
+    const cls = getIdentifierName(left.object);
+
+    if (!cls) {
+      return;
+    }
+
+    if (jsdoc.hasTag(jsdocAnn, 'function')) {
+      const prop =
+          this._createMethodFromExpression(node.property.name, node, jsdocAnn);
+      if (prop) {
+        this._addMethodToClass(cls, prop);
+      }
+    } else {
+      const method = this._createPropertyFromExpression(
+          node.property.name, node, jsdocAnn);
+      if (method) {
+        this._addPropertyToClass(cls, method);
+      }
+    }
+  }
+
+  private _createPropertyFromExpression(
+      name: string, node: babel.AssignmentExpression|babel.MemberExpression,
+      jsdocAnn: jsdoc.Annotation|undefined) {
+    let description;
+    let type;
+    let readOnly = false;
+    const privacy = getOrInferPrivacy(name, jsdocAnn);
+    const sourceRange = this._document.sourceRangeForNode(node)!;
+    const warnings: Warning[] = [];
+
+    if (jsdocAnn) {
+      description = getDescription(jsdocAnn);
+      readOnly = jsdoc.hasTag(jsdocAnn, 'readonly');
+    }
+
+    let detectedType: Result<string, Warning>;
+
+    if (babel.isAssignmentExpression(node)) {
+      detectedType =
+        getClosureType(node.right, jsdocAnn, sourceRange, this._document);
+    } else {
+      detectedType =
+        getClosureType(node, jsdocAnn, sourceRange, this._document);
+    }
+
+    if (detectedType.successful) {
+      type = detectedType.value;
+    } else {
+      warnings.push(detectedType.error);
+      type = '?';
+    }
+
+    return {
+      name,
+      astNode: node,
+      type,
+      jsdoc: jsdocAnn,
+      sourceRange,
+      description,
+      privacy,
+      warnings,
+      readOnly,
+    };
+  }
+
+  private _createMethodFromExpression(
+      name: string, node: babel.FunctionExpression|babel.MemberExpression,
+      jsdocAnn: jsdoc.Annotation|undefined) {
+    let description;
+    let type;
+    let ret;
+    const privacy = getOrInferPrivacy(name, jsdocAnn);
+    const params = new Map<string, MethodParam>();
+
+    if (jsdocAnn) {
+      description = getDescription(jsdocAnn);
+      ret = getReturnFromAnnotation(jsdocAnn);
+      type = ret ? ret.type : undefined;
+
+      if (babel.isFunctionExpression(node)) {
+        (node.params || []).forEach((nodeParam) => {
+          const param = toMethodParam(nodeParam, jsdocAnn);
+          params.set(param.name, param);
+        });
+      } else {
+        for (const tag of (jsdocAnn.tags || [])) {
+          if (tag.title !== 'param' || !tag.name) {
+            continue;
+          }
+          let tagType;
+          let tagDescription;
+          if (tag.type) {
+            tagType = doctrine.type.stringify(tag.type);
+          }
+          if (tag.description) {
+            tagDescription = tag.description;
+          }
+          params.set(
+              tag.name,
+              {name: tag.name, type: tagType, description: tagDescription});
+        }
+      }
+    }
+
+    return {
+      name,
+      type,
+      description,
+      sourceRange: this._document.sourceRangeForNode(node)!,
+      warnings: [],
+      astNode: node,
+      jsdoc: jsdocAnn,
+      params: Array.from(params.values()),
+      return: ret,
+      privacy
+    };
+  }
+}
+
 /**
  * Finds all classes and matches them up with their best jsdoc comment.
  */
@@ -411,8 +621,8 @@ class ClassFinder implements Visitor {
     const namespacedName = name && getNamespacedIdentifier(name, doc);
 
     const warnings: Warning[] = [];
-    const properties =
-        extractPropertiesFromConstructor(astNode, this._document);
+    const properties = extractPropertiesFromClass(astNode, this._document);
+    const methods = getMethods(astNode, this._document);
 
     this.classes.push(new ScannedClass(
         namespacedName,
@@ -422,7 +632,7 @@ class ClassFinder implements Visitor {
         (doc.description || '').trim(),
         this._document.sourceRangeForNode(astNode)!,
         properties,
-        getMethods(astNode, this._document),
+        methods,
         getStaticMethods(astNode, this._document),
         this._getExtends(astNode, doc, warnings, this._document),
         jsdoc.getMixinApplications(this._document, astNode, doc, warnings),
@@ -586,76 +796,204 @@ class CustomElementsDefineCallFinder implements Visitor {
   }
 }
 
-export function extractPropertiesFromConstructor(
+export function extractPropertiesFromClass(
     astNode: babel.Node, document: ParsedJavaScriptDocument) {
   const properties = new Map<string, ScannedProperty>();
+  const accessors = new Map<
+      string,
+      {getter?: babel.ClassMethod, setter?: babel.ClassMethod}>();
+
   if (!(babel.isClassExpression(astNode) ||
         babel.isClassDeclaration(astNode))) {
     return properties;
   }
+
   for (const method of astNode.body.body) {
-    if (!babel.isClassMethod(method) || method.kind !== 'constructor') {
+    if (!babel.isClassMethod(method)) {
       continue;
     }
-    const constructor = method;
-    for (const statement of constructor.body.body) {
-      if (!babel.isExpressionStatement(statement)) {
+
+    if (method.kind === 'constructor') {
+      const props = extractPropertiesFromConstructor(method, document);
+      for (const prop of props.values()) {
+        properties.set(prop.name, prop);
+      }
+    } else if (method.kind === 'get' || method.kind === 'set') {
+      if (method.key.type !== 'Identifier') {
         continue;
       }
-      let name;
-      let astNode;
-      let defaultValue;
-      if (babel.isAssignmentExpression(statement.expression)) {
-        // statements like:
-        // /** @public The foo. */
-        // this.foo = baz;
-        name = getPropertyNameOnThisExpression(statement.expression.left);
-        astNode = statement.expression.left;
-        defaultValue = generate(statement.expression.right).code;
-      } else if (babel.isMemberExpression(statement.expression)) {
-        // statements like:
-        // /** @public The foo. */
-        // this.foo;
-        name = getPropertyNameOnThisExpression(statement.expression);
-        astNode = statement;
+
+      let accessor = accessors.get(method.key.name);
+
+      if (!accessor) {
+        accessor = {};
+        accessors.set(method.key.name, accessor);
+      }
+
+      if (method.kind === 'get') {
+        accessor.getter = method;
       } else {
+        accessor.setter = method;
+      }
+    }
+
+    for (const val of accessors.values()) {
+      const getter = val.getter ?
+          extractPropertyFromGetterOrSetter(val.getter, document) :
+          undefined;
+      const setter = val.setter ?
+          extractPropertyFromGetterOrSetter(val.setter, document) :
+          undefined;
+
+      const prop = getter || setter;
+      if (!prop) {
         continue;
       }
-      if (name === undefined) {
-        continue;
+
+      if (!prop.readOnly) {
+        prop.readOnly = (val.setter === undefined);
       }
-      const comment = esutil.getAttachedComment(statement);
-      const jsdocAnn =
-          comment === undefined ? undefined : jsdoc.parseJsdoc(comment);
-      if (!jsdocAnn || jsdocAnn.tags.length === 0) {
-        // The comment only counts if there's a jsdoc annotation in there
-        // somewhere.
-        // Otherwise it's just an assignment, maybe to a property in a
-        // super class or something.
-        continue;
-      }
-      const description = getDescription(jsdocAnn);
-      let type = undefined;
-      const typeTag = jsdoc.getTag(jsdocAnn, 'type');
-      if (typeTag && typeTag.type) {
-        type = doctrine.type.stringify(typeTag.type);
-      }
-      properties.set(name, {
-        name,
-        astNode,
-        type,
-        default: defaultValue,
-        jsdoc: jsdocAnn,
-        sourceRange: document.sourceRangeForNode(astNode)!,
-        description,
-        privacy: getOrInferPrivacy(name, jsdocAnn),
-        warnings: [],
-        readOnly: jsdoc.hasTag(jsdocAnn, 'const'),
-      });
+
+      properties.set(prop.name, prop);
     }
   }
 
   return properties;
+}
+
+function extractPropertyFromGetterOrSetter(
+    method: babel.ClassMethod, document: ParsedJavaScriptDocument): ScannedProperty|
+    null {
+  if (method.static || method.key.type !== 'Identifier') {
+    return null;
+  }
+
+  if (method.key.name === undefined) {
+    return null;
+  }
+
+  const annotation = getJSDocAnnotationForNode(method);
+  let type;
+  let description;
+  let privacy: Privacy = 'public';
+  let readOnly = false;
+
+  if (annotation) {
+    type = getReturnTypeFromAnnotation(annotation);
+    description = getDescription(annotation);
+    privacy = getOrInferPrivacy(method.key.name, annotation);
+    readOnly = jsdoc.hasTag(annotation, 'readonly');
+  }
+
+  return {
+    name: method.key.name,
+    astNode: method,
+    type,
+    jsdoc: annotation,
+    sourceRange: document.sourceRangeForNode(method)!,
+    description,
+    privacy,
+    warnings: [],
+    readOnly,
+  };
+}
+
+function extractPropertyFromExpressionStatement(
+    statement: babel.ExpressionStatement,
+    document: ParsedJavaScriptDocument): ScannedProperty|null {
+  let name;
+  let astNode;
+  let defaultValue;
+
+  if (babel.isAssignmentExpression(statement.expression)) {
+    // statements like:
+    // /** @public The foo. */
+    // this.foo = baz;
+    name = getPropertyNameOnThisExpression(statement.expression.left);
+    astNode = statement.expression.left;
+    defaultValue = generate(statement.expression.right).code;
+  } else if (babel.isMemberExpression(statement.expression)) {
+    // statements like:
+    // /** @public The foo. */
+    // this.foo;
+    name = getPropertyNameOnThisExpression(statement.expression);
+    astNode = statement;
+  } else {
+    return null;
+  }
+
+  if (name === undefined) {
+    return null;
+  }
+
+  const annotation = getJSDocAnnotationForNode(statement);
+  if (!annotation) {
+    return null;
+  }
+
+  return {
+    name,
+    astNode,
+    type: getTypeFromAnnotation(annotation),
+    default: defaultValue,
+    jsdoc: annotation,
+    sourceRange: document.sourceRangeForNode(astNode)!,
+    description: getDescription(annotation),
+    privacy: getOrInferPrivacy(name, annotation),
+    warnings: [],
+    readOnly: jsdoc.hasTag(annotation, 'const'),
+  };
+}
+
+function extractPropertiesFromConstructor(
+    method: babel.ClassMethod, document: ParsedJavaScriptDocument) {
+  const properties = new Map<string, ScannedProperty>();
+
+  for (const statement of method.body.body) {
+    if (!babel.isExpressionStatement(statement)) {
+      continue;
+    }
+    const prop = extractPropertyFromExpressionStatement(statement, document);
+    if (!prop) {
+      continue;
+    }
+    properties.set(prop.name, prop);
+  }
+
+  return properties;
+}
+
+function getJSDocAnnotationForNode(node: babel.Node) {
+  const comment = esutil.getAttachedComment(node);
+  const jsdocAnn =
+      comment === undefined ? undefined : jsdoc.parseJsdoc(comment);
+
+  if (!jsdocAnn || jsdocAnn.tags.length === 0) {
+    // The comment only counts if there's a jsdoc annotation in there
+    // somewhere.
+    // Otherwise it's just an assignment, maybe to a property in a
+    // super class or something.
+    return undefined;
+  }
+
+  return jsdocAnn;
+}
+
+function getReturnTypeFromAnnotation(jsdocAnn: jsdoc.Annotation): string|
+    undefined {
+  const ret = getReturnFromAnnotation(jsdocAnn);
+  return ret ? ret.type : undefined;
+}
+
+function getTypeFromAnnotation(jsdocAnn: jsdoc.Annotation): string|undefined {
+  const typeTag = jsdoc.getTag(jsdocAnn, 'type');
+  let type = undefined;
+
+  if (typeTag && typeTag.type) {
+    type = doctrine.type.stringify(typeTag.type);
+  }
+
+  return type;
 }
 
 function getPropertyNameOnThisExpression(node: babel.Node) {
