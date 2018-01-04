@@ -154,6 +154,28 @@ suite('Class', () => {
       ]);
     });
 
+    test('respects @memberof in prototype members', async () => {
+      const cls = (await getScannedClasses('class/class-memberof.js'))[0];
+
+      assert.deepEqual(await getTestProps(cls), {
+        name: 'MyNamespace.Class',
+        description: '',
+        privacy: 'public',
+        properties: [
+          { name: 'Property' }
+        ],
+        methods: [
+          {
+            description: undefined,
+            name: 'Method',
+            return: {
+              type: 'void'
+            }
+          }
+        ]
+      });
+    });
+
     test('finds properties', async () => {
       const cls = (await getScannedClasses('class/class-properties.js'))[0];
 
