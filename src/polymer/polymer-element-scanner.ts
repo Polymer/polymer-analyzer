@@ -14,7 +14,6 @@
 
 import * as babel from 'babel-types';
 import {getIdentifierName} from '../javascript/ast-value';
-import {VisitorOption} from '../javascript/estraverse-shim';
 import {Visitor} from '../javascript/estree-visitor';
 import {getAttachedComment, getEventComments, getOrInferPrivacy, objectKeyToString, toScannedMethod} from '../javascript/esutil';
 import {JavaScriptDocument} from '../javascript/javascript-document';
@@ -22,10 +21,7 @@ import {JavaScriptScanner} from '../javascript/javascript-scanner';
 import * as jsdoc from '../javascript/jsdoc';
 import {Severity, Warning, WarningCarryingException} from '../model/model';
 
-import {getBehaviorAssignmentOrWarning} from './declaration-property-handlers';
 import {declarationPropertyHandlers, PropertyHandlers} from './declaration-property-handlers';
-import * as docs from './docs';
-import {parseExpressionInJsStringLiteral} from './expression-scanner';
 import {toScannedPolymerProperty} from './js-utils';
 import {ScannedPolymerElement, ScannedPolymerProperty} from './polymer-element';
 
@@ -39,6 +35,9 @@ export class PolymerElementScanner implements JavaScriptScanner {
   }
 }
 
+/**
+ * Handles Polymer({}) calls.
+ */
 class ElementVisitor implements Visitor {
   readonly features: ScannedPolymerElement[] = [];
   readonly warnings: Warning[] = [];
