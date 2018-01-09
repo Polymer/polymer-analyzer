@@ -28,7 +28,6 @@ suite('PolymerElement', () => {
   async function getElements(filename: string): Promise<Set<PolymerElement>> {
     const result = (await analyzer.analyze([filename])).getDocument(filename);
     if (!result.successful) {
-      console.log(result.error);
       throw new Error(`Could not get filename: ${filename}`);
     }
     const document = result.value;
@@ -157,7 +156,7 @@ suite('PolymerElement', () => {
     ]);
   });
 
-  test.only('Handles inner classes properly', async () => {
+  test('Handles inner classes properly', async () => {
     const elements = await getElements('test-element-18.js');
     const elementData = Array.from(elements).map(getTestProps);
     assert.deepEqual(elementData, [
