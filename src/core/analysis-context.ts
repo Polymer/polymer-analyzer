@@ -554,7 +554,7 @@ function makeRequestedWithoutLoadingWarning(resolvedUrl: ResolvedUrl) {
     },
     code: 'unable-to-analyze',
     message: `[Internal Error] Document was requested ` +
-        `before loading and scanning finished. This usually indicates an` +
+        `before loading and scanning finished. This usually indicates an ` +
         `anomalous error during loading or analysis. Please file a bug at ` +
         `https://github.com/Polymer/polymer-analyzer/issues/new with info ` +
         `on the source code that caused this. ` +
