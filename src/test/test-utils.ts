@@ -60,8 +60,10 @@ export class CodeUnderliner {
     const urlLoader = new InMemoryOverlayUrlLoader();
     urlLoader.urlContentsMap.set(url, contents);
     return new CodeUnderliner(urlLoader, new class extends UrlResolver {
-      resolve(url: FileRelativeUrl|PackageRelativeUrl) {
-        return this.brandAsResolved(url);
+      resolve(
+          firstUrl: ResolvedUrl|PackageRelativeUrl,
+          secondUrl?: FileRelativeUrl) {
+        return this.brandAsResolved(secondUrl || firstUrl);
       }
 
       relative(): FileRelativeUrl {
@@ -149,7 +151,6 @@ export function packageRelativeUrl(
     strings: TemplateStringsArray, ...values: any[]): PackageRelativeUrl {
   return noOpTag(strings, ...values) as PackageRelativeUrl;
 }
-
 
 export function resolvedUrl(
     strings: TemplateStringsArray, ...values: any[]): ResolvedUrl {

@@ -17,6 +17,7 @@ import * as babel from 'babel-types';
 import * as doctrine from 'doctrine';
 
 import {MethodParam, ScannedMethod} from '../index';
+import {Result} from '../model/analysis';
 import {ImmutableSet} from '../model/immutable';
 import {Privacy} from '../model/model';
 import {ScannedEvent, Severity, SourceRange, Warning} from '../model/model';
@@ -109,17 +110,28 @@ const VALID_EXPRESSION_TYPES = new Map([
  * @param {Node} node A Babel expression node.
  * @return {string} The type of that expression, in Closure terms.
  */
-export function closureType(
-    node: babel.Node, sourceRange: SourceRange, document: ParsedDocument):
-    string|Warning {
+export function getClosureType(
+    node: babel.Node,
+    parsedJsdoc: doctrine.Annotation|undefined,
+    sourceRange: SourceRange,
+    document: ParsedDocument): Result<string, Warning> {
+  if (parsedJsdoc) {
+    const typeTag = jsdoc.getTag(parsedJsdoc, 'type');
+    if (typeTag) {
+      return {successful: true, value: doctrine.type.stringify(typeTag.type!)};
+    }
+  }
   const type = VALID_EXPRESSION_TYPES.get(node.type);
   if (type) {
-    return type;
+    return {successful: true, value: type};
   }
   if (babel.isIdentifier(node)) {
-    return CLOSURE_CONSTRUCTOR_MAP.get(node.name) || node.name;
+    return {
+      successful: true,
+      value: CLOSURE_CONSTRUCTOR_MAP.get(node.name) || node.name
+    };
   }
-  return new Warning({
+  const warning = new Warning({
     code: 'no-closure-type',
     message: `Unable to determine closure type for expression of type ` +
         `${node.type}`,
@@ -127,6 +139,7 @@ export function closureType(
     sourceRange,
     parsedDocument: document,
   });
+  return {successful: false, error: warning};
 }
 
 export function getAttachedComment(node: babel.Node): string|undefined {
@@ -211,15 +224,9 @@ export function toScannedMethod(
 
   const value = babel.isObjectProperty(node) ? node.value : node;
 
-  let type = closureType(value, sourceRange, document);
-  const typeTag = jsdoc.getTag(parsedJsdoc, 'type');
-  if (typeTag) {
-    type = doctrine.type.stringify(typeTag.type!) || type;
-  }
-  if (type instanceof Warning) {
-    warnings.push(type);
-    type = 'Function';
-  }
+  const result = getClosureType(value, parsedJsdoc, sourceRange, document);
+  const type = result.successful === true ? result.value : 'Function';
+
   const name = maybeName || '';
   const scannedMethod: ScannedMethod = {
     name,
@@ -233,74 +240,98 @@ export function toScannedMethod(
   };
 
   if (value && babel.isFunction(value)) {
-    const paramTags = new Map<string, doctrine.Tag>();
     if (scannedMethod.jsdoc) {
-      for (const tag of (scannedMethod.jsdoc.tags || [])) {
-        if (tag.title === 'param' && tag.name) {
-          paramTags.set(tag.name, tag);
-
-        } else if (tag.title === 'return' || tag.title === 'returns') {
-          scannedMethod.return = {};
-          if (tag.type) {
-            scannedMethod.return.type = doctrine.type.stringify(tag.type!);
-          }
-          if (tag.description) {
-            scannedMethod.return.desc = tag.description;
-          }
-        }
+      const ret = getReturnFromAnnotation(scannedMethod.jsdoc);
+      if (ret) {
+        scannedMethod.return = ret;
       }
     }
 
-    scannedMethod.params = (value.params || []).map((nodeParam) => {
-      let name;
-      let defaultValue;
-      let rest;
-
-      if (babel.isIdentifier(nodeParam)) {
-        // Basic parameter: method(param)
-        name = nodeParam.name;
-
-      } else if (
-          babel.isRestElement(nodeParam) &&
-          babel.isIdentifier(nodeParam.argument)) {
-        // Rest parameter: method(...param)
-        name = nodeParam.argument.name;
-        rest = true;
-
-      } else if (
-          babel.isAssignmentPattern(nodeParam) &&
-          babel.isIdentifier(nodeParam.left) &&
-          babel.isLiteral(nodeParam.right)) {
-        // Parameter with a default: method(param = "default")
-        name = nodeParam.left.name;
-        defaultValue = generate(nodeParam.right).code;
-
-      } else {
-        // Some AST pattern we don't recognize. Hope the code generator does
-        // something reasonable.
-        name = generate(nodeParam).code;
-      }
-
-      let type;
-      let description;
-      const tag = paramTags.get(name);
-      if (tag) {
-        if (tag.type) {
-          type = doctrine.type.stringify(tag.type);
-        }
-        if (tag.description) {
-          description = tag.description;
-        }
-      }
-
-      const param: MethodParam = {name, type, defaultValue, rest, description};
-      return param;
-    });
+    scannedMethod.params =
+        (value.params ||
+         []).map((nodeParam) => toMethodParam(nodeParam, scannedMethod.jsdoc));
   }
 
   return scannedMethod;
 }
 
+export function getReturnFromAnnotation(jsdocAnn: jsdoc.Annotation):
+    {type?: string, desc?: string}|undefined {
+  const tag =
+      jsdoc.getTag(jsdocAnn, 'return') || jsdoc.getTag(jsdocAnn, 'returns');
+
+  if (!tag || (!tag.type && !tag.description)) {
+    return undefined;
+  }
+
+  const type: {type?: string, desc?: string} = {};
+
+  if (tag && (tag.type || tag.description)) {
+    if (tag.type) {
+      type.type = doctrine.type.stringify(tag.type);
+    }
+    if (tag.description) {
+      type.desc = tag.description;
+    }
+  }
+
+  return type;
+}
+
+export function toMethodParam(
+    nodeParam: babel.LVal, jsdocAnn?: jsdoc.Annotation): MethodParam {
+  const paramTags = new Map<string, doctrine.Tag>();
+  let name;
+  let defaultValue;
+  let rest;
+
+  if (jsdocAnn) {
+    for (const tag of (jsdocAnn.tags || [])) {
+      if (tag.title === 'param' && tag.name) {
+        paramTags.set(tag.name, tag);
+      }
+    }
+  }
+
+  if (babel.isIdentifier(nodeParam)) {
+    // Basic parameter: method(param)
+    name = nodeParam.name;
+
+  } else if (
+      babel.isRestElement(nodeParam) &&
+      babel.isIdentifier(nodeParam.argument)) {
+    // Rest parameter: method(...param)
+    name = nodeParam.argument.name;
+    rest = true;
+
+  } else if (
+      babel.isAssignmentPattern(nodeParam) &&
+      babel.isIdentifier(nodeParam.left) && babel.isLiteral(nodeParam.right)) {
+    // Parameter with a default: method(param = "default")
+    name = nodeParam.left.name;
+    defaultValue = generate(nodeParam.right).code;
+
+  } else {
+    // Some AST pattern we don't recognize. Hope the code generator does
+    // something reasonable.
+    name = generate(nodeParam).code;
+  }
+
+  let type;
+  let description;
+  const tag = paramTags.get(name);
+  if (tag) {
+    if (tag.type) {
+      type = doctrine.type.stringify(tag.type);
+    }
+    if (tag.description) {
+      description = tag.description;
+    }
+  }
+
+  const param: MethodParam = {name, type, defaultValue, rest, description};
+  return param;
+}
 
 export function getOrInferPrivacy(
     name: string,
