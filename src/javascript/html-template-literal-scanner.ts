@@ -21,6 +21,12 @@ import {Visitor} from './estree-visitor';
 import {JavaScriptDocument} from './javascript-document';
 import {JavaScriptScanner} from './javascript-scanner';
 
+/**
+ * Finds inline HTML documents in Javascript source.
+ *
+ * e.g.
+ *     html`<div></div>`;
+ */
 export class InlineHtmlDocumentScanner implements JavaScriptScanner {
   async scan(
       document: JavaScriptDocument,
@@ -29,6 +35,10 @@ export class InlineHtmlDocumentScanner implements JavaScriptScanner {
 
     const myVisitor: Visitor = {
       enterTaggedTemplateExpression(node) {
+        const tagName = getIdentifierName(node.tag);
+        if (tagName === undefined || !/(^|\.)html$/.test(tagName)) {
+          return;
+        }
         const inlineDocument = getInlineDocument(node, document);
         if (inlineDocument !== undefined) {
           features.push(inlineDocument);
@@ -42,14 +52,22 @@ export class InlineHtmlDocumentScanner implements JavaScriptScanner {
   }
 }
 
+export interface Options {
+  /**
+   * If true, uses the "raw" template string contents rather than the "cooked"
+   * contents. For example: raw contents yields `\n` as two characters, cooked
+   * yields it as a newline.
+   */
+  useRawContents?: boolean;
+}
+
+/**
+ * Parses the given string as an inline HTML document.
+ */
 export function getInlineDocument(
     node: babel.TaggedTemplateExpression,
-    parsedDocument: JavaScriptDocument): ScannedInlineDocument|undefined {
-  const tagName = getIdentifierName(node.tag);
-  if (tagName === undefined || !/(^|\.)html$/.test(tagName)) {
-    return;
-  }
-
+    parsedDocument: JavaScriptDocument,
+    options: Options = {}): ScannedInlineDocument|undefined {
   const sourceRangeForLiteral = parsedDocument.sourceRangeForNode(node.quasi);
   if (sourceRangeForLiteral === undefined) {
     return;
@@ -79,7 +97,11 @@ export function getInlineDocument(
       // of cases it doesn't handle correctly, but it's a start.
       contents += fullExpressionTextWithDelimitors.replace(/\S/g, ' ');
     }
-    contents += quasi.value.cooked;
+    if (options.useRawContents) {
+      contents += quasi.value.raw;
+    } else {
+      contents += quasi.value.cooked;
+    }
     previousEnd = quasi.end;
   }
 
