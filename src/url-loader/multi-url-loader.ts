@@ -27,6 +27,7 @@ export class MultiUrlLoader implements UrlLoader {
         this.readDirectory = (path: ResolvedUrl, deep?: boolean) => {
           return loader.readDirectory!(path, deep);
         };
+        break;
       }
     }
   }
