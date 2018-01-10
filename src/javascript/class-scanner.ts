@@ -368,20 +368,9 @@ interface CustomElementDefinition {
  * When attaching members to a class which has a `@memberof` annotation,
  * the members should also be annotated identically:
  *
- *    @memberof MyNamespace
+ *    @memberof MyNamespace.MyClass.prototype
+ *    @alias MyMethod
  *    MyClass.prototype.MyMethod;
- *
- * One exception to this is when the member is not set directly on
- * the prototype, such as a function which is attached at a later place
- * in the file:
- *
- *    @memberof MyNamespace.MyClass
- *    @instance
- *    function MyMethod() {
- *
- * As you can see, we must specify `@instance` to define the function
- * as an instance method, and `@memberof` to define the class along with
- * its namespace.
  *
  * For more information, see [memberof](http://usejsdoc.org/tags-memberof.html)
  * and [instance](http://usejsdoc.org/tags-instance.html).
@@ -426,7 +415,7 @@ class PrototypeMemberFinder implements Visitor {
       return;
     }
 
-    const namespacedCls = getNamespacedIdentifier(cls, jsdocAnn);
+    const namespacedCls = this._getNamespacedClassName(cls, leftProperty.name, jsdocAnn);
 
     if (babel.isFunctionExpression(node.right)) {
       const prop = this._createMethodFromExpression(
@@ -469,7 +458,7 @@ class PrototypeMemberFinder implements Visitor {
       return;
     }
 
-    const namespacedCls = getNamespacedIdentifier(cls, jsdocAnn);
+    const namespacedCls = this._getNamespacedClassName(cls, node.property.name, jsdocAnn);
 
     if (jsdoc.hasTag(jsdocAnn, 'function')) {
       const prop =
@@ -484,6 +473,21 @@ class PrototypeMemberFinder implements Visitor {
         this._addPropertyToClass(namespacedCls, method);
       }
     }
+  }
+
+  private _getNamespacedClassName(name: string, member: string, jsdocAnn: jsdoc.Annotation|undefined) {
+    const namespacedMember = getNamespacedIdentifier(member, jsdocAnn);
+
+    if (namespacedMember !== member) {
+      const protoIndex = namespacedMember.lastIndexOf('.prototype.');
+
+      if (protoIndex !== -1) {
+        const prefixIdentifier = namespacedMember.substring(0, protoIndex);
+        name = prefixIdentifier;
+      }
+    }
+
+    return name;
   }
 
   private _createPropertyFromExpression(
