@@ -12,6 +12,7 @@
  * http://polymer.github.io/PATENTS.txt
  */
 
+import {PackageRelativeUrl} from '../index';
 import {ResolvedUrl} from '../model/url';
 
 import {UrlLoader} from './url-loader';
@@ -21,6 +22,13 @@ import {UrlLoader} from './url-loader';
  */
 export class MultiUrlLoader implements UrlLoader {
   constructor(private _loaders: UrlLoader[]) {
+    for (const loader of _loaders) {
+      if (loader.readDirectory !== undefined) {
+        this.readDirectory = (path: ResolvedUrl, deep?: boolean) => {
+          return loader.readDirectory!(path, deep);
+        };
+      }
+    }
   }
 
   canLoad(url: ResolvedUrl): boolean {
@@ -35,4 +43,7 @@ export class MultiUrlLoader implements UrlLoader {
     }
     return Promise.reject(new Error(`Unable to load ${url}`));
   }
+
+  readDirectory?
+      (path: ResolvedUrl, deep?: boolean): Promise<PackageRelativeUrl[]>;
 }
