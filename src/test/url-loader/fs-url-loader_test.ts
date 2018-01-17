@@ -19,23 +19,28 @@ import {resolvedUrl} from '../test-utils';
 
 suite('FSUrlLoader', function() {
   suite('canLoad', () => {
-    test('canLoad is true a local file URL', () => {
-      assert.isTrue(new FSUrlLoader().canLoad(resolvedUrl`file:///foo.html`));
+    test('canLoad is true for a local file URL inside root', () => {
+      assert.isTrue(new FSUrlLoader('/a/').canLoad(resolvedUrl
+                                                      `file:///a/foo.html`));
     });
 
+    test('canLoad is false for a local file URL outside root', () => {
+      assert.isFalse(new FSUrlLoader('/a/').canLoad(resolvedUrl
+                                                      `file:///b/foo.html`));
+    });
     test('canLoad is false for a file url with a host', () => {
-      assert.isFalse(
-          new FSUrlLoader().canLoad(resolvedUrl`file://foo/foo/foo.html`));
+      assert.isFalse(new FSUrlLoader('/foo/').canLoad(
+          resolvedUrl`file://foo/foo/foo.html`));
     });
 
     test('canLoad is false for a relative path URL', () => {
       assert.isFalse(
-          new FSUrlLoader().canLoad(resolvedUrl`../../foo/foo.html`));
+          new FSUrlLoader('/').canLoad(resolvedUrl`../../foo/foo.html`));
     });
 
     test('canLoad is false for an http URL', () => {
       assert.isFalse(
-          new FSUrlLoader().canLoad(resolvedUrl`http://abc.xyz/foo.html`));
+          new FSUrlLoader('/').canLoad(resolvedUrl`http://abc.xyz/foo.html`));
     });
   });
 });
