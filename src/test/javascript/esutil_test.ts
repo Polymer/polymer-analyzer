@@ -22,6 +22,26 @@ import {objectKeyToString, getEventComments} from '../../javascript/esutil';
 // See analysis_test for tests of generateElementMetadata
 
 suite('getEventComments', () => {
+  test('returns multiple events from one comment', () => {
+    const node = parse(`
+        class Foo {
+          /**
+           * This is an event
+           *
+           * @event event-one
+           * @event event-two
+           * @param {Event} event
+           */
+           myMethod() { }
+        }`);
+    const events = [...getEventComments(node).values()];
+
+    assert.deepEqual(events.map((ev) => ev.name), [
+      'event-one',
+      'event-two'
+    ]);
+  });
+
   test('returns events from a comment', () => {
     const node = parse(`
         class Foo {

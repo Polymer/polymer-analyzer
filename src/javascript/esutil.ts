@@ -23,7 +23,7 @@ import {Privacy} from '../model/model';
 import {ScannedEvent, Severity, SourceRange, Warning} from '../model/model';
 import {ParsedDocument} from '../parser/document';
 import * as docs from '../polymer/docs';
-import {annotateEvent} from '../polymer/docs';
+import {annotateEvents} from '../polymer/docs';
 
 import * as astValue from './ast-value';
 import * as estraverse from './estraverse-shim';
@@ -161,13 +161,15 @@ export function getEventComments(node: babel.Node): Map<string, ScannedEvent> {
           .forEach((comment) => eventComments.add(comment));
     }
   });
-  const events = [...eventComments]
+
+  const events = annotateEvents([...eventComments]
                      .map(
-                         (comment) => annotateEvent(jsdoc.parseJsdoc(
-                             jsdoc.removeLeadingAsterisks(comment).trim())))
-                     .filter((ev) => !!ev)
-                     .sort((ev1, ev2) => ev1.name.localeCompare(ev2.name));
-  return new Map(events.map((e) => [e.name, e] as [string, ScannedEvent]));
+                         (comment) => jsdoc.parseJsdoc(
+                             jsdoc.removeLeadingAsterisks(comment).trim())));
+
+  return new Map(events
+                 .sort((ev1, ev2) => ev1.name.localeCompare(ev2.name))
+                 .map((e) => [e.name, e] as [string, ScannedEvent]));
 }
 
 function getLeadingComments(node: babel.Node): string[]|undefined {
