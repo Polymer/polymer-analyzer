@@ -13,6 +13,7 @@
  */
 
 import {assert} from 'chai';
+import * as path from 'path';
 import Uri from 'vscode-uri';
 
 import {ResolvedUrl} from '../../model/url';
@@ -23,12 +24,12 @@ suite('FSUrlLoader', function() {
   suite('canLoad', () => {
     test('canLoad is true for a local file URL inside root', () => {
       assert.isTrue(new FSUrlLoader('/a/').canLoad(
-          Uri.file('/a/foo.html').toString() as ResolvedUrl));
+          Uri.file(path.resolve('/a/foo.html')).toString() as ResolvedUrl));
     });
 
     test('canLoad is false for a local file URL outside root', () => {
       assert.isFalse(new FSUrlLoader('/a/').canLoad(
-          Uri.file('/b/foo.html').toString() as ResolvedUrl));
+          Uri.file(path.resolve('/b/foo.html')).toString() as ResolvedUrl));
     });
     test('canLoad is false for a file url with a host', () => {
       assert.isFalse(new FSUrlLoader('/foo/').canLoad(
