@@ -77,36 +77,42 @@ export function annotateElementHeader(scannedElement: ScannedPolymerElement) {
 /**
  * Annotates event documentation
  */
-export function annotateEvent(annotation: jsdoc.Annotation): ScannedEvent {
-  const eventTag = jsdoc.getTag(annotation, 'event');
-  let name: string;
-  if (eventTag && eventTag.description) {
-    name = (eventTag.description || '').match(/^\S*/)![0];
-  } else {
-    name = 'N/A';
-  }
-  const scannedEvent: ScannedEvent = {
-    name: name,
-    description: annotation.description || (eventTag && eventTag.description) || undefined,
-    jsdoc: annotation,
-    sourceRange: undefined,
-    astNode: null,
-    warnings: [],
-    params: []
-  };
+export function annotateEvents(annotations: jsdoc.Annotation[]): ScannedEvent[] {
+  const events: ScannedEvent[] = [];
 
-  const tags = (annotation && annotation.tags || []);
-  // process @params
-  scannedEvent.params.push(
-      ...tags.filter((tag) => tag.title === 'param').map((param) => {
+  for (const annotation of annotations) {
+    const tags = annotation.tags || [];
+    const eventTags = tags.filter((tag) => tag.title === 'event');
+    const params = tags.filter((tag) => tag.title === 'param')
+      .map((tag) => {
         return {
-          type: param.type ? doctrine.type.stringify(param.type) : 'N/A',
-          desc: param.description || '',
-          name: param.name || 'N/A'
+          type: tag.type ? doctrine.type.stringify(tag.type) : 'N/A',
+          desc: tag.description || '',
+          name: tag.name || 'N/A'
         };
-      }));
-  // process @params
-  return scannedEvent;
+      });
+
+    for (const eventTag of eventTags) {
+      let name: string;
+      if (eventTag && eventTag.description) {
+        name = (eventTag.description || '').match(/^\S*/)![0];
+      } else {
+        name = 'N/A';
+      }
+
+      events.push({
+        name: name,
+        description: annotation.description || (eventTag && eventTag.description) || undefined,
+        jsdoc: annotation,
+        sourceRange: undefined,
+        astNode: null,
+        warnings: [],
+        params: params
+      });
+    }
+  }
+
+  return events;
 }
 
 /**
