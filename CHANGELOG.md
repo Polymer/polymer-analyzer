@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
 * `FSUrlLoader#canLoad` reports false for local urls outside the loader's
-  own root; enables fall-thru support needed for racking in `MultiUrlLoader`.
+  own root; enables fall-thru support needed for use with `MultiUrlLoader`.
 * Add `Element#template` for getting the template of an element.
 * In MultiUrlLoader, proxy the first implementation of readDirectory, if any.
 * Use event annotation descriptions over their tag description
