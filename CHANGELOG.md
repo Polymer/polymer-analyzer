@@ -9,8 +9,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * [BREAKING] Document#astNode and ParsedDocument#astNode are now an
   `AstNodeWithLanguage`, because we support inline documents in more than just
   HTML, as we've added an HTML-in-JS scanner.
-* Add `Element#template` for getting the template of an element.
 <!-- Add new, unreleased changes here. -->
+
+## [3.0.0-pre.8] - 2017-01-18
+* `FSUrlLoader#canLoad` reports false for local urls outside the loader's
+  own root; enables fall-thru support needed for use with `MultiUrlLoader`.
+* Add `Element#template` for getting the template of an element.
+* In MultiUrlLoader, proxy the first implementation of readDirectory, if any.
+* Use event annotation descriptions over their tag description.
+* `RedirectResolver` resolves URLs which start with its redirect-to.
 
 ## [3.0.0-pre.7] - 2017-01-01
 * [BREAKING]: `UrlResolver#resolve()` argument order swapped so that the
