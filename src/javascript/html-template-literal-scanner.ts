@@ -91,10 +91,35 @@ export function getInlineDocument(
     if (previousEnd !== undefined) {
       const fullExpressionTextWithDelimitors =
           parsedDocument.contents.slice(previousEnd, quasi.start);
-      // Replace everything but whitespace in ${expressions} (including the
-      // ${} delimitor part) with whitespace.
-      // This skips over the problem of handling expressions, and there's lots
-      // of cases it doesn't handle correctly, but it's a start.
+      /**
+       * Replace everything but whitespace in ${expressions} (including the
+       * ${} delimitor part) with whitespace.
+       * This skips over the problem of handling expressions, and there's lots
+       * of cases it doesn't handle correctly, but it's a start.
+       * Consider the js file:
+       * ```js
+       *   html`<div>${
+       *     'Hello world'
+       *   }</div>
+       * ```
+       *
+       * If we remove the expression entirely, the html parser receives
+       * `<div></div>` and when we ask for the source range of the closing tag
+       * it'll give one on the first line, and starting just after the `<div>`.
+       * By preserving whitespace and replacing every other character with a
+       * space, the HTML parser will receive
+       *
+       * ```html
+       *   <div>
+       *     (a bunch of spaces on this line)
+       *    </div>
+       * ```
+       *
+       * and so the html parser's source locations will map cleanly onto offsets
+       * in the original template literal (excluding characters like `\n`). We
+       * could do something more sophisticated later, but this works for most
+       * cases and is quick and easy to implement.
+       */
       contents += fullExpressionTextWithDelimitors.replace(/\S/g, ' ');
     }
     if (options.useRawContents) {
