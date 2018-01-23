@@ -835,26 +835,26 @@ export function extractPropertiesFromClass(
         accessor.setter = method;
       }
     }
+  }
 
-    for (const val of accessors.values()) {
-      const getter = val.getter ?
-          esutil.getterOrSetterToScannedProperty(val.getter, document) :
-          undefined;
-      const setter = val.setter ?
-          esutil.getterOrSetterToScannedProperty(val.setter, document) :
-          undefined;
+  for (const val of accessors.values()) {
+    const getter = val.getter ?
+        esutil.getterOrSetterToScannedProperty(val.getter, document) :
+        undefined;
+    const setter = val.setter ?
+        esutil.getterOrSetterToScannedProperty(val.setter, document) :
+        undefined;
 
-      const prop = getter || setter;
-      if (!prop) {
-        continue;
-      }
-
-      if (!prop.readOnly) {
-        prop.readOnly = (val.setter === undefined);
-      }
-
-      properties.set(prop.name, prop);
+    const prop = getter || setter;
+    if (!prop) {
+      continue;
     }
+
+    if (!prop.readOnly) {
+      prop.readOnly = (val.setter === undefined);
+    }
+
+    properties.set(prop.name, prop);
   }
 
   return properties;
