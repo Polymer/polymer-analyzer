@@ -85,9 +85,14 @@ class BehaviorVisitor implements Visitor {
       return;
     }
 
+    const methods: babel.Method[] = [];
+
     for (const prop of node.properties) {
       if (babel.isSpreadProperty(prop)) {
         continue;
+      }
+      if (babel.isMethod(prop)) {
+        methods.push(prop);
       }
       const name = esutil.objectKeyToString(prop.key);
       if (!name) {
@@ -105,13 +110,7 @@ class BehaviorVisitor implements Visitor {
       if (name in this.propertyHandlers) {
         this.propertyHandlers[name](prop.value);
       } else if (babel.isMethod(prop) || babel.isFunction(prop.value)) {
-        if (babel.isMethod(prop) && (prop.kind === 'get' || prop.kind === 'set')) {
-          const property = esutil.getterOrSetterToScannedProperty(
-              prop, this.document);
-          if (property) {
-            this.currentBehavior.addProperty(property);
-          }
-        } else {
+        if (!babel.isMethod(prop) || (prop.kind !== 'get' && prop.kind !== 'set')) {
           const method = esutil.toScannedMethod(
               prop, this.document.sourceRangeForNode(prop)!, this.document);
           this.currentBehavior.addMethod(method);
@@ -122,6 +121,11 @@ class BehaviorVisitor implements Visitor {
         this.currentBehavior.addProperty(property);
       }
     }
+
+    for (const prop of esutil.propertiesFromGettersAndSetters(methods, this.document)) {
+      this.currentBehavior.addProperty(prop);
+    }
+
     this._finishBehavior();
   }
 

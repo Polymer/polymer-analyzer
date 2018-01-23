@@ -798,9 +798,6 @@ class CustomElementsDefineCallFinder implements Visitor {
 export function extractPropertiesFromClass(
     astNode: babel.Node, document: JavaScriptDocument) {
   const properties = new Map<string, ScannedProperty>();
-  const accessors = new Map<
-      string,
-      {getter?: babel.ClassMethod, setter?: babel.ClassMethod}>();
 
   if (!(babel.isClassExpression(astNode) ||
         babel.isClassDeclaration(astNode))) {
@@ -808,52 +805,15 @@ export function extractPropertiesFromClass(
   }
 
   for (const method of astNode.body.body) {
-    if (!babel.isClassMethod(method)) {
-      continue;
-    }
-
-    if (method.kind === 'constructor') {
+    if (babel.isClassMethod(method) && method.kind === 'constructor') {
       const props = extractPropertiesFromConstructor(method, document);
       for (const prop of props.values()) {
         properties.set(prop.name, prop);
       }
-    } else if (method.kind === 'get' || method.kind === 'set') {
-      if (method.key.type !== 'Identifier') {
-        continue;
-      }
-
-      let accessor = accessors.get(method.key.name);
-
-      if (!accessor) {
-        accessor = {};
-        accessors.set(method.key.name, accessor);
-      }
-
-      if (method.kind === 'get') {
-        accessor.getter = method;
-      } else {
-        accessor.setter = method;
-      }
     }
   }
 
-  for (const val of accessors.values()) {
-    const getter = val.getter ?
-        esutil.getterOrSetterToScannedProperty(val.getter, document) :
-        undefined;
-    const setter = val.setter ?
-        esutil.getterOrSetterToScannedProperty(val.setter, document) :
-        undefined;
-
-    const prop = getter || setter;
-    if (!prop) {
-      continue;
-    }
-
-    if (!prop.readOnly) {
-      prop.readOnly = (val.setter === undefined);
-    }
-
+  for (const prop of esutil.propertiesFromGettersAndSetters(astNode.body.body, document)) {
     properties.set(prop.name, prop);
   }
 
