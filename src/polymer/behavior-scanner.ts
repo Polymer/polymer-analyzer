@@ -105,9 +105,17 @@ class BehaviorVisitor implements Visitor {
       if (name in this.propertyHandlers) {
         this.propertyHandlers[name](prop.value);
       } else if (babel.isMethod(prop) || babel.isFunction(prop.value)) {
-        const method = esutil.toScannedMethod(
-            prop, this.document.sourceRangeForNode(prop)!, this.document);
-        this.currentBehavior.addMethod(method);
+        if (babel.isMethod(prop) && (prop.kind === 'get' || prop.kind === 'set')) {
+          const property = esutil.getterOrSetterToScannedProperty(
+              prop, this.document);
+          if (property) {
+            this.currentBehavior.addProperty(property);
+          }
+        } else {
+          const method = esutil.toScannedMethod(
+              prop, this.document.sourceRangeForNode(prop)!, this.document);
+          this.currentBehavior.addMethod(method);
+        }
       } else {
         const property = toScannedPolymerProperty(
             prop, this.document.sourceRangeForNode(prop)!, this.document);

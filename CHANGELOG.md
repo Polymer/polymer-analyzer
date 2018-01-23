@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
+* Detect getters in behaviors
 <!-- Add new, unreleased changes here. -->
 
 ## [3.0.0-pre.8] - 2017-01-18

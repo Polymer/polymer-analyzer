@@ -16,7 +16,7 @@ import generate from 'babel-generator';
 import * as babel from 'babel-types';
 import * as doctrine from 'doctrine';
 
-import {MethodParam, ScannedMethod} from '../index';
+import {MethodParam, ScannedMethod, ScannedProperty} from '../index';
 import {Result} from '../model/analysis';
 import {ImmutableSet} from '../model/immutable';
 import {Privacy} from '../model/model';
@@ -197,6 +197,60 @@ export function getPropertyValue(
       return property.value;
     }
   }
+}
+
+export function getDescription(jsdocAnn: jsdoc.Annotation): string|undefined {
+  if (jsdocAnn.description) {
+    return jsdocAnn.description;
+  }
+  // These tags can be used to describe a field.
+  // e.g.:
+  //    /** @type {string} the name of the animal */
+  //    this.name = name || 'Rex';
+  const tagSet = new Set(['public', 'private', 'protected', 'type']);
+  for (const tag of jsdocAnn.tags) {
+    if (tagSet.has(tag.title) && tag.description) {
+      return tag.description;
+    }
+  }
+}
+
+export function getterOrSetterToScannedProperty(
+    method: babel.Method, document: JavaScriptDocument): ScannedProperty|
+    null {
+  if ((babel.isClassMethod(method) && method.static) || method.key.type !== 'Identifier') {
+    return null;
+  }
+
+  if (method.key.name === undefined) {
+    return null;
+  }
+
+  const annotation = jsdoc.parseJsdoc(getAttachedComment(method) || '');
+  let type;
+  let description;
+  let privacy: Privacy = 'public';
+  let readOnly = false;
+
+  if (annotation) {
+    const ret = getReturnFromAnnotation(annotation);
+    type = ret ? ret.type : undefined;
+    description = getDescription(annotation);
+    privacy = getOrInferPrivacy(method.key.name, annotation);
+    readOnly = jsdoc.hasTag(annotation, 'readonly');
+  }
+
+  return {
+    name: method.key.name,
+    astNode: method,
+    type,
+    jsdoc: annotation,
+    sourceRange: document.sourceRangeForNode(method)!,
+    description,
+    privacy,
+    warnings: [],
+    readOnly,
+  };
 }
 
 /**
