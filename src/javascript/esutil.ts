@@ -216,7 +216,7 @@ export function getDescription(jsdocAnn: jsdoc.Annotation): string|undefined {
 }
 
 export function propertiesFromGettersAndSetters(
-    body: Array<babel.Method|babel.Property>, document: JavaScriptDocument): ScannedProperty[] {
+    body: Array<babel.Method|babel.Property|babel.SpreadProperty>, document: JavaScriptDocument): ScannedProperty[] {
   const properties: ScannedProperty[] = [];
   const accessors = new Map<
       string,
@@ -232,7 +232,7 @@ export function propertiesFromGettersAndSetters(
       continue;
     }
 
-    if (!babel.isIdentifier(member.key) || !member.key.name || member.key.computed) {
+    if (!babel.isIdentifier(member.key) || !member.key.name || member.computed) {
       continue;
     }
 

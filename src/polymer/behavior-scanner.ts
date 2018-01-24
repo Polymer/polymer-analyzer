@@ -85,14 +85,9 @@ class BehaviorVisitor implements Visitor {
       return;
     }
 
-    const methods: babel.Method[] = [];
-
     for (const prop of node.properties) {
       if (babel.isSpreadProperty(prop)) {
         continue;
-      }
-      if (babel.isMethod(prop)) {
-        methods.push(prop);
       }
       const name = esutil.objectKeyToString(prop.key);
       if (!name) {
@@ -122,7 +117,7 @@ class BehaviorVisitor implements Visitor {
       }
     }
 
-    for (const prop of esutil.propertiesFromGettersAndSetters(methods, this.document)) {
+    for (const prop of esutil.propertiesFromGettersAndSetters(node.properties, this.document)) {
       this.currentBehavior.addProperty(prop);
     }
 
