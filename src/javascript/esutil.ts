@@ -232,7 +232,7 @@ export function propertiesFromGettersAndSetters(
       continue;
     }
 
-    if (!babel.isIdentifier(member.key) || !member.key.name) {
+    if (!babel.isIdentifier(member.key) || !member.key.name || member.key.computed) {
       continue;
     }
 
