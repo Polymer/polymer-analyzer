@@ -16,7 +16,7 @@ import generate from 'babel-generator';
 import * as babel from 'babel-types';
 import * as doctrine from 'doctrine';
 
-import {MethodParam, ScannedMethod} from '../index';
+import {MethodParam, ScannedMethod, ScannedProperty} from '../index';
 import {Result} from '../model/analysis';
 import {ImmutableSet} from '../model/immutable';
 import {Privacy} from '../model/model';
@@ -197,6 +197,109 @@ export function getPropertyValue(
       return property.value;
     }
   }
+}
+
+export function getDescription(jsdocAnn: jsdoc.Annotation): string|undefined {
+  if (jsdocAnn.description) {
+    return jsdocAnn.description;
+  }
+  // These tags can be used to describe a field.
+  // e.g.:
+  //    /** @type {string} the name of the animal */
+  //    this.name = name || 'Rex';
+  const tagSet = new Set(['public', 'private', 'protected', 'type']);
+  for (const tag of jsdocAnn.tags) {
+    if (tagSet.has(tag.title) && tag.description) {
+      return tag.description;
+    }
+  }
+}
+
+export function propertiesFromGettersAndSetters(
+    body: Array<babel.Method|babel.Property|babel.SpreadProperty>, document: JavaScriptDocument): ScannedProperty[] {
+  const properties: ScannedProperty[] = [];
+  const accessors = new Map<
+      string,
+      {getter?: babel.Method, setter?: babel.Method}>();
+
+  for (const member of body) {
+    if (!babel.isMethod(member)) {
+      continue;
+    }
+
+    // TODO: we dont support statics yet
+    if (babel.isClassMethod(member) && member.static) {
+      continue;
+    }
+
+    if (!babel.isIdentifier(member.key) || !member.key.name || member.computed) {
+      continue;
+    }
+
+    const name = member.key.name;
+
+    if (member.kind !== 'get' && member.kind !== 'set') {
+      continue;
+    }
+
+    let accessor = accessors.get(name);
+
+    if (!accessor) {
+      accessor = {};
+      accessors.set(name, accessor);
+    }
+
+    if (member.kind === 'get') {
+      accessor.getter = member;
+    } else {
+      accessor.setter = member;
+    }
+  }
+
+  for (const [name, accessor] of accessors) {
+    let comment: string | undefined = undefined;
+    const member = (accessor.getter || accessor.setter)!;
+
+    if (accessor.getter) {
+      comment = getAttachedComment(accessor.getter);
+    }
+
+    if (accessor.setter && !comment) {
+      comment = getAttachedComment(accessor.setter);
+    }
+
+    const annotation = jsdoc.parseJsdoc(comment || '');
+    let type;
+    let description;
+    let privacy: Privacy = 'public';
+    let readOnly = false;
+
+    if (annotation) {
+      const ret = getReturnFromAnnotation(annotation);
+      type = ret ? ret.type : undefined;
+      description = getDescription(annotation);
+      privacy = getOrInferPrivacy(name, annotation);
+      readOnly = jsdoc.hasTag(annotation, 'readonly');
+    }
+
+    if (!readOnly) {
+      readOnly = (accessor.setter === undefined);
+    }
+
+    properties.push({
+      name: name,
+      astNode: member,
+      type,
+      jsdoc: annotation,
+      sourceRange: document.sourceRangeForNode(member)!,
+      description,
+      privacy,
+      warnings: [],
+      readOnly,
+    });
+  }
+
+  return properties;
 }
 
 /**

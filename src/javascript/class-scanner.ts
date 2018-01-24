@@ -16,7 +16,7 @@ import generate from 'babel-generator';
 import * as babel from 'babel-types';
 import * as doctrine from 'doctrine';
 
-import {MapWithDefault, MethodParam, Privacy, ScannedClass, ScannedFeature, ScannedMethod, ScannedProperty, ScannedReference, Severity, SourceRange, Warning} from '../model/model';
+import {MapWithDefault, MethodParam, ScannedClass, ScannedFeature, ScannedMethod, ScannedProperty, ScannedReference, Severity, SourceRange, Warning} from '../model/model';
 import {Result} from '../model/analysis';
 import {extractObservers} from '../polymer/declaration-property-handlers';
 import {mergePropertyDeclarations, Observer, ScannedPolymerElement} from '../polymer/polymer-element';
@@ -456,7 +456,7 @@ class PrototypeMemberFinder implements Visitor {
     const warnings: Warning[] = [];
 
     if (jsdocAnn) {
-      description = getDescription(jsdocAnn);
+      description = esutil.getDescription(jsdocAnn);
       readOnly = jsdoc.hasTag(jsdocAnn, 'readonly');
     }
 
@@ -500,7 +500,7 @@ class PrototypeMemberFinder implements Visitor {
     const params = new Map<string, MethodParam>();
 
     if (jsdocAnn) {
-      description = getDescription(jsdocAnn);
+      description = esutil.getDescription(jsdocAnn);
       ret = getReturnFromAnnotation(jsdocAnn);
       type = ret ? ret.type : undefined;
 
@@ -798,9 +798,6 @@ class CustomElementsDefineCallFinder implements Visitor {
 export function extractPropertiesFromClass(
     astNode: babel.Node, document: JavaScriptDocument) {
   const properties = new Map<string, ScannedProperty>();
-  const accessors = new Map<
-      string,
-      {getter?: babel.ClassMethod, setter?: babel.ClassMethod}>();
 
   if (!(babel.isClassExpression(astNode) ||
         babel.isClassDeclaration(astNode))) {
@@ -808,93 +805,19 @@ export function extractPropertiesFromClass(
   }
 
   for (const method of astNode.body.body) {
-    if (!babel.isClassMethod(method)) {
-      continue;
-    }
-
-    if (method.kind === 'constructor') {
+    if (babel.isClassMethod(method) && method.kind === 'constructor') {
       const props = extractPropertiesFromConstructor(method, document);
       for (const prop of props.values()) {
         properties.set(prop.name, prop);
       }
-    } else if (method.kind === 'get' || method.kind === 'set') {
-      if (method.key.type !== 'Identifier') {
-        continue;
-      }
-
-      let accessor = accessors.get(method.key.name);
-
-      if (!accessor) {
-        accessor = {};
-        accessors.set(method.key.name, accessor);
-      }
-
-      if (method.kind === 'get') {
-        accessor.getter = method;
-      } else {
-        accessor.setter = method;
-      }
     }
+  }
 
-    for (const val of accessors.values()) {
-      const getter = val.getter ?
-          extractPropertyFromGetterOrSetter(val.getter, document) :
-          undefined;
-      const setter = val.setter ?
-          extractPropertyFromGetterOrSetter(val.setter, document) :
-          undefined;
-
-      const prop = getter || setter;
-      if (!prop) {
-        continue;
-      }
-
-      if (!prop.readOnly) {
-        prop.readOnly = (val.setter === undefined);
-      }
-
-      properties.set(prop.name, prop);
-    }
+  for (const prop of esutil.propertiesFromGettersAndSetters(astNode.body.body, document)) {
+    properties.set(prop.name, prop);
   }
 
   return properties;
-}
-
-function extractPropertyFromGetterOrSetter(
-    method: babel.ClassMethod, document: JavaScriptDocument): ScannedProperty|
-    null {
-  if (method.static || method.key.type !== 'Identifier') {
-    return null;
-  }
-
-  if (method.key.name === undefined) {
-    return null;
-  }
-
-  const annotation = getJSDocAnnotationForNode(method);
-  let type;
-  let description;
-  let privacy: Privacy = 'public';
-  let readOnly = false;
-
-  if (annotation) {
-    type = getReturnTypeFromAnnotation(annotation);
-    description = getDescription(annotation);
-    privacy = getOrInferPrivacy(method.key.name, annotation);
-    readOnly = jsdoc.hasTag(annotation, 'readonly');
-  }
-
-  return {
-    name: method.key.name,
-    astNode: method,
-    type,
-    jsdoc: annotation,
-    sourceRange: document.sourceRangeForNode(method)!,
-    description,
-    privacy,
-    warnings: [],
-    readOnly,
-  };
 }
 
 function extractPropertyFromExpressionStatement(
@@ -937,7 +860,7 @@ function extractPropertyFromExpressionStatement(
     default: defaultValue,
     jsdoc: annotation,
     sourceRange: document.sourceRangeForNode(astNode)!,
-    description: getDescription(annotation),
+    description: esutil.getDescription(annotation),
     privacy: getOrInferPrivacy(name, annotation),
     warnings: [],
     readOnly: jsdoc.hasTag(annotation, 'const'),
@@ -978,12 +901,6 @@ function getJSDocAnnotationForNode(node: babel.Node) {
   return jsdocAnn;
 }
 
-function getReturnTypeFromAnnotation(jsdocAnn: jsdoc.Annotation): string|
-    undefined {
-  const ret = getReturnFromAnnotation(jsdocAnn);
-  return ret ? ret.type : undefined;
-}
-
 function getTypeFromAnnotation(jsdocAnn: jsdoc.Annotation): string|undefined {
   const typeTag = jsdoc.getTag(jsdocAnn, 'type');
   let type = undefined;
@@ -1002,20 +919,4 @@ function getPropertyNameOnThisExpression(node: babel.Node) {
     return;
   }
   return node.property.name;
-}
-
-function getDescription(jsdocAnn: jsdoc.Annotation): string|undefined {
-  if (jsdocAnn.description) {
-    return jsdocAnn.description;
-  }
-  // These tags can be used to describe a field.
-  // e.g.:
-  //    /** @type {string} the name of the animal */
-  //    this.name = name || 'Rex';
-  const tagSet = new Set(['public', 'private', 'protected', 'type']);
-  for (const tag of jsdocAnn.tags) {
-    if (tagSet.has(tag.title) && tag.description) {
-      return tag.description;
-    }
-  }
 }
