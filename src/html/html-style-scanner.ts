@@ -63,7 +63,7 @@ export class HtmlStyleScanner implements HtmlScanner {
               locationOffset,
               commentText,
               document.sourceRangeForNode(node)!,
-              {language: 'html', node}));
+              {language: 'html', node, containingDocument: document}));
         }
       }
       // Descend into templates.

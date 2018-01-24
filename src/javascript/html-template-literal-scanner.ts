@@ -86,8 +86,7 @@ export function getInlineDocument(
 
   let contents = '';
   let previousEnd: number|undefined;
-  for (let i = 0; i < node.quasi.quasis.length; i++) {
-    const quasi = node.quasi.quasis[i];
+  for (const quasi of node.quasi.quasis) {
     if (previousEnd !== undefined) {
       const fullExpressionTextWithDelimitors =
           parsedDocument.contents.slice(previousEnd, quasi.start);
@@ -147,5 +146,5 @@ export function getInlineDocument(
       },
       commentText,
       sourceRangeForContents,
-      {language: 'js', node});
+      {language: 'js', node, containingDocument: parsedDocument});
 }

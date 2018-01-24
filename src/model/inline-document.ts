@@ -18,6 +18,7 @@ import {ASTNode} from 'parse5';
 import * as util from 'util';
 
 import {isFakeNode, ParsedHtmlDocument} from '../html/html-document';
+import {JavaScriptDocument} from '../javascript/javascript-document';
 import * as jsdoc from '../javascript/jsdoc';
 
 import {Document, ScannedDocument} from './document';
@@ -35,9 +36,11 @@ export interface InlineDocInfo<AstNode> {
 export type AstNodeWithLanguage = {
   language: 'html',
   node: dom5.Node,
+  containingDocument: ParsedHtmlDocument,
 }|{
   language: 'js',
   node: babel.Node,
+  containingDocument: JavaScriptDocument,
 };
 
 /**
@@ -65,13 +68,13 @@ export class ScannedInlineDocument implements ScannedFeature, Resolvable {
   constructor(
       type: string, contents: string, locationOffset: LocationOffset,
       attachedComment: string, sourceRange: SourceRange,
-      ast: AstNodeWithLanguage) {
+      astNode: AstNodeWithLanguage) {
     this.type = type;
     this.contents = contents;
     this.locationOffset = locationOffset;
     this.attachedComment = attachedComment;
     this.sourceRange = sourceRange;
-    this.astNode = ast;
+    this.astNode = astNode;
   }
 
   resolve(document: Document): Document|undefined {
