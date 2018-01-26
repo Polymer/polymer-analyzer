@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
+* `MultiUrlResolver` now delegates the `relative()` method to the first
+  `UrlResolver` in its `_resolvers` array that can `resolve()` the
+  destination URL.  Makes it possible now to rely on the Analyzer's
+  resolver to return a valid `PackageRelativeUrl` from a resolved URL.
 <!-- Add new, unreleased changes here. -->
 
 ## [3.0.0-pre.8] - 2017-01-18
