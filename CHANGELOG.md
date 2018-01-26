@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 <!-- ## Unreleased -->
 <!-- Add new, unreleased changes here. -->
 
-## [3.0.0-pre.9] - 2018-01-25
+## [3.0.0-pre.9] - 2018-01-26
 * [BREAKING] Document#astNode and ParsedDocument#astNode are now an
   `AstNodeWithLanguage`, because we support inline documents in more than just
   HTML, as we've added an HTML-in-JS scanner.
