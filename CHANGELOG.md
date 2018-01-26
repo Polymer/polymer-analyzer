@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
+* [BREAKING] Document#astNode and ParsedDocument#astNode are now an
+  `AstNodeWithLanguage`, because we support inline documents in more than just
+  HTML, as we've added an HTML-in-JS scanner.
 * `MultiUrlResolver` now delegates the `relative()` method to the first
   `UrlResolver` in its `_resolvers` array that can `resolve()` the
   destination URL.  Makes it possible now to rely on the Analyzer's
