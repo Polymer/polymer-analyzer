@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## Unreleased
 <!-- Add new, unreleased changes here. -->
 
-## [3.0.0-pre.9] - 2017-01-25
+## [3.0.0-pre.9] - 2018-01-25
 * [BREAKING] Document#astNode and ParsedDocument#astNode are now an
   `AstNodeWithLanguage`, because we support inline documents in more than just
   HTML, as we've added an HTML-in-JS scanner.
@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   destination URL.  Makes it possible now to rely on the Analyzer's
   resolver to return a valid `PackageRelativeUrl` from a resolved URL.
 
-## [3.0.0-pre.8] - 2017-01-18
+## [3.0.0-pre.8] - 2018-01-18
 * `FSUrlLoader#canLoad` reports false for local urls outside the loader's
   own root; enables fall-thru support needed for use with `MultiUrlLoader`.
 * Add `Element#template` for getting the template of an element.
@@ -25,7 +25,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Use event annotation descriptions over their tag description.
 * `RedirectResolver` resolves URLs which start with its redirect-to.
 
-## [3.0.0-pre.7] - 2017-01-01
+## [3.0.0-pre.7] - 2018-01-01
 * [BREAKING]: `UrlResolver#resolve()` argument order swapped so that the
   optional `baseUrl` argument comes first instead of second.  This makes
   resolve more similar to `url.resolve`.
