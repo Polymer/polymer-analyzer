@@ -52,14 +52,14 @@ suite('RedirectResolver', function() {
   });
 
   suite('relative', () => {
-    test('if from not within _redirectTo but to is, reverse redirect', () => {
+    test('if `from` is not in redirect-to, un-redirect the `to`', () => {
       const resolver =
           new RedirectResolver(resolvedUrl`/a/`, 'proto://site/', '/b/');
       const relative = resolver.relative(resolvedUrl`/b/page.html`)!;
       assert.equal(relative, fileRelativeUrl`proto://site/page.html`);
       assert.equal(
-          resolver.relative(relative as string as ResolvedUrl) as string,
-          relative);
+          resolver.relative(resolvedUrl`proto://site/page.html`) as string,
+          resolvedUrl`proto://site/page.html`);
     });
   });
 });
