@@ -14,8 +14,9 @@
 
 import {assert} from 'chai';
 
+import {ResolvedUrl} from '../../model/url';
 import {RedirectResolver} from '../../url-loader/redirect-resolver';
-import {packageRelativeUrl, resolvedUrl} from '../test-utils';
+import {fileRelativeUrl, packageRelativeUrl, resolvedUrl} from '../test-utils';
 
 
 suite('RedirectResolver', function() {
@@ -47,6 +48,18 @@ suite('RedirectResolver', function() {
           resolver.resolve(packageRelativeUrl`proto://site/page.html`)!;
       assert.equal(resolved, resolvedUrl`/b/page.html`);
       assert.equal(resolver.resolve(resolved), resolved);
+    });
+  });
+
+  suite('relative', () => {
+    test('if from not within _redirectTo but to is, reverse redirect', () => {
+      const resolver =
+          new RedirectResolver(resolvedUrl`/a/`, 'proto://site/', '/b/');
+      const relative = resolver.relative(resolvedUrl`/b/page.html`)!;
+      assert.equal(relative, fileRelativeUrl`proto://site/page.html`);
+      assert.equal(
+          resolver.relative(relative as string as ResolvedUrl) as string,
+          relative);
     });
   });
 });

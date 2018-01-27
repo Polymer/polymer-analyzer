@@ -58,6 +58,10 @@ export class RedirectResolver extends UrlResolver {
       from = this.packageUrl;
       to = fromOrTo;
     }
+    if (!from.startsWith(this._redirectTo) && to.startsWith(this._redirectTo)) {
+      to =
+          this._redirectFrom + to.slice(this._redirectTo.length) as ResolvedUrl;
+    }
     return this.simpleUrlRelative(from, to);
   }
 }
