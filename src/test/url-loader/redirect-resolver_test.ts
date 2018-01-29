@@ -14,9 +14,8 @@
 
 import {assert} from 'chai';
 
-import {ResolvedUrl} from '../../model/url';
 import {RedirectResolver} from '../../url-loader/redirect-resolver';
-import {fileRelativeUrl, packageRelativeUrl, resolvedUrl} from '../test-utils';
+import {packageRelativeUrl, resolvedUrl} from '../test-utils';
 
 
 suite('RedirectResolver', function() {
@@ -56,7 +55,7 @@ suite('RedirectResolver', function() {
       const resolver =
           new RedirectResolver(resolvedUrl`/a/`, 'proto://site/', '/b/');
       const relative = resolver.relative(resolvedUrl`/b/page.html`)!;
-      assert.equal(relative, fileRelativeUrl`proto://site/page.html`);
+      assert.equal(relative, packageRelativeUrl`proto://site/page.html`);
       assert.equal(
           resolver.relative(resolvedUrl`proto://site/page.html`) as string,
           resolvedUrl`proto://site/page.html`);
