@@ -50,7 +50,7 @@ suite('RedirectResolver', function() {
     });
   });
 
-  suite.only('relative', () => {
+  suite('relative', () => {
     test('if `to` is no in redirect-to, return as-is', () => {
       const resolver = new RedirectResolver(
           resolvedUrl`file:///src/a/`,
