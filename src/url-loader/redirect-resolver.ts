@@ -53,12 +53,12 @@ export class RedirectResolver extends UrlResolver {
   relative(fromOrTo: ResolvedUrl, maybeTo?: ResolvedUrl, _kind?: string):
       FileRelativeUrl|PackageRelativeUrl {
     let from, to;
-    if (maybeTo !== undefined) {
-      from = fromOrTo;
-      to = maybeTo;
-    } else {
+    if (maybeTo === undefined) {
       from = this.packageUrl;
       to = fromOrTo;
+    } else {
+      from = fromOrTo;
+      to = maybeTo;
     }
     if (!from.startsWith(this._redirectTo) && to.startsWith(this._redirectTo)) {
       to = this.brandAsResolved(

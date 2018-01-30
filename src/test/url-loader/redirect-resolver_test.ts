@@ -50,15 +50,29 @@ suite('RedirectResolver', function() {
     });
   });
 
-  suite('relative', () => {
+  suite.only('relative', () => {
+    test('if `to` is no in redirect-to, return as-is', () => {
+      const resolver = new RedirectResolver(
+          resolvedUrl`file:///src/a/`,
+          resolvedUrl`proto://site/`,
+          resolvedUrl`file:///src/b/`);
+      const relative = resolver.relative(resolvedUrl`file:///src/a/page.html`)!;
+      assert.equal(relative, packageRelativeUrl`page.html`);
+      assert.equal(
+          resolver.relative(resolvedUrl`file:///src/a/page.html`),
+          packageRelativeUrl`page.html`);
+    });
+
     test('if `from` is not in redirect-to, un-redirect the `to`', () => {
-      const resolver =
-          new RedirectResolver(resolvedUrl`/a/`, 'proto://site/', '/b/');
-      const relative = resolver.relative(resolvedUrl`/b/page.html`)!;
+      const resolver = new RedirectResolver(
+          resolvedUrl`file:///src/a/`,
+          resolvedUrl`proto://site/`,
+          resolvedUrl`file:///src/b/`);
+      const relative = resolver.relative(resolvedUrl`file:///src/b/page.html`)!;
       assert.equal(relative, packageRelativeUrl`proto://site/page.html`);
       assert.equal(
-          resolver.relative(resolvedUrl`proto://site/page.html`) as string,
-          resolvedUrl`proto://site/page.html`);
+          resolver.relative(resolvedUrl`proto://site/page.html`),
+          packageRelativeUrl`proto://site/page.html`);
     });
   });
 });
