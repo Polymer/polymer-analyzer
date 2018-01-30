@@ -51,7 +51,7 @@ suite('RedirectResolver', function() {
   });
 
   suite('relative', () => {
-    test('if `to` is no in redirect-to, return as-is', () => {
+    test('if `to` is not in redirect-to, return as-is', () => {
       const resolver = new RedirectResolver(
           resolvedUrl`file:///src/a/`,
           resolvedUrl`proto://site/`,
