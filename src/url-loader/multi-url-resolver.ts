@@ -51,8 +51,8 @@ export class MultiUrlResolver extends UrlResolver {
   relative(from: ResolvedUrl, to: ResolvedUrl, kind?: string): FileRelativeUrl;
   relative(fromOrTo: ResolvedUrl, maybeTo?: ResolvedUrl, kind?: string):
       FileRelativeUrl|PackageRelativeUrl {
-    const from = (maybeTo === undefined) ? undefined : fromOrTo;
-    const to = (maybeTo === undefined) ? fromOrTo : maybeTo;
+    const [from, to] =
+        (maybeTo === undefined) ? [undefined, fromOrTo] : [fromOrTo, maybeTo];
     for (const resolver of this._resolvers) {
       if (!resolver.resolve(this.brandAsPackageRelative(to))) {
         continue;
