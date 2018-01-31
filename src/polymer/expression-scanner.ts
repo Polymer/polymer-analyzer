@@ -551,7 +551,7 @@ export function parseExpressionInJsStringLiteral(
   const sourceRangeForLiteral = document.sourceRangeForNode(stringLiteral)!;
   const binaryExpressionString = astValue.binaryExpressionToString(stringLiteral);
 
-  if (!binaryExpressionString && !babel.isLiteral(stringLiteral)) {
+  if (binaryExpressionString === null && !babel.isLiteral(stringLiteral)) {
     // Should we warn here? It's potentially valid, just unanalyzable. Maybe
     // just an info that someone could escalate to a warning/error?
     warnings.push(new Warning({
