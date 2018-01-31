@@ -54,7 +54,7 @@ export class MultiUrlResolver extends UrlResolver {
     const [from, to] =
         (maybeTo === undefined) ? [undefined, fromOrTo] : [fromOrTo, maybeTo];
     for (const resolver of this._resolvers) {
-      if (!resolver.resolve(this.brandAsPackageRelative(to))) {
+      if (resolver.resolve(this.brandAsPackageRelative(to)) === undefined) {
         continue;
       }
       if (from === undefined) {
