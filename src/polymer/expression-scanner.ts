@@ -549,9 +549,8 @@ export function parseExpressionInJsStringLiteral(
     warnings
   };
   const sourceRangeForLiteral = document.sourceRangeForNode(stringLiteral)!;
-  const binaryExpressionString = astValue.binaryExpressionToString(stringLiteral);
 
-  if (binaryExpressionString === null && !babel.isLiteral(stringLiteral)) {
+  if (!babel.isBinaryExpression(stringLiteral) && !babel.isLiteral(stringLiteral)) {
     // Should we warn here? It's potentially valid, just unanalyzable. Maybe
     // just an info that someone could escalate to a warning/error?
     warnings.push(new Warning({
@@ -563,7 +562,7 @@ export function parseExpressionInJsStringLiteral(
     }));
     return result;
   }
-  const expressionText = binaryExpressionString || astValue.expressionToValue(stringLiteral);
+  const expressionText = astValue.expressionToValue(stringLiteral);
   if (typeof expressionText !== 'string') {
     warnings.push(new Warning({
       code: 'invalid-polymer-expression',

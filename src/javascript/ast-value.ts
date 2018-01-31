@@ -230,39 +230,3 @@ export function getNamespacedIdentifier(
 }
 
 export const CANT_CONVERT = 'UNKNOWN';
-
-/**
- * Converts a binary expression into a string
- *
- * This will only work if all child nodes are string literals.
- */
-export function binaryExpressionToString(node: babel.Node): string|null {
-  if (!babel.isBinaryExpression(node)) {
-    return null;
-  }
-
-  const flatten = (node: babel.BinaryExpression): babel.Node[] => {
-    const result = [];
-    if (babel.isBinaryExpression(node.left)) {
-      result.push(...flatten(node.left));
-    } else {
-      result.push(node.left);
-    }
-    if (babel.isBinaryExpression(node.right)) {
-      result.push(...flatten(node.right));
-    } else {
-      result.push(node.right);
-    }
-    return result;
-  };
-
-  const flattened = flatten(node);
-  const strings = flattened.filter<babel.StringLiteral>(
-    (n): n is babel.StringLiteral => babel.isStringLiteral(n));
-
-  if (strings.length !== flattened.length) {
-    return null;
-  }
-
-  return strings.map((n) => n.value).join('');
-}
