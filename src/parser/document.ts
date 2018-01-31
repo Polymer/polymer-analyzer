@@ -75,7 +75,7 @@ export abstract class ParsedDocument<AstNode = any, Visitor = any> {
   sourceRangeForNode(node: AstNode): SourceRange|undefined {
     const baseSource = this._sourceRangeForNode(node);
     return this.relativeToAbsoluteSourceRange(baseSource);
-  };
+  }
 
   protected abstract _sourceRangeForNode(node: AstNode): SourceRange|undefined;
 
