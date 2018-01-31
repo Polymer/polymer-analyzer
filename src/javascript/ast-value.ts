@@ -230,3 +230,19 @@ export function getNamespacedIdentifier(
 }
 
 export const CANT_CONVERT = 'UNKNOWN';
+
+export function isLiteralBinaryExpression(expr: babel.Node): boolean {
+  if (!babel.isBinaryExpression(expr)) {
+    return false;
+  }
+
+  if (!babel.isLiteral(expr.left) && !isLiteralBinaryExpression(expr.left)) {
+    return false;
+  }
+
+  if (!babel.isLiteral(expr.right) && !isLiteralBinaryExpression(expr.right)) {
+    return false;
+  }
+
+  return true;
+}
