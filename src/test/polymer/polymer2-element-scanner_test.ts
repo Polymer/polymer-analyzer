@@ -563,14 +563,14 @@ namespaced name.`,
       'foo',
        ~~~`,
             `
-      'im not' + function anObserver() {}
-      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~`
+      'foo' + [1] + '()'
+      ~~~~~~~~~~~~~~~~~~`
           ],
           observers: [
             'let let let parseError',
             'foo',
             'foo(bar)',
-            'UNKNOWN'
+            'foo1()'
           ],
           observerProperties: [['foo'], ['foo', 'bar']],
         }]);
