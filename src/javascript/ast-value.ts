@@ -231,18 +231,14 @@ export function getNamespacedIdentifier(
 
 export const CANT_CONVERT = 'UNKNOWN';
 
-export function isLiteralBinaryExpression(expr: babel.Node): boolean {
-  if (!babel.isBinaryExpression(expr)) {
-    return false;
+export function isLiteralExpression(expr: babel.Node): boolean {
+  if (babel.isLiteral(expr)) {
+    return true;
   }
 
-  if (!babel.isLiteral(expr.left) && !isLiteralBinaryExpression(expr.left)) {
-    return false;
+  if (babel.isBinaryExpression(expr)) {
+    return isLiteralExpression(expr.left) && isLiteralExpression(expr.right);
   }
 
-  if (!babel.isLiteral(expr.right) && !isLiteralBinaryExpression(expr.right)) {
-    return false;
-  }
-
-  return true;
+  return false;
 }
