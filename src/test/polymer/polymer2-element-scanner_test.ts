@@ -561,12 +561,16 @@ namespaced name.`,
            ~`,
             `
       'foo',
-       ~~~`
+       ~~~`,
+            `
+      'im not' + function anObserver() {}
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~`
           ],
           observers: [
             'let let let parseError',
             'foo',
             'foo(bar)',
+            'UNKNOWN'
           ],
           observerProperties: [['foo'], ['foo', 'bar']],
         }]);

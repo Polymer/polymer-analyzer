@@ -19,6 +19,7 @@ class TestElement extends Polymer.Element {
       'let let let parseError',
       'foo',
       'foo(bar)',
+      'im not' + function anObserver() {}
     ];
   }
 }
