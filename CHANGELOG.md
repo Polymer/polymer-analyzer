@@ -9,10 +9,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 <!-- Add new, unreleased changes here. -->
 
 ## [3.0.0-pre.10] - 2018-02-01
-* [BREAKING] The `UrlResolver#relative()` method now returns a
-  `PackageRelativeUrl` when called with only one argument, since the only
-  use of this call form is to reverse a resolved URL back into a simpler
-  package relative form.
+* The `UrlResolver#relative()` method now returns a `PackageRelativeUrl`
+  when called with only one argument, since the only use of this call form
+  is to reverse a resolved URL back into a simpler package relative form.
 
 ## [3.0.0-pre.9] - 2018-01-26
 * [BREAKING] Document#astNode and ParsedDocument#astNode are now an
