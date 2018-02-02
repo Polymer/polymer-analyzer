@@ -12,7 +12,7 @@
  * http://polymer.github.io/PATENTS.txt
  */
 
-import {FileRelativeUrlBrand, PackageRelativeUrl} from '../index';
+import {FileRelativeUrlBrand, PackageRelativeUrl, UrlResolver} from '../index';
 import {FileRelativeUrl, ResolvedUrl} from '../model/url';
 
 import {FsUrlResolver} from './fs-url-resolver';
@@ -34,7 +34,7 @@ declare class RuntimeUrlBrand extends FileRelativeUrlBrand {
  * legal to load – from the package directory, which is how the user refers to
  * files on the CLI or the IDE.
  */
-export class IndirectUrlResolver extends FsUrlResolver {
+export class IndirectUrlResolver extends FsUrlResolver implements UrlResolver {
   private readonly runtimeUrlToResolvedUrl:
       ReadonlyMap<RuntimeUrl, ResolvedUrl>;
   private readonly resolvedUrlToRuntimeUrl:
@@ -100,13 +100,6 @@ export class IndirectUrlResolver extends FsUrlResolver {
         this.simpleUrlResolve(this.brandAsResolved(runtimeBaseUrl), url);
     return resolved as any as RuntimeUrl;
   }
-
-  // resolveFileUrl(url: FileRelativeUrl, baseUrl: ResolvedUrl): ResolvedUrl {
-  // const webBaseUrl = this.getWebPathOrDie(baseUrl);
-  // const webFinalPath =
-  //     this.simpleUrlResolve(url, webBaseUrl as FileRelativeUrl);
-  // return this.getFilesystemPathOrDie(webFinalPath);
-  // }
 
   relative(to: ResolvedUrl): PackageRelativeUrl;
   relative(from: ResolvedUrl, to: ResolvedUrl, _kind?: string): FileRelativeUrl;
