@@ -27,12 +27,19 @@ const isWindows = process.platform === 'win32';
 
 /**
  * Resolves package-relative urls to a configured root directory.
+ *
+ * For file-relative URLS it does the normal URL resolution algorithm relative
+ * to the base url.
+ *
+ * It does not remapping of urls in source to urls on the filesystem, but a
+ * subclass can override modifyFsPath for this purpose.
  */
 export class FsUrlResolver extends UrlResolver {
+  // The root directory that we resolve package relative URLs to.
   protected readonly packageDir: string;
+  // file:// URL format of `packageDir`.
   protected readonly packageUrl: ResolvedUrl;
-  constructor(
-      packageDir: string|undefined, private readonly hostname?: string) {
+  constructor(packageDir: string|undefined, private readonly host?: string) {
     super();
     this.packageDir =
         normalizeFsPath(pathlib.resolve(packageDir || process.cwd()));
@@ -62,8 +69,8 @@ export class FsUrlResolver extends UrlResolver {
   protected shouldHandleAsFileUrl(url: Url) {
     const isLocalFileUrl =
         url.protocol === 'file:' && (!url.host || url.host === 'localhost');
-    const isOurHostname = url.hostname === this.hostname;
-    return isLocalFileUrl || isOurHostname;
+    const isOurHost = url.host === this.host;
+    return isLocalFileUrl || isOurHost;
   }
 
   /**
@@ -135,6 +142,10 @@ export class FsUrlResolver extends UrlResolver {
   }
 }
 
+/**
+ * Normalizes slashes, `..`, `.`, and on Windows the capitalization of the
+ * drive letter.
+ */
 function normalizeFsPath(fsPath: string) {
   fsPath = pathlib.normalize(fsPath);
   if (isWindows && /^[a-z]:/.test(fsPath)) {

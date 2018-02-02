@@ -25,7 +25,7 @@ import {FsUrlResolver} from './fs-url-resolver';
 export interface PackageUrlResolverOptions {
   packageDir?: string;
   componentDir?: string;
-  hostname?: string;
+  host?: string;
 }
 
 /**
@@ -36,7 +36,7 @@ export class PackageUrlResolver extends FsUrlResolver {
   private readonly resolvedComponentDir: string;
 
   constructor(options: PackageUrlResolverOptions = {}) {
-    super(options.packageDir, options.hostname);
+    super(options.packageDir, options.host);
     this.componentDir = options.componentDir || 'bower_components/';
     this.resolvedComponentDir =
         pathlib.join(this.packageDir, this.componentDir);

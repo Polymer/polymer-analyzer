@@ -76,11 +76,8 @@ suite('PackageUrlResolver', function() {
     });
 
     test(`resolves a URL with the right hostname`, () => {
-      const resolver = new PackageUrlResolver({
-        componentDir: `components`,
-        hostname: `abc.xyz`,
-        packageDir: `/1/2`
-      });
+      const resolver = new PackageUrlResolver(
+          {componentDir: `components`, host: `abc.xyz`, packageDir: `/1/2`});
       assert.equal(
           resolver.resolve(packageRelativeUrl`http://abc.xyz/foo.html`),
           rootedFileUrl`1/2/foo.html`);
