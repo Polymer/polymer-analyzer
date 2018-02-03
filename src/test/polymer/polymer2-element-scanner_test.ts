@@ -561,16 +561,12 @@ namespaced name.`,
            ~`,
             `
       'foo',
-       ~~~`,
-            `
-      'foo' + [1] + '()'
-      ~~~~~~~~~~~~~~~~~~`
+       ~~~`
           ],
           observers: [
             'let let let parseError',
             'foo',
-            'foo(bar)',
-            'foo1()'
+            'foo(bar)'
           ],
           observerProperties: [['foo'], ['foo', 'bar']],
         }]);
@@ -660,10 +656,12 @@ namespaced name.`,
         description: '',
         methods: [],
         observerProperties: [
-          ['_testObserver', 'prop1', 'prop2']
+          ['_testObserver', 'prop1', 'prop2'],
+          ['_testObserverTwo', 'prop1', 'prop2']
         ],
         observers: [
-          '_testObserver(prop1, prop2)'
+          '_testObserver(prop1, prop2)',
+          '_testObserverTwo(prop1, prop2)'
         ],
         properties: [
           {

@@ -28,8 +28,28 @@ function literalToValue(literal: babel.Literal): LiteralValue {
   if (babel.isNullLiteral(literal)) {
     return null;
   }
+  if (babel.isTemplateLiteral(literal)) {
+    return templateLiteralToValue(literal);
+  }
   // Any other literal value is treated as undefined.
   return undefined;
+}
+
+function templateLiteralToValue(literal: babel.TemplateLiteral): LiteralValue {
+  const len = literal.quasis.length - 1;
+  let value: LiteralValue = '';
+
+  for (let i = 0; i < len; i++) {
+    value += literal.quasis[i].value.raw;
+    const v = expressionToValue(literal.expressions[i]);
+    if (v !== undefined) {
+      value += `${v}`;
+    }
+  }
+
+  value += literal.quasis[len].value.raw;
+
+  return value;
 }
 
 /**
@@ -230,15 +250,3 @@ export function getNamespacedIdentifier(
 }
 
 export const CANT_CONVERT = 'UNKNOWN';
-
-export function isLiteralExpression(expr: babel.Node): boolean {
-  if (babel.isLiteral(expr)) {
-    return true;
-  }
-
-  if (babel.isBinaryExpression(expr)) {
-    return isLiteralExpression(expr.left) && isLiteralExpression(expr.right);
-  }
-
-  return false;
-}

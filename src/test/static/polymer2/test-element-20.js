@@ -14,7 +14,8 @@ class TestElement extends Polymer.Element {
     return [
       '_testObserver(prop1,' +
         '' + ' ' +
-        'prop2)'
+        'prop2)',
+      `_testObserverTwo(prop1, ${'prop2'})`
     ];
   }
 }
