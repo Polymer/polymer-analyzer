@@ -584,6 +584,25 @@ suite('Class', () => {
       ]);
     });
 
+    test('deals with aliased super classes', async () => {
+      const classes = await getClasses('class/super-class-alias.js');
+
+      assert.deepEqual(classes.map((f) => f.name), ['Base', 'Subclass']);
+      assert.deepEqual(await Promise.all(classes.map((c) => getTestProps(c))), [
+        {
+          name: 'Base',
+          description: '',
+          privacy: 'public'
+        },
+        {
+          name: 'Subclass',
+          description: '',
+          privacy: 'public',
+          superClass: 'Base'
+        }
+      ]);
+    });
+
     test('deals with super classes correctly', async () => {
       const classes = await getClasses('class/super-class.js');
 

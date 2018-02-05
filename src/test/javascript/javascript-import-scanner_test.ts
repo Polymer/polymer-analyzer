@@ -49,6 +49,26 @@ suite('JavaScriptImportScanner', () => {
     ]);
   });
 
+  test('finds named imports and aliases', async () => {
+    const {features} = await runScanner(
+        analyzer,
+        new JavaScriptImportScanner(),
+        'javascript/module-with-import-alias.js');
+
+    assert.containSubset(features, [
+      {
+        type: 'js-import',
+        url: './foo',
+        lazy: false,
+      },
+      {
+        type: 'js-import',
+        url: './baz',
+        lazy: false,
+      },
+    ]);
+  });
+
   test('skips non-path imports', async () => {
     const {features} = await runScanner(
         analyzer,
