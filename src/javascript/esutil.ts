@@ -16,7 +16,7 @@ import generate from 'babel-generator';
 import * as babel from 'babel-types';
 import * as doctrine from 'doctrine';
 
-import {MethodParam, ScannedMethod} from '../index';
+import {MethodParam, ScannedMethod, ScannedProperty} from '../index';
 import {Result} from '../model/analysis';
 import {ImmutableSet} from '../model/immutable';
 import {Privacy} from '../model/model';
@@ -428,3 +428,47 @@ function* _getMethods(node: babel.Node) {
     }
   }
 }
+
+export function extractPropertyFromGetterOrSetter(
+    method: babel.ClassMethod|babel.ObjectMethod,
+    jsdocAnn: jsdoc.Annotation|undefined,
+    document: JavaScriptDocument): ScannedProperty|
+    null {
+  if (babel.isClassMethod(method) && method.static) {
+    return null;
+  }
+
+  if (method.key.type !== 'Identifier') {
+    return null;
+  }
+
+  if (method.key.name === undefined) {
+    return null;
+  }
+
+  let type;
+  let description;
+  let privacy: Privacy = 'public';
+  let readOnly = false;
+
+  if (jsdocAnn) {
+    const ret = getReturnFromAnnotation(jsdocAnn);
+    type = ret ? ret.type : undefined;
+    description = jsdoc.getDescription(jsdocAnn);
+    privacy = getOrInferPrivacy(method.key.name, jsdocAnn);
+    readOnly = jsdoc.hasTag(jsdocAnn, 'readonly');
+  }
+
+  return {
+    name: method.key.name,
+    astNode: method,
+    type,
+    jsdoc: jsdocAnn,
+    sourceRange: document.sourceRangeForNode(method)!,
+    description,
+    privacy,
+    warnings: [],
+    readOnly,
+  };
+}
+
