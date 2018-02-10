@@ -69,19 +69,25 @@ export function matchesCallExpression(
 }
 
 /**
- * @param {Node} key The node representing an object key or expression.
- * @return {string} The name of that key.
+ * Given a property or method, return its name, or undefined if that name can't
+ * be determined.
  */
-export function objectKeyToString(key: babel.Node): string|undefined {
-  if (babel.isIdentifier(key)) {
+export function getPropertyName(prop: babel.ObjectProperty|
+                                babel.ObjectMethod|babel.ClassMethod|
+                                babel.SpreadProperty): string|undefined {
+  if (babel.isSpreadProperty(prop)) {
+    return undefined;
+  }
+  const key = prop.key;
+  // {foo: bar} // note that `foo` is not quoted, so it's an identifier
+  if (!prop.computed && babel.isIdentifier(key)) {
     return key.name;
   }
-  if (babel.isLiteral(key)) {
-    return '' + astValue.expressionToValue(key);
-  }
-  if (babel.isMemberExpression(key)) {
-    return objectKeyToString(key.object) + '.' +
-        objectKeyToString(key.property);
+
+  // Otherwise, try to statically evaluate the expression
+  const keyValue = astValue.expressionToValue(key);
+  if (keyValue !== undefined) {
+    return '' + keyValue;
   }
   return undefined;
 }
@@ -193,7 +199,7 @@ export function getPropertyValue(
   const properties = node.properties;
   for (const property of properties) {
     if (!babel.isSpreadProperty(property) &&
-        objectKeyToString(property.key) === name) {
+        getPropertyName(property) === name) {
       return property.value;
     }
   }
@@ -208,7 +214,7 @@ export function toScannedMethod(
     document: ParsedDocument): ScannedMethod {
   const parsedJsdoc = jsdoc.parseJsdoc(getAttachedComment(node) || '');
   const description = parsedJsdoc.description.trim();
-  const maybeName = objectKeyToString(node.key);
+  const maybeName = getPropertyName(node);
 
   const warnings: Warning[] = [];
   if (!maybeName) {
