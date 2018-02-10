@@ -16,8 +16,8 @@ import generate from 'babel-generator';
 import * as babel from 'babel-types';
 import * as doctrine from 'doctrine';
 
-import {MapWithDefault, MethodParam, ScannedClass, ScannedFeature, ScannedMethod, ScannedProperty, ScannedReference, Severity, SourceRange, Warning} from '../model/model';
 import {Result} from '../model/analysis';
+import {MapWithDefault, MethodParam, ScannedClass, ScannedFeature, ScannedMethod, ScannedProperty, ScannedReference, Severity, SourceRange, Warning} from '../model/model';
 import {extractObservers} from '../polymer/declaration-property-handlers';
 import {mergePropertyDeclarations, Observer, ScannedPolymerElement} from '../polymer/polymer-element';
 import {ScannedPolymerElementMixin} from '../polymer/polymer-element-mixin';
@@ -464,10 +464,10 @@ class PrototypeMemberFinder implements Visitor {
 
     if (babel.isAssignmentExpression(node)) {
       detectedType =
-        getClosureType(node.right, jsdocAnn, sourceRange, this._document);
+          getClosureType(node.right, jsdocAnn, sourceRange, this._document);
     } else {
       detectedType =
-        getClosureType(node, jsdocAnn, sourceRange, this._document);
+          getClosureType(node, jsdocAnn, sourceRange, this._document);
     }
 
     if (detectedType.successful) {
@@ -841,11 +841,13 @@ export function extractPropertiesFromClass(
       let setter: ScannedProperty|null = null;
 
       if (val.getter) {
-        getter = esutil.extractPropertyFromGetterOrSetter(val.getter, getJSDocAnnotationForNode(val.getter), document);
+        getter = esutil.extractPropertyFromGetterOrSetter(
+            val.getter, getJSDocAnnotationForNode(val.getter), document);
       }
 
       if (val.setter) {
-        setter = esutil.extractPropertyFromGetterOrSetter(val.setter, getJSDocAnnotationForNode(val.setter), document);
+        setter = esutil.extractPropertyFromGetterOrSetter(
+            val.setter, getJSDocAnnotationForNode(val.setter), document);
       }
 
       const prop = getter || setter;

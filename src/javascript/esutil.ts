@@ -432,8 +432,7 @@ function* _getMethods(node: babel.Node) {
 export function extractPropertyFromGetterOrSetter(
     method: babel.ClassMethod|babel.ObjectMethod,
     jsdocAnn: jsdoc.Annotation|undefined,
-    document: JavaScriptDocument): ScannedProperty|
-    null {
+    document: JavaScriptDocument): ScannedProperty|null {
   if (babel.isClassMethod(method) && method.static) {
     return null;
   }
@@ -471,4 +470,3 @@ export function extractPropertyFromGetterOrSetter(
     readOnly,
   };
 }
-

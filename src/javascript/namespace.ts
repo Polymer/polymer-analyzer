@@ -14,7 +14,7 @@
 
 import * as babel from 'babel-types';
 
-import {Document, Feature, ScannedProperty, Property, Resolvable, SourceRange, Warning} from '../model/model';
+import {Document, Feature, Property, Resolvable, ScannedProperty, SourceRange, Warning} from '../model/model';
 
 import {Annotation as JsDocAnnotation} from './jsdoc';
 

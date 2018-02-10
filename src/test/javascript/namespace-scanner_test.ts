@@ -67,16 +67,14 @@ var ExplicitlyNamedNamespace = {};
         namespaces[1].name, 'ExplicitlyNamedNamespace.NestedNamespace');
     assert.equal(namespaces[1].description, '');
     assert.deepEqual(namespaces[1].warnings, []);
-    assert.deepEqual(getProperties(namespaces[1]), [
-      {
-        name: 'foo',
-        description: undefined,
-        privacy: 'public',
-        readOnly: false,
-        type: 'string',
-        warnings: []
-      }
-    ]);
+    assert.deepEqual(getProperties(namespaces[1]), [{
+                       name: 'foo',
+                       description: undefined,
+                       privacy: 'public',
+                       readOnly: false,
+                       type: 'string',
+                       warnings: []
+                     }]);
     assert.equal(await underliner.underline(namespaces[1].sourceRange), `
 ExplicitlyNamedNamespace.NestedNamespace = {
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -193,8 +191,7 @@ DynamicNamespace['InferredComputedProperty'] = {
     const namespaces = await getNamespaces('namespace-properties.js');
     assert.equal(namespaces.length, 1);
 
-    assert.equal(
-        namespaces[0].name, 'PropertiesNamespace');
+    assert.equal(namespaces[0].name, 'PropertiesNamespace');
     assert.equal(namespaces[0].description, '');
     assert.deepEqual(namespaces[0].warnings, []);
     assert.deepEqual(getProperties(namespaces[0]), [

@@ -14,8 +14,8 @@
 
 import * as babel from 'babel-types';
 
-import {Warning, ScannedProperty} from '../model/model';
 import {Result} from '../model/analysis';
+import {ScannedProperty, Warning} from '../model/model';
 
 import {getIdentifierName, getNamespacedIdentifier} from './ast-value';
 import {Visitor} from './estree-visitor';
@@ -32,10 +32,7 @@ export class NamespaceScanner implements JavaScriptScanner {
     const visitor = new NamespaceVisitor(document);
     const propertyFinder = new NamespacePropertyFinder(document);
 
-    await Promise.all([
-      visit(visitor),
-      visit(propertyFinder)
-    ]);
+    await Promise.all([visit(visitor), visit(propertyFinder)]);
 
     for (const [namespace, properties] of propertyFinder.properties) {
       if (visitor.namespaces.has(namespace)) {
@@ -130,11 +127,11 @@ class NamespacePropertyFinder implements Visitor {
     let detectedType: Result<string, Warning>;
 
     if (babel.isAssignmentExpression(node)) {
-      detectedType =
-        esutil.getClosureType(node.right, jsdocAnn, sourceRange, this._document);
+      detectedType = esutil.getClosureType(
+          node.right, jsdocAnn, sourceRange, this._document);
     } else {
       detectedType =
-        esutil.getClosureType(node, jsdocAnn, sourceRange, this._document);
+          esutil.getClosureType(node, jsdocAnn, sourceRange, this._document);
     }
 
     if (detectedType.successful) {
@@ -221,12 +218,21 @@ class NamespaceVisitor implements Visitor {
     const description = docs.description;
     const properties = getNamespaceProperties(node, this.document);
 
-    this.namespaces.set(namespaceName, new ScannedNamespace(
-        namespaceName, description, summary, node, properties, docs, sourceRange));
+    this.namespaces.set(
+        namespaceName,
+        new ScannedNamespace(
+            namespaceName,
+            description,
+            summary,
+            node,
+            properties,
+            docs,
+            sourceRange));
   }
 }
 
-function getNamespaceProperties(node: babel.Node, document: JavaScriptDocument): Map<string, ScannedProperty> {
+function getNamespaceProperties(node: babel.Node, document: JavaScriptDocument):
+    Map<string, ScannedProperty> {
   const properties = new Map<string, ScannedProperty>();
   const accessors = new Map<
       string,
@@ -246,9 +252,10 @@ function getNamespaceProperties(node: babel.Node, document: JavaScriptDocument):
     }
 
     child = declaration;
-  } else if (babel.isExpressionStatement(node) &&
-             babel.isAssignmentExpression(node.expression) &&
-             babel.isObjectExpression(node.expression.right)) {
+  } else if (
+      babel.isExpressionStatement(node) &&
+      babel.isAssignmentExpression(node.expression) &&
+      babel.isObjectExpression(node.expression.right)) {
     child = node.expression.right;
   } else {
     return properties;
@@ -261,8 +268,10 @@ function getNamespaceProperties(node: babel.Node, document: JavaScriptDocument):
 
     const name = getIdentifierName(member.key)!;
 
-    if (babel.isObjectMethod(member) || babel.isFunctionExpression(member.value)) {
-      if (babel.isObjectMethod(member) && (member.kind === 'get' || member.kind === 'set')) {
+    if (babel.isObjectMethod(member) ||
+        babel.isFunctionExpression(member.value)) {
+      if (babel.isObjectMethod(member) &&
+          (member.kind === 'get' || member.kind === 'set')) {
         let accessor = accessors.get(name);
 
         if (!accessor) {
@@ -283,7 +292,8 @@ function getNamespaceProperties(node: babel.Node, document: JavaScriptDocument):
     const astNode = member.key;
     const sourceRange = document.sourceRangeForNode(member)!;
     const jsdocAnn = jsdoc.parseJsdoc(esutil.getAttachedComment(member) || '');
-    const detectedType = esutil.getClosureType(member.value, jsdocAnn, sourceRange, document);
+    const detectedType =
+        esutil.getClosureType(member.value, jsdocAnn, sourceRange, document);
     let type: string|undefined = undefined;
 
     if (detectedType.successful) {
@@ -308,13 +318,17 @@ function getNamespaceProperties(node: babel.Node, document: JavaScriptDocument):
     let setter: ScannedProperty|null = null;
 
     if (val.getter) {
-      const parsedJsdoc = jsdoc.parseJsdoc(esutil.getAttachedComment(val.getter) || '');
-      getter = esutil.extractPropertyFromGetterOrSetter(val.getter, parsedJsdoc, document);
+      const parsedJsdoc =
+          jsdoc.parseJsdoc(esutil.getAttachedComment(val.getter) || '');
+      getter = esutil.extractPropertyFromGetterOrSetter(
+          val.getter, parsedJsdoc, document);
     }
 
     if (val.setter) {
-      const parsedJsdoc = jsdoc.parseJsdoc(esutil.getAttachedComment(val.setter) || '');
-      setter = esutil.extractPropertyFromGetterOrSetter(val.setter, parsedJsdoc, document);
+      const parsedJsdoc =
+          jsdoc.parseJsdoc(esutil.getAttachedComment(val.setter) || '');
+      setter = esutil.extractPropertyFromGetterOrSetter(
+          val.setter, parsedJsdoc, document);
     }
 
     const prop = getter || setter;
