@@ -234,10 +234,6 @@ class NamespaceVisitor implements Visitor {
 function getNamespaceProperties(node: babel.Node, document: JavaScriptDocument):
     Map<string, ScannedProperty> {
   const properties = new Map<string, ScannedProperty>();
-  const accessors = new Map<
-      string,
-      {getter?: babel.ObjectMethod, setter?: babel.ObjectMethod}>();
-
   let child: babel.ObjectExpression;
 
   if (babel.isVariableDeclaration(node)) {
@@ -261,87 +257,5 @@ function getNamespaceProperties(node: babel.Node, document: JavaScriptDocument):
     return properties;
   }
 
-  for (const member of child.properties) {
-    if (babel.isSpreadProperty(member) || member.computed) {
-      continue;
-    }
-
-    const name = getIdentifierName(member.key)!;
-
-    if (babel.isObjectMethod(member) ||
-        babel.isFunctionExpression(member.value)) {
-      if (babel.isObjectMethod(member) &&
-          (member.kind === 'get' || member.kind === 'set')) {
-        let accessor = accessors.get(name);
-
-        if (!accessor) {
-          accessor = {};
-          accessors.set(name, accessor);
-        }
-
-        if (member.kind === 'get') {
-          accessor.getter = member;
-        } else {
-          accessor.setter = member;
-        }
-      }
-
-      continue;
-    }
-
-    const astNode = member.key;
-    const sourceRange = document.sourceRangeForNode(member)!;
-    const jsdocAnn = jsdoc.parseJsdoc(esutil.getAttachedComment(member) || '');
-    const detectedType =
-        esutil.getClosureType(member.value, jsdocAnn, sourceRange, document);
-    let type: string|undefined = undefined;
-
-    if (detectedType.successful) {
-      type = detectedType.value;
-    }
-
-    properties.set(name, {
-      name,
-      astNode,
-      type,
-      jsdoc: jsdocAnn,
-      sourceRange,
-      description: jsdocAnn ? jsdoc.getDescription(jsdocAnn) : undefined,
-      privacy: esutil.getOrInferPrivacy(name, jsdocAnn),
-      warnings: [],
-      readOnly: jsdoc.hasTag(jsdocAnn, 'readonly'),
-    });
-  }
-
-  for (const val of accessors.values()) {
-    let getter: ScannedProperty|null = null;
-    let setter: ScannedProperty|null = null;
-
-    if (val.getter) {
-      const parsedJsdoc =
-          jsdoc.parseJsdoc(esutil.getAttachedComment(val.getter) || '');
-      getter = esutil.extractPropertyFromGetterOrSetter(
-          val.getter, parsedJsdoc, document);
-    }
-
-    if (val.setter) {
-      const parsedJsdoc =
-          jsdoc.parseJsdoc(esutil.getAttachedComment(val.setter) || '');
-      setter = esutil.extractPropertyFromGetterOrSetter(
-          val.setter, parsedJsdoc, document);
-    }
-
-    const prop = getter || setter;
-    if (!prop) {
-      continue;
-    }
-
-    if (!prop.readOnly) {
-      prop.readOnly = (val.setter === undefined);
-    }
-
-    properties.set(prop.name, prop);
-  }
-
-  return properties;
+  return esutil.extractPropertiesFromNode(child, document);
 }

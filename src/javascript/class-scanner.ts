@@ -798,69 +798,23 @@ class CustomElementsDefineCallFinder implements Visitor {
 export function extractPropertiesFromClass(
     astNode: babel.Node, document: JavaScriptDocument) {
   const properties = new Map<string, ScannedProperty>();
-  const accessors = new Map<
-      string,
-      {getter?: babel.ClassMethod, setter?: babel.ClassMethod}>();
 
-  if (!(babel.isClassExpression(astNode) ||
-        babel.isClassDeclaration(astNode))) {
+  if (!babel.isClass(astNode)) {
     return properties;
   }
 
-  for (const method of astNode.body.body) {
-    if (!babel.isClassMethod(method)) {
-      continue;
-    }
+  const construct = astNode.body.body.find((member) =>
+    babel.isClassMethod(member) && member.kind === 'constructor');
 
-    if (method.kind === 'constructor') {
-      const props = extractPropertiesFromConstructor(method, document);
-      for (const prop of props.values()) {
-        properties.set(prop.name, prop);
-      }
-    } else if (method.kind === 'get' || method.kind === 'set') {
-      if (method.key.type !== 'Identifier') {
-        continue;
-      }
-
-      let accessor = accessors.get(method.key.name);
-
-      if (!accessor) {
-        accessor = {};
-        accessors.set(method.key.name, accessor);
-      }
-
-      if (method.kind === 'get') {
-        accessor.getter = method;
-      } else {
-        accessor.setter = method;
-      }
-    }
-
-    for (const val of accessors.values()) {
-      let getter: ScannedProperty|null = null;
-      let setter: ScannedProperty|null = null;
-
-      if (val.getter) {
-        getter = esutil.extractPropertyFromGetterOrSetter(
-            val.getter, getJSDocAnnotationForNode(val.getter), document);
-      }
-
-      if (val.setter) {
-        setter = esutil.extractPropertyFromGetterOrSetter(
-            val.setter, getJSDocAnnotationForNode(val.setter), document);
-      }
-
-      const prop = getter || setter;
-      if (!prop) {
-        continue;
-      }
-
-      if (!prop.readOnly) {
-        prop.readOnly = (val.setter === undefined);
-      }
-
+  if (construct) {
+    const props = extractPropertiesFromConstructor(construct as babel.ClassMethod, document);
+    for (const prop of props.values()) {
       properties.set(prop.name, prop);
     }
+  }
+
+  for (const prop of esutil.extractPropertiesFromNode(astNode, document).values()) {
+    properties.set(prop.name, prop);
   }
 
   return properties;

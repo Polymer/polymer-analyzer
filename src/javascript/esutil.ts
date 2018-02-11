@@ -470,3 +470,111 @@ export function extractPropertyFromGetterOrSetter(
     readOnly,
   };
 }
+
+export function extractPropertiesFromNode(
+    node: babel.Node,
+    document: JavaScriptDocument): Map<string, ScannedProperty> {
+  const properties = new Map<string, ScannedProperty>();
+  const accessors = new Map<
+      string,
+      {getter?: babel.ClassMethod|babel.ObjectMethod, setter?: babel.ClassMethod|babel.ObjectMethod}>();
+
+  let body;
+
+  if (babel.isClass(node)) {
+    body = node.body.body;
+  } else if (babel.isObjectExpression(node)) {
+    body = node.properties;
+  } else {
+    return properties;
+  }
+
+  for (const member of body) {
+    if (babel.isSpreadProperty(member)) {
+      continue;
+    }
+
+    if ((babel.isMethod(member) || babel.isObjectProperty(member)) &&
+        member.computed) {
+      continue;
+    }
+
+    const name = astValue.getIdentifierName(member.key)!;
+
+    if (babel.isMethod(member) ||
+        babel.isFunctionExpression(member.value)) {
+      if (babel.isMethod(member) &&
+          (member.kind === 'get' || member.kind === 'set')) {
+        let accessor = accessors.get(name);
+
+        if (!accessor) {
+          accessor = {};
+          accessors.set(name, accessor);
+        }
+
+        if (member.kind === 'get') {
+          accessor.getter = member;
+        } else {
+          accessor.setter = member;
+        }
+      }
+
+      continue;
+    }
+
+    const astNode = member.key;
+    const sourceRange = document.sourceRangeForNode(member)!;
+    const jsdocAnn = jsdoc.parseJsdoc(getAttachedComment(member) || '');
+    const detectedType =
+        getClosureType(member.value, jsdocAnn, sourceRange, document);
+    let type: string|undefined = undefined;
+
+    if (detectedType.successful) {
+      type = detectedType.value;
+    }
+
+    properties.set(name, {
+      name,
+      astNode,
+      type,
+      jsdoc: jsdocAnn,
+      sourceRange,
+      description: jsdocAnn ? jsdoc.getDescription(jsdocAnn) : undefined,
+      privacy: getOrInferPrivacy(name, jsdocAnn),
+      warnings: [],
+      readOnly: jsdoc.hasTag(jsdocAnn, 'readonly'),
+    });
+  }
+
+  for (const val of accessors.values()) {
+    let getter: ScannedProperty|null = null;
+    let setter: ScannedProperty|null = null;
+
+    if (val.getter) {
+      const parsedJsdoc =
+          jsdoc.parseJsdoc(getAttachedComment(val.getter) || '');
+      getter = extractPropertyFromGetterOrSetter(
+          val.getter, parsedJsdoc, document);
+    }
+
+    if (val.setter) {
+      const parsedJsdoc =
+          jsdoc.parseJsdoc(getAttachedComment(val.setter) || '');
+      setter = extractPropertyFromGetterOrSetter(
+          val.setter, parsedJsdoc, document);
+    }
+
+    const prop = getter || setter;
+    if (!prop) {
+      continue;
+    }
+
+    if (!prop.readOnly) {
+      prop.readOnly = (val.setter === undefined);
+    }
+
+    properties.set(prop.name, prop);
+  }
+
+  return properties;
+}
