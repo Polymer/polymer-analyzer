@@ -88,7 +88,7 @@
     "indent": "0.0.2",
     "jsonschema": "^1.1.0",
     "minimatch": "^3.0.4",
-    "parse5": "^2.2.1",
+    "parse5": "^4.0.0",
     "polymer-project-config": "^3.6.0",
     "shady-css-parser": "^0.1.0",
     "stable": "^0.1.6",

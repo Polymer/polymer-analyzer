@@ -62,10 +62,9 @@ export class HtmlElementReferenceScanner implements HtmlScanner {
       if (node.tagName === 'template') {
         const content = treeAdapters.default.getTemplateContent(node);
         if (content) {
-          dom5.nodeWalk(content, (n) => {
+          for (const n of dom5.iteration.depthFirst(content)) {
             visitor(n);
-            return false;
-          });
+          }
         }
       }
     };

@@ -50,9 +50,9 @@ export interface Template extends parse5.ASTNode { content: parse5.ASTNode; }
  * dom-module).
  */
 export function getAllDataBindingTemplates(node: parse5.ASTNode) {
-  return dom5.queryAll(
-             node, isDataBindingTemplate, [], dom5.childNodesIncludeTemplate) as
-      Template[];
+  return dom5.iteration.queryAll(
+             node, isDataBindingTemplate, dom5.childNodesIncludeTemplate) as
+      IterableIterator<Template>;
 }
 
 export type HtmlDatabindingExpression =
@@ -302,7 +302,7 @@ export function scanDatabindingTemplateForExpressions(
     document: ParsedHtmlDocument, template: Template) {
   return extractDataBindingsFromTemplates(
       document,
-      [template].concat(getAllDataBindingTemplates(template.content)));
+      [template].concat([...getAllDataBindingTemplates(template.content)]));
 }
 
 function extractDataBindingsFromTemplates(
@@ -310,7 +310,7 @@ function extractDataBindingsFromTemplates(
   const results: HtmlDatabindingExpression[] = [];
   const warnings: Warning[] = [];
   for (const template of templates) {
-    dom5.nodeWalkAll(template.content, (node) => {
+    for (const node of dom5.iteration.depthFirst(template.content)) {
       if (dom5.isTextNode(node) && node.value) {
         extractDataBindingsFromTextNode(document, node, results, warnings);
       }
@@ -319,8 +319,7 @@ function extractDataBindingsFromTemplates(
           extractDataBindingsFromAttr(document, node, attr, results, warnings);
         }
       }
-      return false;
-    });
+    }
   }
   return {expressions: results, warnings};
 }

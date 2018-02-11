@@ -58,8 +58,8 @@ suite('HtmlTemplateLiteralScanner', () => {
       \`;
     `);
     const [htmlDocument] = document.getFeatures({kind: 'html-document'});
-    const elements = dom5.queryAll(
-        htmlDocument.parsedDocument.ast, dom5.predicates.hasTagName('div'));
+    const elements = [...dom5.iteration.queryAll(
+        htmlDocument.parsedDocument.ast, dom5.predicates.hasTagName('div'))];
 
     const ranges = elements.map(
         (el) => htmlDocument.parsedDocument.sourceRangeForStartTag(el));
@@ -87,8 +87,8 @@ suite('HtmlTemplateLiteralScanner', () => {
     const [, htmlDocument] = document.getFeatures({kind: 'html-document'});
     assert.deepEqual(
         htmlDocument.parsedDocument.contents, `<div>Hello world</div>`);
-    const elements = dom5.queryAll(
-        htmlDocument.parsedDocument.ast, dom5.predicates.hasTagName('div'));
+    const elements = [...dom5.iteration.queryAll(
+        htmlDocument.parsedDocument.ast, dom5.predicates.hasTagName('div'))];
 
     const ranges = elements.map(
         (el) => htmlDocument.parsedDocument.sourceRangeForStartTag(el));
@@ -150,8 +150,8 @@ suite('HtmlTemplateLiteralScanner', () => {
     const [htmlDocument] = document.getFeatures({kind: 'html-document'});
     assert.deepEqual(
         htmlDocument.parsedDocument.contents, '\n\n<div>Hello world</div>');
-    const elements = dom5.queryAll(
-        htmlDocument.parsedDocument.ast, dom5.predicates.hasTagName('div'));
+    const elements = [...dom5.iteration.queryAll(
+        htmlDocument.parsedDocument.ast, dom5.predicates.hasTagName('div'))];
     const ranges = elements.map(
         (el) => htmlDocument.parsedDocument.sourceRangeForStartTag(el));
     assert.deepEqual(await underliner.underline(ranges), [`
