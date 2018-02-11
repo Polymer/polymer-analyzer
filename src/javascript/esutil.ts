@@ -502,7 +502,7 @@ export function extractPropertiesFromNode(
     const name = astValue.getIdentifierName(member.key)!;
 
     if (babel.isMethod(member) ||
-        babel.isFunctionExpression(member.value)) {
+        babel.isFunction(member.value)) {
       if (babel.isMethod(member) &&
           (member.kind === 'get' || member.kind === 'set')) {
         let accessor = accessors.get(name);
