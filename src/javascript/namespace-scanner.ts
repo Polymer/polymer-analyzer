@@ -272,5 +272,5 @@ function getNamespaceProperties(node: babel.Node, document: JavaScriptDocument):
     return properties;
   }
 
-  return esutil.extractPropertiesFromNode(child, document);
+  return esutil.extractPropertiesFromClassOrObjectBody(child, document);
 }

@@ -814,7 +814,7 @@ export function extractPropertiesFromClass(
     }
   }
 
-  for (const prop of esutil.extractPropertiesFromNode(astNode, document).values()) {
+  for (const prop of esutil.extractPropertiesFromClassOrObjectBody(astNode, document).values()) {
     properties.set(prop.name, prop);
   }
 

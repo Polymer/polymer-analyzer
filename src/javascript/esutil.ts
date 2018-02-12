@@ -486,7 +486,7 @@ export function extractPropertyFromGetterOrSetter(
  * Extracts properties (including accessors) from a given class
  * or object expression.
  */
-export function extractPropertiesFromNode(
+export function extractPropertiesFromClassOrObjectBody(
     node: babel.Class|babel.ObjectExpression,
     document: JavaScriptDocument): Map<string, ScannedProperty> {
   const properties = new Map<string, ScannedProperty>();
