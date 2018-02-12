@@ -111,7 +111,7 @@ class BehaviorVisitor implements Visitor {
       }
     }
 
-    for (const prop of esutil.extractPropertiesFromNode(node, this.document).values()) {
+    for (const prop of esutil.extractPropertiesFromClassOrObjectBody(node, this.document).values()) {
       if (prop.name in this.propertyHandlers) {
         continue;
       }
