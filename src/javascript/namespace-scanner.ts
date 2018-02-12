@@ -32,137 +32,13 @@ export class NamespaceScanner implements JavaScriptScanner {
   async scan(
       document: JavaScriptDocument,
       visit: (visitor: Visitor) => Promise<void>) {
-    const namespaceVisitor = new NamespaceVisitor(document);
-    const propertyFinder = new NamespacePropertyFinder(document);
+    const visitor = new NamespaceVisitor(document);
 
-    await Promise.all([visit(namespaceVisitor), visit(propertyFinder)]);
-
-    for (const [namespace, properties] of propertyFinder.properties) {
-      if (namespaceVisitor.namespaces.has(namespace)) {
-        const ns = namespaceVisitor.namespaces.get(namespace)!;
-        for (const prop of properties.values()) {
-          ns.properties.set(prop.name, prop);
-        }
-      }
-    }
+    await visit(visitor);
 
     return {
-      features: [...namespaceVisitor.namespaces.values()],
-      warnings: namespaceVisitor.warnings
-    };
-  }
-}
-
-/**
- * Finds properties which belong to a namespace.
- *
- * Properties defined within a namespace's object will be
- * extracted, as well as those defined later.
- *
- * All properties must be annotated with a `@memberof` tag
- * in order to be considered members of their associated namespace.
- */
-class NamespacePropertyFinder implements Visitor {
-  properties = new Map<string, Map<string, ScannedProperty>>();
-  warnings: Warning[] = [];
-  private readonly _document: JavaScriptDocument;
-
-  constructor(document: JavaScriptDocument) {
-    this._document = document;
-  }
-
-  enterExpressionStatement(node: babel.ExpressionStatement) {
-    if (!babel.isAssignmentExpression(node.expression) &&
-        !babel.isMemberExpression(node.expression)) {
-      return;
-    }
-
-    const jsdocAnn = jsdoc.parseJsdoc(esutil.getAttachedComment(node) || '');
-
-    if (!jsdoc.hasTag(jsdocAnn, 'memberof')) {
-      return;
-    }
-
-    const memberofTag = jsdoc.getTag(jsdocAnn, 'memberof');
-    const namespace = memberofTag && memberofTag.description;
-    let prop: ScannedProperty|undefined = undefined;
-    let namespacedName: string|undefined;
-
-    if (!namespace) {
-      return;
-    }
-
-    if (babel.isAssignmentExpression(node.expression)) {
-      if (babel.isFunctionExpression(node.expression.right)) {
-        return;
-      }
-      namespacedName = getIdentifierName(node.expression.left);
-    } else if (babel.isMemberExpression(node.expression)) {
-      namespacedName = getIdentifierName(node.expression);
-    }
-
-    if (!namespacedName || namespacedName.indexOf('.prototype.') !== -1) {
-      return;
-    }
-
-    const name = namespacedName.substring(namespacedName.lastIndexOf('.') + 1);
-
-    prop = this._createPropertyFromExpression(name, node.expression, jsdocAnn);
-
-    if (prop) {
-      let properties = this.properties.get(namespace);
-
-      if (!properties) {
-        properties = new Map<string, ScannedProperty>();
-        this.properties.set(namespace, properties);
-      }
-
-      properties.set(name, prop);
-    }
-  }
-
-  private _createPropertyFromExpression(
-      name: string, node: babel.AssignmentExpression|babel.MemberExpression,
-      jsdocAnn: jsdoc.Annotation|undefined) {
-    let description;
-    let type;
-    let readOnly = false;
-    const privacy = esutil.getOrInferPrivacy(name, jsdocAnn);
-    const sourceRange = this._document.sourceRangeForNode(node)!;
-    const warnings: Warning[] = [];
-
-    if (jsdocAnn) {
-      description = jsdoc.getDescription(jsdocAnn);
-      readOnly = jsdoc.hasTag(jsdocAnn, 'readonly');
-    }
-
-    let detectedType: Result<string, Warning>;
-
-    if (babel.isAssignmentExpression(node)) {
-      detectedType = esutil.getClosureType(
-          node.right, jsdocAnn, sourceRange, this._document);
-    } else {
-      detectedType =
-          esutil.getClosureType(node, jsdocAnn, sourceRange, this._document);
-    }
-
-    if (detectedType.successful) {
-      type = detectedType.value;
-    } else {
-      warnings.push(detectedType.error);
-      type = '?';
-    }
-
-    return {
-      name,
-      astNode: node,
-      type,
-      jsdoc: jsdocAnn,
-      sourceRange,
-      description,
-      privacy,
-      warnings,
-      readOnly,
+      features: [...visitor.namespaces.values()],
+      warnings: visitor.warnings
     };
   }
 }
@@ -197,6 +73,96 @@ class NamespaceVisitor implements Visitor {
 
   enterObjectProperty(node: babel.ObjectProperty, _parent: babel.Node) {
     this._initNamespace(node, node.key);
+  }
+
+  enterExpressionStatement(node: babel.ExpressionStatement) {
+    if (!babel.isAssignmentExpression(node.expression) &&
+        !babel.isMemberExpression(node.expression)) {
+      return;
+    }
+
+    const jsdocAnn = jsdoc.parseJsdoc(esutil.getAttachedComment(node) || '');
+
+    if (!jsdoc.hasTag(jsdocAnn, 'memberof')) {
+      return;
+    }
+
+    const memberofTag = jsdoc.getTag(jsdocAnn, 'memberof');
+    const namespaceName = memberofTag && memberofTag.description;
+    let prop: ScannedProperty|undefined = undefined;
+    let namespacedIdentifier: string|undefined;
+
+    if (!namespaceName || !this.namespaces.has(namespaceName)) {
+      return;
+    }
+
+    if (babel.isAssignmentExpression(node.expression)) {
+      if (babel.isFunctionExpression(node.expression.right)) {
+        return;
+      }
+      namespacedIdentifier = getIdentifierName(node.expression.left);
+    } else if (babel.isMemberExpression(node.expression)) {
+      namespacedIdentifier = getIdentifierName(node.expression);
+    }
+
+    if (!namespacedIdentifier || namespacedIdentifier.indexOf('.prototype.') !== -1) {
+      return;
+    }
+
+    const namespace = this.namespaces.get(namespaceName)!;
+    const name = namespacedIdentifier
+      .substring(namespacedIdentifier.lastIndexOf('.') + 1);
+
+    prop = this._createPropertyFromExpression(name, node.expression, jsdocAnn);
+
+    if (prop) {
+      namespace.properties.set(name, prop);
+    }
+  }
+
+  private _createPropertyFromExpression(
+      name: string, node: babel.AssignmentExpression|babel.MemberExpression,
+      jsdocAnn: jsdoc.Annotation|undefined) {
+    let description;
+    let type;
+    let readOnly = false;
+    const privacy = esutil.getOrInferPrivacy(name, jsdocAnn);
+    const sourceRange = this.document.sourceRangeForNode(node)!;
+    const warnings: Warning[] = [];
+
+    if (jsdocAnn) {
+      description = jsdoc.getDescription(jsdocAnn);
+      readOnly = jsdoc.hasTag(jsdocAnn, 'readonly');
+    }
+
+    let detectedType: Result<string, Warning>;
+
+    if (babel.isAssignmentExpression(node)) {
+      detectedType = esutil.getClosureType(
+          node.right, jsdocAnn, sourceRange, this.document);
+    } else {
+      detectedType =
+          esutil.getClosureType(node, jsdocAnn, sourceRange, this.document);
+    }
+
+    if (detectedType.successful) {
+      type = detectedType.value;
+    } else {
+      warnings.push(detectedType.error);
+      type = '?';
+    }
+
+    return {
+      name,
+      astNode: node,
+      type,
+      jsdoc: jsdocAnn,
+      sourceRange,
+      description,
+      privacy,
+      warnings,
+      readOnly,
+    };
   }
 
   private _initNamespace(node: babel.Node, nameNode: babel.Node) {
