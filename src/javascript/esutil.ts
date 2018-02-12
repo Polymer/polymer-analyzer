@@ -429,15 +429,26 @@ function* _getMethods(node: babel.Node) {
   }
 }
 
+/*
+ * Extracts a property from a given getter or setter method,
+ * whether it be an object method or a class method.
+ */
 export function extractPropertyFromGetterOrSetter(
     method: babel.ClassMethod|babel.ObjectMethod,
     jsdocAnn: jsdoc.Annotation|undefined,
     document: JavaScriptDocument): ScannedProperty|null {
+  // TODO(43081j): remove this when static properties are supported
   if (babel.isClassMethod(method) && method.static) {
     return null;
   }
 
-  if (method.key.type !== 'Identifier') {
+  if (method.kind !== 'get' && method.kind !== 'set') {
+    return null;
+  }
+
+  // TODO(43081j): use getPropertyName, see
+  // https://github.com/Polymer/polymer-analyzer/pull/867
+  if (!babel.isIdentifier(method.key)) {
     return null;
   }
 
@@ -471,8 +482,12 @@ export function extractPropertyFromGetterOrSetter(
   };
 }
 
+/**
+ * Extracts properties (including accessors) from a given class
+ * or object expression.
+ */
 export function extractPropertiesFromNode(
-    node: babel.Node,
+    node: babel.Class|babel.ObjectExpression,
     document: JavaScriptDocument): Map<string, ScannedProperty> {
   const properties = new Map<string, ScannedProperty>();
   const accessors = new Map<
@@ -483,10 +498,8 @@ export function extractPropertiesFromNode(
 
   if (babel.isClass(node)) {
     body = node.body.body;
-  } else if (babel.isObjectExpression(node)) {
-    body = node.properties;
   } else {
-    return properties;
+    body = node.properties;
   }
 
   for (const member of body) {

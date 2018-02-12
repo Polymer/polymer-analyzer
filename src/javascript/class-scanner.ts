@@ -803,11 +803,12 @@ export function extractPropertiesFromClass(
     return properties;
   }
 
-  const construct = astNode.body.body.find((member) =>
-    babel.isClassMethod(member) && member.kind === 'constructor');
+  const construct = astNode.body.body
+    .find((member) =>
+      babel.isClassMethod(member) && member.kind === 'constructor') as babel.ClassMethod;
 
   if (construct) {
-    const props = extractPropertiesFromConstructor(construct as babel.ClassMethod, document);
+    const props = extractPropertiesFromConstructor(construct, document);
     for (const prop of props.values()) {
       properties.set(prop.name, prop);
     }

@@ -25,18 +25,21 @@ import {JavaScriptScanner} from './javascript-scanner';
 import * as jsdoc from './jsdoc';
 import {ScannedNamespace} from './namespace';
 
+/**
+ * Find namespaces from source code.
+ */
 export class NamespaceScanner implements JavaScriptScanner {
   async scan(
       document: JavaScriptDocument,
       visit: (visitor: Visitor) => Promise<void>) {
-    const visitor = new NamespaceVisitor(document);
+    const namespaceVisitor = new NamespaceVisitor(document);
     const propertyFinder = new NamespacePropertyFinder(document);
 
-    await Promise.all([visit(visitor), visit(propertyFinder)]);
+    await Promise.all([visit(namespaceVisitor), visit(propertyFinder)]);
 
     for (const [namespace, properties] of propertyFinder.properties) {
-      if (visitor.namespaces.has(namespace)) {
-        const ns = visitor.namespaces.get(namespace)!;
+      if (namespaceVisitor.namespaces.has(namespace)) {
+        const ns = namespaceVisitor.namespaces.get(namespace)!;
         for (const prop of properties.values()) {
           ns.properties.set(prop.name, prop);
         }
@@ -44,12 +47,21 @@ export class NamespaceScanner implements JavaScriptScanner {
     }
 
     return {
-      features: [...visitor.namespaces.values()],
-      warnings: visitor.warnings
+      features: [...namespaceVisitor.namespaces.values()],
+      warnings: namespaceVisitor.warnings
     };
   }
 }
 
+/**
+ * Finds properties which belong to a namespace.
+ *
+ * Properties defined within a namespace's object will be
+ * extracted, as well as those defined later.
+ *
+ * All properties must be annotated with a `@memberof` tag
+ * in order to be considered members of their associated namespace.
+ */
 class NamespacePropertyFinder implements Visitor {
   properties = new Map<string, Map<string, ScannedProperty>>();
   warnings: Warning[] = [];
@@ -231,6 +243,9 @@ class NamespaceVisitor implements Visitor {
   }
 }
 
+/**
+ * Extracts properties from a given namespace node.
+ */
 function getNamespaceProperties(node: babel.Node, document: JavaScriptDocument):
     Map<string, ScannedProperty> {
   const properties = new Map<string, ScannedProperty>();

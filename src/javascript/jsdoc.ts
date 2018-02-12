@@ -217,6 +217,10 @@ export function pickBestDescription(...descriptions: Array<string|undefined>):
   return description;
 }
 
+/**
+ * Extracts the description from a jsdoc annotation and uses
+ * known descriptive tags if no explicit description is set.
+ */
 export function getDescription(jsdocAnn: Annotation): string|undefined {
   if (jsdocAnn.description) {
     return jsdocAnn.description;
