@@ -42,9 +42,11 @@ function templateLiteralToValue(literal: babel.TemplateLiteral): LiteralValue {
   for (let i = 0; i < len; i++) {
     value += literal.quasis[i].value.raw;
     const v = expressionToValue(literal.expressions[i]);
-    if (v !== undefined) {
-      value += `${v}`;
+    if (v === undefined) {
+      return;
     }
+
+    value += `${v}`;
   }
 
   value += literal.quasis[len].value.raw;
