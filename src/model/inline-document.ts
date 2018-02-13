@@ -46,8 +46,8 @@ export type AstNodeWithLanguage = {
 };
 
 /**
- * This feature provides the link from an inline document to its containing
- * document.
+ * The `ContainingDocumentBackreference` is added to the set of features
+ * for an inline document to provide a link to its containing document.
  */
 export class ContainingDocumentBackreference extends ScannedFeature {
   kinds = new Set(['containing-document-backreference']);
