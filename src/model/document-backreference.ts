@@ -16,8 +16,9 @@ import {Document} from './document';
 import {ScannedFeature} from './feature';
 
 /**
- * The `ContainingDocumentBackreference` is added to the set of features
- * for an inline document to provide a link to its containing document.
+ * The `DocumentBackreference` is added to the set of features
+ * for an inline/imported document to provide a link to its containing/importer
+ * document.
  */
 export class DocumentBackreference extends ScannedFeature {
   kinds = new Set(['document-backreference']);
