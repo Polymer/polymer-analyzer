@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * `Document#getFeatures()` now supports an `excludeBackreferences`
   option for use with inline documents to exclude the container/importer
   document and its features from the results.
+* [BREAKING] Removed the `ScriptTagBackReferenceImport` and replaced it
+  with new general-purpose `DocumentBackreference` feature used to
+  link inline/imported documents back to their containers/importers.
 <!-- Add new, unreleased changes here. -->
 
 ## [3.0.0-pre.10] - 2018-02-01

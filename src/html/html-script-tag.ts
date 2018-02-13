@@ -12,8 +12,7 @@
  * http://polymer.github.io/PATENTS.txt
  */
 
-import {Document, Import, ScannedImport, Severity, Warning} from '../model/model';
-import {FileRelativeUrl} from '../model/url';
+import {Document, DocumentBackreference, Import, ScannedImport, Severity, Warning} from '../model/model';
 
 /**
  * <script> tags are represented in two different ways: as inline documents,
@@ -22,17 +21,6 @@ import {FileRelativeUrl} from '../model/url';
  * analyzer loads and parses the referenced document.
  */
 export class ScriptTagImport extends Import { readonly type = 'html-script'; }
-
-/**
- * A synthetic import that provides the document containing the script tag to
- * the javascript document defined/referenced by the script tag.
- */
-export class ScriptTagBackReferenceImport extends Import {
-  // TODO(usergenic): Make this 'html-script-backreference' and rename the
-  // class to `ScriptTagBackreferenceImport`.
-  // https://github.com/Polymer/polymer-analyzer/issues/877
-  readonly type = 'html-script-back-reference';
-}
 
 export class ScannedScriptTagImport extends ScannedImport {
   resolve(document: Document): ScriptTagImport|undefined {
@@ -68,18 +56,7 @@ export class ScannedScriptTagImport extends ScannedImport {
       // loaded by the page, this synthetic import is added to support
       // queries for features of the HTML document which should be "visible"
       // to the JavaScript document.
-      const backReference = new ScriptTagBackReferenceImport(
-          document.url,
-          // TODO(usergenic): Change `fake url`; it should be undefined or empty
-          // string or relative-path document filename like `./file.html` etc.
-          'fake url' as FileRelativeUrl,
-          'html-script-back-reference',
-          document,
-          this.sourceRange,
-          this.urlSourceRange,
-          this.astNode,
-          this.warnings,
-          false);
+      const backReference = new DocumentBackreference(document);
       importedDocument._addFeature(backReference);
       importedDocument.resolve();
 
