@@ -5,10 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-<!-- ## Unreleased -->
+## Unreleased
 * Support Windows line endings in JSDoc annotations
 * Support scanning of properties in namespaces
 * Support scanning of accessors in behaviors
+* `Document#getFeatures()` now supports an `excludeContainingDocument`
+  option for use with inline documents to exclude the containing document
+  and its features from the results.
 <!-- Add new, unreleased changes here. -->
 
 ## [3.0.0-pre.10] - 2018-02-01

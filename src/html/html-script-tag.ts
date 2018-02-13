@@ -27,7 +27,10 @@ export class ScriptTagImport extends Import { readonly type = 'html-script'; }
  * A synthetic import that provides the document containing the script tag to
  * the javascript document defined/referenced by the script tag.
  */
+// TODO(usergenic): Reconsider whether this should behave like the
+// ContainingDocumentBackreference and not be an Import?
 export class ScriptTagBackReferenceImport extends Import {
+  // TODO(usergenic): Make this 'html-script-backreference'
   readonly type = 'html-script-back-reference';
 }
 
@@ -67,6 +70,8 @@ export class ScannedScriptTagImport extends ScannedImport {
       // to the JavaScript document.
       const backReference = new ScriptTagBackReferenceImport(
           document.url,
+          // TODO(usergenic): Change `fake url`; it should be undefined or empty
+          // string or relative-path document filename like `./file.html` etc.
           'fake url' as FileRelativeUrl,
           'html-script-back-reference',
           document,

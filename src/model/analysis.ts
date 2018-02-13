@@ -188,7 +188,8 @@ export class Analysis implements Queryable {
       id: query.id,
       externalPackages: query.externalPackages,
       imported: true,
-      noLazyImports: query.noLazyImports
+      excludeContainingDocument: query.excludeContainingDocument,
+      noLazyImports: query.noLazyImports,
     };
   }
 }

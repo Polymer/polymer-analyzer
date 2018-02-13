@@ -24,7 +24,7 @@ import {Analysis} from './analysis';
 import {Feature, ScannedFeature} from './feature';
 import {ImmutableSet, unsafeAsMutable} from './immutable';
 import {Import} from './import';
-import {AstNodeWithLanguage, ScannedInlineDocument} from './inline-document';
+import {AstNodeWithLanguage, ContainingDocumentBackreference, ScannedInlineDocument} from './inline-document';
 import {DocumentQuery as Query, DocumentQueryWithKind as QueryWithKind, FeatureKind, FeatureKindMap, Queryable} from './queryable';
 import {isResolvable} from './resolvable';
 import {SourceRange} from './source-range';
@@ -201,7 +201,7 @@ export class Document<ParsedType extends ParsedDocument = ParsedDocument>
   }
 
   /**
-   * Adds and indexes a feature to this documentled before resolve().
+   * Adds and indexes a feature to this document before resolve().
    */
   _addFeature(feature: Feature) {
     if (this._doneResolving) {
@@ -291,7 +291,8 @@ export class Document<ParsedType extends ParsedDocument = ParsedDocument>
   }
 
   private _isCachable(query: Query = {}): boolean {
-    return !!query.imported && !query.noLazyImports;
+    return !!query.imported && !query.noLazyImports &&
+        !query.excludeContainingDocument;
   }
 
   private _getSlowlyByKind(kind: string, query: Query): Set<Feature> {
@@ -325,6 +326,13 @@ export class Document<ParsedType extends ParsedDocument = ParsedDocument>
     visited.add(this);
     for (const feature of this._localFeatures) {
       result.add(feature);
+      if (feature.kinds.has('containing-document-backreference') &&
+          !query.excludeContainingDocument) {
+        const containerDocument =
+            (feature as ContainingDocumentBackreference).document;
+        result.add(containerDocument);
+        containerDocument._listFeatures(result, visited, query);
+      }
       if (feature.kinds.has('document')) {
         (feature as Document)._listFeatures(result, visited, query);
       }

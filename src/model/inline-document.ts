@@ -45,6 +45,15 @@ export type AstNodeWithLanguage = {
   containingDocument: JavaScriptDocument,
 };
 
+export class ContainingDocumentBackreference extends ScannedFeature {
+  kinds = new Set(['containing-document-backreference']);
+  identifiers: Set<string>;
+  constructor(public readonly document: Document) {
+    super(undefined, undefined, undefined, undefined, undefined);
+    this.identifiers = new Set([...document.identifiers]);
+  }
+}
+
 /**
  * Represents an inline document, usually a <script> or <style> tag in an HTML
  * document.
@@ -99,7 +108,7 @@ export class InlineDocument extends Document {
   constructor(base: ScannedDocument, containerDocument: Document) {
     super(base, containerDocument._analysisContext);
     unsafeAsMutable(this.kinds).add('inline-document');
-    this._addFeature(containerDocument);
+    this._addFeature(new ContainingDocumentBackreference(containerDocument));
   }
 }
 
