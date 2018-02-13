@@ -27,10 +27,10 @@ export class ScriptTagImport extends Import { readonly type = 'html-script'; }
  * A synthetic import that provides the document containing the script tag to
  * the javascript document defined/referenced by the script tag.
  */
-// TODO(usergenic): Reconsider whether this should behave like the
-// ContainingDocumentBackreference and not be an Import?
 export class ScriptTagBackReferenceImport extends Import {
-  // TODO(usergenic): Make this 'html-script-backreference'
+  // TODO(usergenic): Make this 'html-script-backreference' and rename the
+  // class to `ScriptTagBackreferenceImport`.
+  // https://github.com/Polymer/polymer-analyzer/issues/877
   readonly type = 'html-script-back-reference';
 }
 
