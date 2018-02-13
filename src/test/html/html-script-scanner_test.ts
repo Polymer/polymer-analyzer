@@ -143,7 +143,7 @@ suite('HtmlScriptScanner', () => {
       assert.equal(js3.contents.trim(), `export const subThing = 'sub-thing';`);
     });
 
-    test('limits scope of modules imported in inline scripts', async () => {
+    test('query for modules imported in specific inline scripts', async () => {
       const result = analysis.getDocument('js-modules.html');
       if (!result.successful) {
         throw new Error(`could not get document js-modules.html`);
