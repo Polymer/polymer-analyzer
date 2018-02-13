@@ -45,12 +45,15 @@ export type AstNodeWithLanguage = {
   containingDocument: JavaScriptDocument,
 };
 
+/**
+ * This feature provides the link from an inline document to its containing
+ * document.
+ */
 export class ContainingDocumentBackreference extends ScannedFeature {
   kinds = new Set(['containing-document-backreference']);
-  identifiers: Set<string>;
+  identifiers = new Set<string>();
   constructor(public readonly document: Document) {
-    super(undefined, undefined, undefined, undefined, undefined);
-    this.identifiers = new Set([...document.identifiers]);
+    super();
   }
 }
 
