@@ -13,7 +13,7 @@
  */
 
 import * as babel from 'babel-types';
-import * as dom5 from 'dom5';
+import * as dom5 from 'dom5/lib/index-next';
 import * as parse5 from 'parse5';
 
 import {ParsedHtmlDocument} from '../html/html-document';
@@ -50,7 +50,7 @@ export interface Template extends parse5.ASTNode { content: parse5.ASTNode; }
  * dom-module).
  */
 export function getAllDataBindingTemplates(node: parse5.ASTNode) {
-  return dom5.iteration.queryAll(
+  return dom5.queryAll(
              node, isDataBindingTemplate, dom5.childNodesIncludeTemplate) as
       IterableIterator<Template>;
 }
@@ -310,7 +310,7 @@ function extractDataBindingsFromTemplates(
   const results: HtmlDatabindingExpression[] = [];
   const warnings: Warning[] = [];
   for (const template of templates) {
-    for (const node of dom5.iteration.depthFirst(template.content)) {
+    for (const node of dom5.depthFirst(template.content)) {
       if (dom5.isTextNode(node) && node.value) {
         extractDataBindingsFromTextNode(document, node, results, warnings);
       }

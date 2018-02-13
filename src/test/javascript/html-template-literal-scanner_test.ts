@@ -14,7 +14,7 @@
 
 import {assert} from 'chai';
 
-import * as dom5 from 'dom5';
+import * as dom5 from 'dom5/lib/index-next';
 import {Analyzer} from '../../core/analyzer';
 import {PackageRelativeUrl} from '../../index';
 import {InMemoryOverlayUrlLoader} from '../../url-loader/overlay-loader';
@@ -58,7 +58,7 @@ suite('HtmlTemplateLiteralScanner', () => {
       \`;
     `);
     const [htmlDocument] = document.getFeatures({kind: 'html-document'});
-    const elements = [...dom5.iteration.queryAll(
+    const elements = [...dom5.queryAll(
         htmlDocument.parsedDocument.ast, dom5.predicates.hasTagName('div'))];
 
     const ranges = elements.map(
@@ -87,7 +87,7 @@ suite('HtmlTemplateLiteralScanner', () => {
     const [, htmlDocument] = document.getFeatures({kind: 'html-document'});
     assert.deepEqual(
         htmlDocument.parsedDocument.contents, `<div>Hello world</div>`);
-    const elements = [...dom5.iteration.queryAll(
+    const elements = [...dom5.queryAll(
         htmlDocument.parsedDocument.ast, dom5.predicates.hasTagName('div'))];
 
     const ranges = elements.map(
@@ -150,7 +150,7 @@ suite('HtmlTemplateLiteralScanner', () => {
     const [htmlDocument] = document.getFeatures({kind: 'html-document'});
     assert.deepEqual(
         htmlDocument.parsedDocument.contents, '\n\n<div>Hello world</div>');
-    const elements = [...dom5.iteration.queryAll(
+    const elements = [...dom5.queryAll(
         htmlDocument.parsedDocument.ast, dom5.predicates.hasTagName('div'))];
     const ranges = elements.map(
         (el) => htmlDocument.parsedDocument.sourceRangeForStartTag(el));

@@ -13,7 +13,7 @@
  */
 
 import * as clone from 'clone';
-import * as dom5 from 'dom5';
+import * as dom5 from 'dom5/lib/index-next';
 import * as parse5 from 'parse5';
 import {ASTNode} from 'parse5';
 
@@ -30,7 +30,7 @@ export class ParsedHtmlDocument extends ParsedDocument<ASTNode, HtmlVisitor> {
   type = 'html';
 
   visit(visitors: HtmlVisitor[]) {
-    for (const node of dom5.iteration.depthFirst(this.ast)) {
+    for (const node of dom5.depthFirst(this.ast)) {
       visitors.forEach((visitor) => visitor(node));
     }
   }

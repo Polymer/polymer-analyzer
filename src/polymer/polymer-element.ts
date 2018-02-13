@@ -13,7 +13,7 @@
  */
 
 import * as babel from 'babel-types';
-import * as dom5 from 'dom5';
+import * as dom5 from 'dom5/lib/index-next';
 import * as parse5 from 'parse5';
 
 import {getOrInferPrivacy} from '../javascript/esutil';
@@ -351,8 +351,8 @@ export class PolymerElement extends Element implements PolymerExtension {
               (domModuleJsdoc.description + '\n\n' + this.description).trim();
         }
       }
-      const template = dom5.iteration.query(
-          domModule.node, dom5.predicates.hasTagName('template'));
+      const template =
+          dom5.query(domModule.node, dom5.predicates.hasTagName('template'));
       if (template) {
         this.template = {
           kind: 'polymer-databinding',

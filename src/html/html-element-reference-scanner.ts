@@ -12,7 +12,7 @@
  * http://polymer.github.io/PATENTS.txt
  */
 
-import * as dom5 from 'dom5';
+import * as dom5 from 'dom5/lib/index-next';
 import {ASTNode, treeAdapters} from 'parse5';
 import {ScannedElementReference} from '../model/element-reference';
 import {HtmlVisitor, ParsedHtmlDocument} from './html-document';
@@ -62,7 +62,7 @@ export class HtmlElementReferenceScanner implements HtmlScanner {
       if (node.tagName === 'template') {
         const content = treeAdapters.default.getTemplateContent(node);
         if (content) {
-          for (const n of dom5.iteration.depthFirst(content)) {
+          for (const n of dom5.depthFirst(content)) {
             visitor(n);
           }
         }
