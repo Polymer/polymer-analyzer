@@ -42,13 +42,15 @@ export class IndirectUrlResolver extends FsUrlResolver implements UrlResolver {
 
   /**
    * @param rootPath All loadable source code must be a descendent of this
-   *     directory. Should be the same as FsUrlLoader.
+   *     directory. Should be the same as FsUrlLoader's rootPath.
    * @param packagePath The base directory for package-relative paths. Usually
-   * the current working directory.
-   * @param urlToFilesystemMap Maps the runtime URL space to the paths for those
-   *     files on the filesystem. The runtime URLs should all be relative paths
-   *     from the same base url. The filesystem paths should all be relative
-   *     paths from `rootPath`.
+   *     the current working directory.
+   * @param indirectionMap Maps the runtime URL space to the paths for those
+   *     files on the filesystem.
+   *
+   *     The keys must be relative paths, like `paper-button/paper-button.html`.
+   *     The filesystem paths must be be relative FS paths from `rootPath` to
+   *     the file on disk that corresponds to the runtime URL.
    */
   constructor(
       rootPath: string, packagePath: string,

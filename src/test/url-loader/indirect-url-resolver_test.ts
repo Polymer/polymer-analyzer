@@ -30,47 +30,6 @@ suite('IndirectUrlResolver', function() {
   const indirectResolver =
       new IndirectUrlResolver('/root', '/root/sub/package', mapping);
 
-  test('the full use case', async () => {
-    const fsUrlResolver = new FsUrlResolver('/root');
-    const overlayLoader = new InMemoryOverlayUrlLoader();
-    overlayLoader.urlContentsMap.set(
-        fsUrlResolver.resolve(packageRelativeUrl`sub/package/foo/foo.html`)!, `
-      <link rel="import" href="../bar/bar.html">
-      <link rel="stylesheet" href="foo.css">
-    `);
-    overlayLoader.urlContentsMap.set(
-        fsUrlResolver.resolve(packageRelativeUrl`sub/package/foo/foo.css`)!,
-        ``);
-    overlayLoader.urlContentsMap.set(
-        fsUrlResolver.resolve(packageRelativeUrl`different/x/y/bar.html`)!, `
-      <link rel="stylesheet" href="./bar.css">
-    `);
-    overlayLoader.urlContentsMap.set(
-        fsUrlResolver.resolve(packageRelativeUrl`different/x/y/bar.css`)!, ``);
-    const analyzer =
-        new Analyzer({urlLoader: overlayLoader, urlResolver: indirectResolver});
-    const analysis = await analyzer.analyze(['foo/foo.html']);
-    assert.deepEqual(
-        analysis.getWarnings().map((w) => w.toString({verbosity: 'code-only'})),
-        []);
-    const documents = analysis.getFeatures({kind: 'document'});
-    assert.deepEqual([...documents].map((d) => d.url), [
-      rootedFileUrl`root/sub/package/foo/foo.html`,
-      rootedFileUrl`root/different/x/y/bar.html`,
-      rootedFileUrl`root/different/x/y/bar.css`,
-      rootedFileUrl`root/sub/package/foo/foo.css`
-    ]);
-    const imports = analysis.getFeatures({kind: 'import'});
-    assert.deepEqual(
-        [...imports].map((i) => i.originalUrl),
-        ['../bar/bar.html', './bar.css', 'foo.css']);
-    assert.deepEqual([...imports].map((i) => i.url), [
-      rootedFileUrl`root/different/x/y/bar.html`,
-      rootedFileUrl`root/different/x/y/bar.css`,
-      rootedFileUrl`root/sub/package/foo/foo.css`
-    ]);
-  });
-
   test('resolve', async () => {
     // Package relative urls are resolved relative to the package
     assert.deepEqual(
@@ -111,5 +70,53 @@ suite('IndirectUrlResolver', function() {
             rootedFileUrl`root/another/baz.html`,
             rootedFileUrl`root/more/bonk.html`),
         `../more/bonk.html`);
+  });
+
+  suite('integration', () => {
+    const testName = `handles resolving urls with a full mapping from deep ` +
+        `subdirs into a flatter runtime url space`;
+    test(testName, async () => {
+      const fsUrlResolver = new FsUrlResolver('/root');
+      const overlayLoader = new InMemoryOverlayUrlLoader();
+      overlayLoader.urlContentsMap.set(
+          fsUrlResolver.resolve(packageRelativeUrl`sub/package/foo/foo.html`)!,
+          `
+        <link rel="import" href="../bar/bar.html">
+        <link rel="stylesheet" href="foo.css">
+      `);
+      overlayLoader.urlContentsMap.set(
+          fsUrlResolver.resolve(packageRelativeUrl`sub/package/foo/foo.css`)!,
+          ``);
+      overlayLoader.urlContentsMap.set(
+          fsUrlResolver.resolve(packageRelativeUrl`different/x/y/bar.html`)!, `
+        <link rel="stylesheet" href="./bar.css">
+      `);
+      overlayLoader.urlContentsMap.set(
+          fsUrlResolver.resolve(packageRelativeUrl`different/x/y/bar.css`)!,
+          ``);
+      const analyzer = new Analyzer(
+          {urlLoader: overlayLoader, urlResolver: indirectResolver});
+      const analysis = await analyzer.analyze(['foo/foo.html']);
+      assert.deepEqual(
+          analysis.getWarnings().map(
+              (w) => w.toString({verbosity: 'code-only'})),
+          []);
+      const documents = analysis.getFeatures({kind: 'document'});
+      assert.deepEqual([...documents].map((d) => d.url), [
+        rootedFileUrl`root/sub/package/foo/foo.html`,
+        rootedFileUrl`root/different/x/y/bar.html`,
+        rootedFileUrl`root/different/x/y/bar.css`,
+        rootedFileUrl`root/sub/package/foo/foo.css`
+      ]);
+      const imports = analysis.getFeatures({kind: 'import'});
+      assert.deepEqual(
+          [...imports].map((i) => i.originalUrl),
+          ['../bar/bar.html', './bar.css', 'foo.css']);
+      assert.deepEqual([...imports].map((i) => i.url), [
+        rootedFileUrl`root/different/x/y/bar.html`,
+        rootedFileUrl`root/different/x/y/bar.css`,
+        rootedFileUrl`root/sub/package/foo/foo.css`
+      ]);
+    });
   });
 });

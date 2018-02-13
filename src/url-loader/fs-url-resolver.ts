@@ -28,10 +28,10 @@ const isWindows = process.platform === 'win32';
 /**
  * Resolves package-relative urls to a configured root directory.
  *
- * For file-relative URLS it does the normal URL resolution algorithm relative
+ * For file-relative URLs it does the normal URL resolution algorithm relative
  * to the base url.
  *
- * It does not remapping of urls in source to urls on the filesystem, but a
+ * It does no remapping of urls in source to urls on the filesystem, but a
  * subclass can override modifyFsPath for this purpose.
  */
 export class FsUrlResolver extends UrlResolver {
