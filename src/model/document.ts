@@ -326,7 +326,12 @@ export class Document<ParsedType extends ParsedDocument = ParsedDocument>
     }
     visited.add(this);
     for (const feature of this._localFeatures) {
-      result.add(feature);
+      // Don't include a DocumentBackreference feature in the result set if the
+      // query excludes them.
+      if (!feature.kinds.has('document-backreference') ||
+          !query.excludeBackreferences) {
+        result.add(feature);
+      }
       if (feature.kinds.has('document-backreference') &&
           !query.excludeBackreferences) {
         const containerDocument = (feature as DocumentBackreference).document;
