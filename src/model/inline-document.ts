@@ -22,6 +22,7 @@ import {JavaScriptDocument} from '../javascript/javascript-document';
 import * as jsdoc from '../javascript/jsdoc';
 
 import {Document, ScannedDocument} from './document';
+import {DocumentBackreference} from './document-backreference';
 import {ScannedFeature} from './feature';
 import {unsafeAsMutable} from './immutable';
 import {Resolvable} from './resolvable';
@@ -44,18 +45,6 @@ export type AstNodeWithLanguage = {
   node: babel.Node,
   containingDocument: JavaScriptDocument,
 };
-
-/**
- * The `ContainingDocumentBackreference` is added to the set of features
- * for an inline document to provide a link to its containing document.
- */
-export class ContainingDocumentBackreference extends ScannedFeature {
-  kinds = new Set(['containing-document-backreference']);
-  identifiers = new Set<string>();
-  constructor(public readonly document: Document) {
-    super();
-  }
-}
 
 /**
  * Represents an inline document, usually a <script> or <style> tag in an HTML
@@ -111,7 +100,7 @@ export class InlineDocument extends Document {
   constructor(base: ScannedDocument, containerDocument: Document) {
     super(base, containerDocument._analysisContext);
     unsafeAsMutable(this.kinds).add('inline-document');
-    this._addFeature(new ContainingDocumentBackreference(containerDocument));
+    this._addFeature(new DocumentBackreference(containerDocument));
   }
 }
 

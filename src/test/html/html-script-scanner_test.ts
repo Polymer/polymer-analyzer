@@ -107,7 +107,7 @@ suite('HtmlScriptScanner', () => {
       const jsImports = [...result.value.getFeatures({
         kind: 'js-import',
         imported: true,
-        excludeContainingDocument: true,
+        excludeBackreferences: true,
       })];
       assert.equal(jsImports.length, 4);
 
@@ -148,11 +148,8 @@ suite('HtmlScriptScanner', () => {
       if (!result.successful) {
         throw new Error(`could not get document js-modules.html`);
       }
-      const [jsDoc0, jsDoc1] = [...result.value.getFeatures({
-        kind: 'js-document',
-        imported: false,
-        excludeContainingDocument: true,
-      })];
+      const [jsDoc0, jsDoc1] = [...result.value.getFeatures(
+          {kind: 'js-document', imported: false, excludeBackreferences: true})];
 
       assert.equal(
           jsDoc0.parsedDocument.contents.trim(),
@@ -161,18 +158,12 @@ suite('HtmlScriptScanner', () => {
           jsDoc1.parsedDocument.contents.trim(),
           `import * as somethingElse from './javascript/other-module-with-export.js';`);
 
-      const jsDoc0imports = jsDoc0.getFeatures({
-        kind: 'js-import',
-        imported: false,
-        excludeContainingDocument: true,
-      });
+      const jsDoc0imports = jsDoc0.getFeatures(
+          {kind: 'js-import', imported: false, excludeBackreferences: true});
       assert.equal(jsDoc0imports.size, 1);
 
-      const jsDoc1imports = jsDoc1.getFeatures({
-        kind: 'js-import',
-        imported: false,
-        excludeContainingDocument: true,
-      });
+      const jsDoc1imports = jsDoc1.getFeatures(
+          {kind: 'js-import', imported: false, excludeBackreferences: true});
       assert.equal(jsDoc1imports.size, 1);
     });
 

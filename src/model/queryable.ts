@@ -23,7 +23,7 @@ export type BaseQueryOptions = {
    * containing document; allows querying for features specific to an inline
    * document and/or its descendents.
    */
-  excludeContainingDocument?: boolean;
+  excludeBackreferences?: boolean;
 
   /**
    * If true then results will include features from outside the package, e.g.
