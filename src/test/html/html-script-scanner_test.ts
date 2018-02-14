@@ -104,11 +104,8 @@ suite('HtmlScriptScanner', () => {
       if (!result.successful) {
         throw new Error(`could not get document js-modules.html`);
       }
-      const jsImports = [...result.value.getFeatures({
-        kind: 'js-import',
-        imported: true,
-        excludeBackreferences: true,
-      })];
+      const jsImports = [...result.value.getFeatures(
+          {kind: 'js-import', imported: true, excludeBackreferences: true})];
       assert.equal(jsImports.length, 4);
 
       // import statement in 1st inline module script in 'js-modules.html'
@@ -161,6 +158,12 @@ suite('HtmlScriptScanner', () => {
       const jsDoc0imports = jsDoc0.getFeatures(
           {kind: 'js-import', imported: false, excludeBackreferences: true});
       assert.equal(jsDoc0imports.size, 1);
+
+      // Demonstrate that without `excludeBackreferences: true`, the number of
+      // imports returned would be 2, because we'll be getting the js-import
+      // from the other inline JavaScript document's import statement.
+      assert.equal(
+          jsDoc0.getFeatures({kind: 'js-import', imported: false}).size, 2);
 
       const jsDoc1imports = jsDoc1.getFeatures(
           {kind: 'js-import', imported: false, excludeBackreferences: true});
