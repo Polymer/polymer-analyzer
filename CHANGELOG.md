@@ -12,6 +12,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * `Document#getFeatures()` now supports an `excludeBackreferences`
   option for use with inline documents to exclude the container/importer
   document and its features from the results.
+* Support @return annotations on getters/setters on legacy Polymer function
+  calls, and fix bug where readonly was inverted.
+* Add `IndirectUrlResolver`, a URL resolver for very large codebases where
+  source files map in an arbitrary but predetermined fashion onto URL space.
+  This resolver is still experimental.
+  * It is generally true that if something has to be imported from
+    `polymer-analyzer/lib/...` then it's not yet stable. caveat importer.
 * [BREAKING] Removed the `ScriptTagBackReferenceImport` and replaced it
   with new general-purpose `DocumentBackreference` feature used to
   link inline/imported documents back to their containers/importers.
