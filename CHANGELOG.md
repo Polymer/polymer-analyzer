@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Support Windows line endings in JSDoc annotations
 * Support scanning of properties in namespaces
 * Support scanning of accessors in behaviors
+* Support @return annotations on getters/setters on legacy Polymer function
+  calls, and fix bug where readonly was inverted.
 * Add `IndirectUrlResolver`, a URL resolver for very large codebases where
   source files map in an arbitrary but predetermined fashion onto URL space.
   This resolver is still experimental.
