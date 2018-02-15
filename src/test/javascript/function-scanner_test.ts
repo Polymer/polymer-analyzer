@@ -89,8 +89,8 @@ function aaa(a) {
         codeSnippet: `
 Polymer.bbb = function bbb() {
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  return;
-~~~~~~~~~
+
+
 };
 ~~`,
       },
@@ -232,9 +232,13 @@ var jjj = function() {
       ['returnWithNoArgument', {type: 'void'}],
       ['returnValue', undefined],
       ['mixedReturnStyle', undefined],
+      ['voidWithNonVoidInside', {type: 'void'}],
       ['isAsync', undefined],
       ['isGenerator', undefined],
       ['annotationOverride', {type: 'string'}],
+      ['arrowNoReturn', {type: 'void'}],
+      ['arrowReturnWithNoArgument', {type: 'void'}],
+      ['arrowReturnValueConcise', undefined],
     ]);
   });
 });

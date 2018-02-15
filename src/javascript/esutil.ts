@@ -292,6 +292,13 @@ export function getReturnFromAnnotation(jsdocAnn: jsdoc.Annotation):
 export function inferReturnFromBody(node: babel.Function): {type: string}|
     undefined {
   if (node.async === true || node.generator === true) {
+    // Async functions always return promises, and generators always return
+    // iterators, so they are never void.
+    return undefined;
+  }
+  if (babel.isArrowFunctionExpression(node) &&
+      !babel.isBlockStatement(node.body)) {
+    // An arrow function that immediately returns a value (e.g. () => 'foo').
     return undefined;
   }
   let returnsVoid = true;
@@ -303,7 +310,24 @@ export function inferReturnFromBody(node: babel.Function): {type: string}|
         returnsVoid = false;
         return estraverse.VisitorOption.Break;
       }
-    }
+    },
+    // If this function contains another function, don't traverse into it. Only
+    // return statements in the immediate function scope matter.
+    enterFunctionDeclaration() {
+      return estraverse.VisitorOption.Skip;
+    },
+    enterFunctionExpression() {
+      return estraverse.VisitorOption.Skip;
+    },
+    enterClassMethod() {
+      return estraverse.VisitorOption.Skip;
+    },
+    enterArrowFunctionExpression() {
+      return estraverse.VisitorOption.Skip;
+    },
+    enterObjectMethod() {
+      return estraverse.VisitorOption.Skip;
+    },
   });
   if (returnsVoid) {
     return {type: 'void'};

@@ -13,7 +13,7 @@ Polymer.aaa = aaa;
  * @memberof Polymer
  */
 Polymer.bbb = function bbb() {
-  return;
+
 };
 
 /**

@@ -115,10 +115,8 @@ class FunctionVisitor implements Visitor {
   }
 
   private _initFunction(
-      node: babel.Function|babel.ObjectProperty,
-      analyzedName?: string,
-      docNode?: babel.Node,
-  ) {
+      node: babel.Function|babel.ObjectProperty, analyzedName?: string,
+      docNode?: babel.Node) {
     if (docNode === undefined) {
       docNode = node;
     };
