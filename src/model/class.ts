@@ -184,7 +184,7 @@ export class Class implements Feature {
     }
 
     if (init.superClass) {
-      this.superClass = init.superClass.resolve(document);
+      this.superClass = this._resolveSuperClass(init.superClass, document);
     }
     this.mixins = (init.mixins || []).map((m) => m.resolve(document));
 
@@ -204,6 +204,14 @@ export class Class implements Feature {
       this._overwriteInherited(
           this.staticMethods, init.staticMethods, undefined, true);
     }
+  }
+
+  protected _resolveSuperClass(superClass: ScannedReference, document: Document) {
+    const imports = this._resolveImportAliases(document);
+    if (imports.has(superClass.identifier)) {
+      superClass = imports.get(superClass.identifier)!;
+    }
+    return superClass.resolve(document);
   }
 
   protected inheritFrom(superClass: Class) {
@@ -285,6 +293,22 @@ export class Class implements Feature {
     }
 
     return prototypeChain;
+  }
+
+  protected _resolveImportAliases(document: Document) {
+    const imports = document.getFeatures({kind: 'js-import'});
+    const aliases = new Map<string, ScannedReference>();
+
+    for (const feature of imports) {
+      for (const specifier of feature.astNode.specifiers) {
+        if (babel.isImportSpecifier(specifier)) {
+          const sourceRange = document.parsedDocument.sourceRangeForNode(specifier.imported)!;
+          aliases.set(specifier.local.name, new ScannedReference(specifier.imported.name, sourceRange));
+        }
+      }
+    }
+
+    return aliases;
   }
 
   protected _resolveReferenceToSuperClass(
