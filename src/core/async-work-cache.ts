@@ -39,13 +39,12 @@ export class AsyncWorkCache<K, V> {
    * to compute the value for `key` once, no matter how often or with what
    * timing getOrCompute is called, even recursively.
    *
-   * If a compute() throws a Cancel that should not result in a Cancel for
-   * non-cancelled operations. So long as the given cancelToken is not
-   * cancelled, the caller will not receive a Cancel.
+   * This API is safe for multiple, independently cancellable callers. So long
+   * as the given cancelToken is not cancelled, this function will not reject
+   * with a Cancel exception.
    */
   async getOrCompute(
-      key: K, compute: () => Promise<V>, cancelToken?: CancelToken) {
-    cancelToken = cancelToken || neverCancels;
+      key: K, compute: () => Promise<V>, cancelToken = neverCancels) {
     cancelToken.throwIfRequested();
     while (true) {
       try {
