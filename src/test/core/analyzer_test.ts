@@ -20,7 +20,7 @@ import * as clone from 'clone';
 import * as path from 'path';
 import * as shady from 'shady-css-parser';
 
-import {Analyzer} from '../../core/analyzer';
+import {Analyzer, Options} from '../../core/analyzer';
 import {Deferred} from '../../core/utils';
 import {ParsedCssDocument} from '../../css/css-document';
 import {ParsedHtmlDocument} from '../../html/html-document';
@@ -36,7 +36,7 @@ import {CodeUnderliner, fixtureDir, invertPromise, resolvedUrl} from '../test-ut
 import chaiAsPromised = require('chai-as-promised');
 import chaiSubset = require('chai-subset');
 import stripIndent = require('strip-indent');
-import {ResolvedUrl} from '../../model/url';
+import {ResolvedUrl, FileRelativeUrl} from '../../model/url';
 import {PackageUrlResolver} from '../../url-loader/package-url-resolver';
 import {AnalysisContext} from '../../core/analysis-context';
 import {HtmlScanner} from '../../html/html-scanner';
@@ -560,19 +560,20 @@ suite('Analyzer', () => {
       });
 
       test('gracefully handles a scanner that throws', async () => {
-        const scanners = AnalysisContext.getDefaultScanners(new Map());
+        const options: Options = {
+          urlResolver: analyzer.urlResolver,
+          urlLoader: inMemoryOverlay
+        };
+        const scanners = AnalysisContext.getDefaultScanners(options);
         class FailingScanner implements HtmlScanner {
           async scan():
               Promise<{features: ScannedFeature[], warnings?: Warning[]}> {
             throw new Error('Method not implemented.');
           }
         }
+        options.scanners = scanners;
         scanners.get('html')!.push(new FailingScanner());
-        const localAnalyzer = new Analyzer({
-          scanners,
-          urlResolver: analyzer.urlResolver,
-          urlLoader: inMemoryOverlay
-        });
+        const localAnalyzer = new Analyzer(options);
         const url = localAnalyzer.resolveUrl(`foo.html`)!;
         inMemoryOverlay.urlContentsMap.set(url, `
           <dom-module id="foo-bar"></dom-module>
@@ -637,7 +638,7 @@ suite('Analyzer', () => {
           ['html-import', 'html-script', 'html-style']);
       assert.deepEqual(
           features.map((e) => e.url),  //
-          ['polymer.html', 'foo.js', 'foo.css']);
+          ['polymer.html', 'foo.js', 'foo.css'] as FileRelativeUrl[]);
     });
 
     test('polymer css import scanner', async () => {
@@ -658,7 +659,7 @@ suite('Analyzer', () => {
           ScannedImport[];
       assert.equal(features.length, 1);
       assert.equal(features[0].type, 'css-import');
-      assert.equal(features[0].url, 'bar.css');
+      assert.equal(features[0].url, 'bar.css' as FileRelativeUrl);
     });
 
     test('HTML inline document scanners', async () => {
