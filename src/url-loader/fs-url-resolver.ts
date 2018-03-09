@@ -39,7 +39,9 @@ export class FsUrlResolver extends UrlResolver {
   protected readonly packageDir: string;
   // file:// URL format of `packageDir`.
   protected readonly packageUrl: ResolvedUrl;
-  constructor(packageDir: string|undefined, private readonly host?: string) {
+  constructor(
+      packageDir: string|undefined, private readonly host?: string,
+      protected readonly protocol: string = 'https:') {
     super();
     this.packageDir =
         normalizeFsPath(pathlib.resolve(packageDir || process.cwd()));
@@ -55,7 +57,8 @@ export class FsUrlResolver extends UrlResolver {
       _import?: ScannedImport): ResolvedUrl|undefined {
     const [baseUrl = this.packageUrl, unresolvedHref] =
         this.getBaseAndUnresolved(firstHref, secondHref);
-    const resolvedHref = this.simpleUrlResolve(baseUrl, unresolvedHref);
+    const resolvedHref =
+        this.simpleUrlResolve(baseUrl, unresolvedHref, this.protocol);
     if (resolvedHref === undefined) {
       return undefined;
     }

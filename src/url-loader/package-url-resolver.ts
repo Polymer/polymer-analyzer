@@ -27,6 +27,7 @@ export interface PackageUrlResolverOptions {
   packageDir?: string;
   componentDir?: string;
   host?: string;
+  protocol?: string;
 }
 
 /**
@@ -37,7 +38,7 @@ export class PackageUrlResolver extends FsUrlResolver {
   private readonly resolvedComponentDir: string;
 
   constructor(options: PackageUrlResolverOptions = {}) {
-    super(options.packageDir, options.host);
+    super(options.packageDir, options.host, options.protocol);
     this.componentDir = options.componentDir || 'bower_components/';
     this.resolvedComponentDir =
         pathlib.join(this.packageDir, this.componentDir);
@@ -85,7 +86,9 @@ export class PackageUrlResolver extends FsUrlResolver {
         const componentDirPath =
             pathnameInComponentDir.slice(this.resolvedComponentDir.length);
         const reresolved = this.simpleUrlResolve(
-            this.packageUrl, ('../' + componentDirPath) as FileRelativeUrl);
+            this.packageUrl,
+            ('../' + componentDirPath) as FileRelativeUrl,
+            this.protocol);
         if (reresolved !== undefined) {
           const reresolvedUrl = parseUrl(reresolved);
           const toUrl = parseUrl(to);

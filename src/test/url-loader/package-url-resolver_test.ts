@@ -82,9 +82,37 @@ suite('PackageUrlResolver', function() {
       assert.equal(
           r.resolve(packageRelativeUrl`http://abc.xyz/foo.html`),
           resolvedUrl`http://abc.xyz/foo.html`);
+
+      assert.equal(
+          r.resolve(
+              resolvedUrl`https://baz.com/qux.js`,
+              fileRelativeUrl`https://foo.com/bar.html`),
+          resolvedUrl`https://foo.com/bar.html`);
+    });
+
+    test('resolves protocol-relative URLs using default protocol', () => {
+      const r = new PackageUrlResolver();
       assert.equal(
           r.resolve(packageRelativeUrl`//abc.xyz/foo.html`),
-          resolvedUrl`file://abc.xyz/foo.html`);
+          resolvedUrl`https://abc.xyz/foo.html`);
+
+      assert.equal(
+          r.resolve(
+              resolvedUrl`http://foo.com/bar.html`,
+              fileRelativeUrl`//foo.com/bar.html`),
+          resolvedUrl`https://foo.com/bar.html`);
+    });
+    test('resolves protocol-relative URLs using provided protocol', () => {
+      const r = new PackageUrlResolver({protocol: 'potato:'});
+      assert.equal(
+          r.resolve(packageRelativeUrl`//abc.xyz/foo.html`),
+          resolvedUrl`potato://abc.xyz/foo.html`);
+
+      assert.equal(
+          r.resolve(
+              resolvedUrl`https://foo.com/bar.html`,
+              fileRelativeUrl`//foo.com/bar.html`),
+          resolvedUrl`potato://foo.com/bar.html`);
     });
 
     test(`resolves a URL with the right hostname`, () => {
