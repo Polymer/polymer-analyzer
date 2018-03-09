@@ -17,7 +17,7 @@
 import {assert, use} from 'chai';
 import {Url} from 'url';
 
-import {Deferred, isPathInside, parseUrl} from '../../core/utils';
+import {Deferred, parseUrl} from '../../core/utils';
 
 import chaiAsPromised = require('chai-as-promised');
 import {invertPromise} from '../test-utils';
@@ -65,28 +65,6 @@ suite('parseUrl', () => {
       pathname: '/path',
     });
   });
-});
-
-suite('isPathInside', () => {
-  function checkTrue(directory: string, file: string) {
-    test(`${file} is a path inside ${directory}`, () => {
-      assert.isTrue(isPathInside(directory, file));
-    });
-  }
-
-  function checkFalse(directory: string, file: string) {
-    test(`${file} is not a path inside ${directory}`, () => {
-      assert.isFalse(isPathInside(directory, file));
-    });
-  }
-
-  checkTrue('/', '/foo');
-  checkTrue('/foo', '/foo/bar');
-  checkTrue('/foo/', '/foo/bar/');
-  checkTrue('/foo', '/foo');
-
-  checkFalse('/foo/bar', '/foo');
-  checkFalse('/foo', '/foobar');
 });
 
 suite('Deferred', () => {

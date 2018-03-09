@@ -14,9 +14,9 @@
 
 import * as fs from 'fs';
 import * as pathlib from 'path';
+import pathIsInside = require('path-is-inside');
 import Uri from 'vscode-uri';
 
-import {isPathInside} from '../core/utils';
 import {ResolvedUrl} from '../index';
 import {Result} from '../model/analysis';
 import {PackageRelativeUrl} from '../model/url';
@@ -36,7 +36,7 @@ export class FSUrlLoader implements UrlLoader {
   canLoad(url: ResolvedUrl): boolean {
     const parsed = Uri.parse(url);
     return parsed.scheme === 'file' && !parsed.authority &&
-        isPathInside(this.root, parsed.fsPath);
+        pathIsInside(parsed.fsPath, this.root);
   }
 
   load(url: ResolvedUrl): Promise<string> {
