@@ -42,57 +42,12 @@ export class MixinVisitor implements Visitor {
 
   enterAssignmentExpression(
       node: babel.AssignmentExpression, parent: babel.Node, path: NodePath) {
-    if (!babel.isExpressionStatement(parent)) {
-      return;
-    }
-    const parentComments = esutil.getAttachedComment(parent) || '';
-    const parentJsDocs = jsdoc.parseJsdoc(parentComments);
-    if (hasMixinFunctionDocTag(parentJsDocs)) {
-      const name = getIdentifierName(node.left);
-      const namespacedName =
-          name ? getNamespacedIdentifier(name, parentJsDocs) : undefined;
-      const sourceRange = this._document.sourceRangeForNode(node)!;
-
-      const summaryTag = jsdoc.getTag(parentJsDocs, 'summary');
-
-      if (namespacedName) {
-        this._currentMixin = new ScannedPolymerElementMixin({
-          name: namespacedName,
-          sourceRange,
-          astNode: node,
-          description: parentJsDocs.description,
-          summary: (summaryTag && summaryTag.description) || '',
-          privacy: getOrInferPrivacy(namespacedName, parentJsDocs),
-          jsdoc: parentJsDocs,
-          mixins: jsdoc.getMixinApplications(
-              this._document, node, parentJsDocs, this.warnings, path.scope),
-        });
-        this._currentMixinNode = node;
-        this.mixins.push(this._currentMixin);
-      } else {
-        // TODO(rictic): warn for a mixin whose name we can't determine.
-      }
-    }
+    this.tryInitializeMixin(path, node.left);
   }
 
   enterFunctionDeclaration(
       node: babel.FunctionDeclaration, _parent: babel.Node, path: NodePath) {
-    const nodeComments = esutil.getBestComment(path);
-    if (nodeComments === undefined) {
-      return;
-    }
-    const nodeJsDocs = jsdoc.parseJsdoc(nodeComments);
-    if (!hasMixinFunctionDocTag(nodeJsDocs)) {
-      return;
-    }
-    const name = node.id.name;
-    const namespacedName =
-        name ? getNamespacedIdentifier(name, nodeJsDocs) : undefined;
-    if (namespacedName === undefined) {
-      // Warn about a mixin whose name we can't infer.
-      return;
-    }
-    this.initializeMixin(node, namespacedName, nodeJsDocs, path.scope);
+    this.tryInitializeMixin(path, node.id);
   }
 
   leaveFunctionDeclaration(
@@ -102,24 +57,7 @@ export class MixinVisitor implements Visitor {
 
   enterVariableDeclaration(
       node: babel.VariableDeclaration, _parent: babel.Node, path: NodePath) {
-    const comment = esutil.getBestComment(path);
-    if (comment === undefined) {
-      return;
-    }
-    const docs = jsdoc.parseJsdoc(comment);
-    if (!hasMixinFunctionDocTag(docs)) {
-      return;
-    }
-    if (node.declarations.length !== 1) {
-      return;
-    }
-    const declaration = node.declarations[0];
-    const name = getIdentifierName(declaration.id);
-    if (name === undefined) {
-      // TODO(rictic); warn about being unable to determine mixin name.
-      return;
-    }
-    this.initializeMixin(node, name, docs, path.scope);
+    this.tryInitializeMixin(path, node.declarations[0].id);
   }
 
   leaveVariableDeclaration(
@@ -127,11 +65,25 @@ export class MixinVisitor implements Visitor {
     this.clearOnLeave(node);
   }
 
-  private initializeMixin(
-      node: babel.Node, name: string, docs: jsdoc.Annotation, scope: Scope) {
+  private tryInitializeMixin(nodePath: NodePath, nameNode: babel.LVal) {
+    const comment = esutil.getBestComment(nodePath);
+    if (comment === undefined) {
+      return;
+    }
+    const docs = jsdoc.parseJsdoc(comment);
+    if (!hasMixinFunctionDocTag(docs)) {
+      return;
+    }
+    const node = nodePath.node;
+    const name = getIdentifierName(nameNode);
+    const namespacedName =
+        name ? getNamespacedIdentifier(name, docs) : undefined;
+    if (namespacedName === undefined) {
+      // TODO(#903): Warn about a mixin whose name we can't infer?
+      return;
+    }
     const sourceRange = this._document.sourceRangeForNode(node)!;
     const summaryTag = jsdoc.getTag(docs, 'summary');
-    const namespacedName = getNamespacedIdentifier(name, docs);
     const mixin = new ScannedPolymerElementMixin({
       name: namespacedName,
       sourceRange,
@@ -141,12 +93,13 @@ export class MixinVisitor implements Visitor {
       privacy: getOrInferPrivacy(namespacedName, docs),
       jsdoc: docs,
       mixins: jsdoc.getMixinApplications(
-          this._document, node, docs, this.warnings, scope)
+          this._document, node, docs, this.warnings, nodePath.scope)
     });
     this._currentMixin = mixin;
     this._currentMixinNode = node;
     this.mixins.push(this._currentMixin);
   }
+
   private clearOnLeave(node: babel.Node) {
     if (this._currentMixinNode === node) {
       this._currentMixin = null;
