@@ -25,3 +25,5 @@ export class ExportedClass { }
 
 /** A default exported class. */
 export default class { };
+
+export const ExportedConstClass = class { };

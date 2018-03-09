@@ -120,6 +120,7 @@ suite('Class', () => {
         'ClassWithNoJsDoc',
         'ExportedClass',
         undefined,
+        'ExportedConstClass',
       ]);
 
       assert.deepEqual(await Promise.all(classes.map((c) => getTestProps(c))), [
@@ -162,6 +163,11 @@ suite('Class', () => {
           description: 'A default exported class.',
           name: undefined,
           privacy: 'public'
+        },
+        {
+          description: '',
+          name: 'ExportedConstClass',
+          privacy: 'public',
         }
       ]);
     });
@@ -431,7 +437,8 @@ suite('Class', () => {
         'Declared.AnotherAssignment',
         'ClassWithNoJsDoc',
         'ExportedClass',
-        undefined
+        undefined,
+        'ExportedConstClass',
       ]);
 
       assert.deepEqual(await Promise.all(classes.map((c) => getTestProps(c))), [
@@ -474,6 +481,11 @@ suite('Class', () => {
           description: 'A default exported class.',
           name: undefined,
           privacy: 'public'
+        },
+        {
+          description: '',
+          name: 'ExportedConstClass',
+          privacy: 'public',
         }
       ]);
     });
