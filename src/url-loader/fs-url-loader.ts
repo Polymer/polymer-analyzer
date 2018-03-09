@@ -30,15 +30,13 @@ export class FSUrlLoader implements UrlLoader {
   root: string;
 
   constructor(root: string = '') {
-    if (root.endsWith('/')) {
-      root += '/';
-    }
     this.root = pathlib.resolve(root);
   }
 
   canLoad(url: ResolvedUrl): boolean {
-    return url.startsWith('file://') &&
-        isPathInside(this.root, Uri.parse(url).fsPath);
+    const parsed = Uri.parse(url);
+    return parsed.scheme === 'file' && !parsed.authority &&
+        isPathInside(this.root, parsed.fsPath);
   }
 
   load(url: ResolvedUrl): Promise<string> {

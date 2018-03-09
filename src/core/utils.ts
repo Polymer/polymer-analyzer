@@ -12,6 +12,7 @@
  * http://polymer.github.io/PATENTS.txt
  */
 
+import * as pathlib from 'path';
 import {parse as parseUrl_, Url} from 'url';
 
 const unspecifiedProtocol = '-:';
@@ -35,13 +36,13 @@ export function trimLeft(str: string, char: string): string {
 
 /**
  * Returns whether the given file path points to a location inside the given
- * directory.
+ * directory. Also return true if the paths are the same.
  */
-export function isPathInside(directory: string, filePath: string): boolean {
-  if (process.platform === 'win32') {
-    return filePath.toLowerCase().startsWith(directory.toLowerCase());
-  }
-  return filePath.startsWith(directory);
+export function isPathInside(directory: string, file: string): boolean {
+  // If the path from the directory to the file does not require traversing up,
+  // then it must be either a descendent or the same directory. Note this is
+  // case-insensitive on Windows (which is what we want).
+  return !pathlib.relative(directory, file).startsWith('..');
 }
 
 export class Deferred<T> {
