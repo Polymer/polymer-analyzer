@@ -723,5 +723,29 @@ suite('Class', () => {
         assert.deepEqual([...features].map((c) => c.name), [class_.name]);
       }
     });
+
+    test('we resolve superclasses by scope when possible', async () => {
+      const filename = 'class/super-class-scoped.js';
+      const {classes, analysis} = await getClasses(filename);
+      assert.deepEqual(classes.map((c) => c.name), [
+        'Foo',
+        'Foo',
+        'One',
+        'Foo',
+        'Two',
+        'Three',
+      ]);
+
+      const subclasses = classes.filter((c) => c.superClass !== undefined);
+      assert.deepEqual(
+          subclasses.map(((c) => c.name)), ['One', 'Two', 'Three']);
+
+      // Despite the fact that their superclasses all have the same name,
+      // we're able to use JS scoping rules to resolve them to the correct
+      // referant.
+      assert.deepEqual(
+          subclasses.map((c) => [...c.methods.keys()]),
+          [['method1'], ['method2'], ['method3']]);
+    });
   });
 });
