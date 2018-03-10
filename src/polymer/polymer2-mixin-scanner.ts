@@ -88,6 +88,7 @@ export class MixinVisitor implements Visitor {
       name: namespacedName,
       sourceRange,
       astNode: node,
+      statementAst: esutil.getCanonicalStatement(nodePath),
       description: docs.description,
       summary: (summaryTag && summaryTag.description) || '',
       privacy: getOrInferPrivacy(namespacedName, docs),

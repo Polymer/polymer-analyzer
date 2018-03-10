@@ -65,6 +65,9 @@ export type BaseDocumentQuery = BaseQueryOptions&{
   /**
    * If given, returns any features which are defined by the given statement.
    * This argument implies `imported: false`.
+   *
+   * See esutil.getStatement for going from a babel traverse NodePath to the
+   * canonical statment node.
    */
   statement?: babel.Statement;
   /**
