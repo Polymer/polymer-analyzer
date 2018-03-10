@@ -12,11 +12,13 @@
  * http://polymer.github.io/PATENTS.txt
  */
 
-import {NodePath} from 'babel-traverse';
+import {Binding, NodePath} from 'babel-traverse';
 import * as babel from 'babel-types';
 
+import * as esutil from '../javascript/esutil';
 import {Annotation} from '../javascript/jsdoc';
 
+import {Result} from './analysis';
 import {Document} from './document';
 import {Feature, ScannedFeature} from './feature';
 import {FeatureKindMap} from './queryable';
@@ -56,37 +58,68 @@ export class ScannedReference<K extends keyof FeatureKindMap> extends
   // specific kind (e.g. resolve a PolymerElement rather than just a Class).
   resolveWithKind<DK extends keyof FeatureKindMap>(
       document: Document, kind: DK): Reference<FeatureKindMap[DK]> {
-    const features = document.getFeatures(
-        {imported: true, externalPackages: true, kind, id: this.identifier});
+    let feature: undefined|FeatureKindMap[DK];
     const warnings = [...this.warnings];
-    if (this.sourceRange) {
-      if (features.size === 0) {
-        let message = `Could not resolve reference to ${this.kind}`;
-        if (kind === 'behavior') {
-          message += `. Is it annotated with @polymerBehavior?`;
-        }
-        warnings.push(new Warning({
-          code: 'could-not-resolve-reference',
-          sourceRange: this.sourceRange,
-          message,
-          parsedDocument: document.parsedDocument,
-          severity: Severity.WARNING
-        }));
-      } else if (features.size > 1) {
-        warnings.push(new Warning({
-          code: 'multiple-global-declarations',
-          sourceRange: this.sourceRange,
-          message: `Multiple global declarations of ${
-              this.kind} with identifier ${this.identifier}`,
-          parsedDocument: document.parsedDocument,
-          severity: Severity.WARNING
-        }));
+
+    const binding = this.astPath.scope.getBinding(this.identifier);
+    if (binding !== undefined) {
+      const result = resolveBinding(binding, document, kind);
+      if (result.successful) {
+        feature = result.value;
       }
     }
-    let feature: undefined|FeatureKindMap[DK];
-    [feature] = features;
+    if (feature === undefined) {
+      // We didn't find it by doing principled scope-based analysis. Let's try
+      // looking it up in our big global map!
+      const features = document.getFeatures(
+          {imported: true, externalPackages: true, kind, id: this.identifier});
+      if (this.sourceRange) {
+        if (features.size === 0) {
+          let message = `Could not resolve reference to ${this.kind}`;
+          if (kind === 'behavior') {
+            message += `. Is it annotated with @polymerBehavior?`;
+          }
+          warnings.push(new Warning({
+            code: 'could-not-resolve-reference',
+            sourceRange: this.sourceRange,
+            message,
+            parsedDocument: document.parsedDocument,
+            severity: Severity.WARNING
+          }));
+        } else if (features.size > 1) {
+          warnings.push(new Warning({
+            code: 'multiple-global-declarations',
+            sourceRange: this.sourceRange,
+            message: `Multiple global declarations of ${
+                this.kind} with identifier ${this.identifier}`,
+            parsedDocument: document.parsedDocument,
+            severity: Severity.WARNING
+          }));
+        }
+      }
+      [feature] = features;
+    }
     return new Reference<FeatureKindMap[K]>(this, feature, warnings);
   }
+}
+
+function resolveBinding<K extends keyof FeatureKindMap>(
+    binding: Binding, document: Document, kind: K):
+    Result<FeatureKindMap[K], Warning|undefined> {
+  const statement = esutil.getCanonicalStatement(binding.path);
+  if (!statement) {
+    return {successful: false, error: undefined};
+  }
+  const features = document.getFeatures({kind, statement});
+  if (features.size > 1) {
+    // TODO(rictic): narrow down by identifier? warn?
+    return {successful: false, error: undefined};
+  }
+  const [feature] = features;
+  if (feature === undefined) {
+    return {successful: false, error: undefined};
+  }
+  return {successful: true, value: feature};
 }
 
 
