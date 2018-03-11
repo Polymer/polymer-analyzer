@@ -165,6 +165,8 @@ function resolveThroughImport<K extends keyof FeatureKindMap>(
       export_.astNodePath, exportedAs, import_.document, kind);
 }
 
+// We handle ImportNamespaceSpecifiers separately, as resolving their bindings
+// is slightly tricky.
 type ImportIndicator = babel.ImportDefaultSpecifier|babel.ImportSpecifier|
                        babel.ExportNamedDeclaration|babel.ExportAllDeclaration;
 function isSomeKindOfImport(path: NodePath): path is NodePath<ImportIndicator> {
