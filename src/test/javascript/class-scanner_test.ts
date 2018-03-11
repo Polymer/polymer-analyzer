@@ -773,12 +773,14 @@ suite('Class', () => {
         'CL1',
         'CL2',
         'CL3',
+        'CL4',
       ]);
 
       assert.deepEqual(classes.map((c) => [...c.methods.keys()]), [
         ['method1'],
         ['method2'],
         ['method3'],
+        ['method1'],
       ]);
     });
   });

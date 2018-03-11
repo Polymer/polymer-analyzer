@@ -105,34 +105,10 @@ export class ScannedReference<K extends keyof FeatureKindMap> extends
 }
 
 function resolveScopedAt<K extends keyof FeatureKindMap>(
-    path: NodePath, _identifier: string, document: Document, kind: K):
+    path: NodePath, identifier: string, document: Document, kind: K):
     Result<FeatureKindMap[K], Warning|undefined> {
-  const node = path.node;
-  if (babel.isImportSpecifier(node) || babel.isImportDefaultSpecifier(node)) {
-    const [import_] = document.getFeatures(
-        {kind: 'import', statement: esutil.getCanonicalStatement(path)});
-    if (import_ === undefined) {
-      console.log('no import in that statement');
-      // Import failed, maybe it could not be loaded.
-      return {successful: false, error: undefined};
-    }
-    // If it was renamed like `import {foo as bar} from 'baz';` then
-    // node.imported.name will be `foo`
-    let exportedAs;
-    if (babel.isImportDefaultSpecifier(node)) {
-      exportedAs = 'default';
-    } else {
-      exportedAs = node.imported.name;
-    }
-    const [export_] =
-        import_.document.getFeatures({kind: 'export', id: exportedAs});
-    if (export_ === undefined) {
-      console.log('no export from other file');
-      // That symbol was not exported from the other file.
-      return {successful: false, error: undefined};
-    }
-    return resolveScopedAt(
-        export_.astNodePath, exportedAs, import_.document, kind);
+  if (isSomeKindOfImport(path)) {
+    return resolveThroughImport(path, identifier, document, kind);
   }
   const statement = esutil.getCanonicalStatement(path);
   if (!statement) {
@@ -150,6 +126,58 @@ function resolveScopedAt<K extends keyof FeatureKindMap>(
   return {successful: true, value: feature};
 }
 
+
+type ImportIndicator = babel.ImportDefaultSpecifier|babel.ImportSpecifier|
+                       babel.ExportNamedDeclaration;
+function isSomeKindOfImport(path: NodePath): path is NodePath<ImportIndicator> {
+  const node = path.node;
+  return babel.isImportSpecifier(node) ||
+      babel.isImportDefaultSpecifier(node) ||
+      (babel.isExportNamedDeclaration(node) && node.source != null);
+}
+
+function resolveThroughImport<K extends keyof FeatureKindMap>(
+    path: NodePath<ImportIndicator>,
+    identifier: string,
+    document: Document,
+    kind: K): Result<FeatureKindMap[K], Warning|undefined> {
+  const node = path.node;
+  const statement = esutil.getCanonicalStatement(path);
+  if (statement === undefined) {
+    throw new Error(`Internal error, could not get statement for node of type ${
+        path.node.type}`);
+  }
+  const [import_] = document.getFeatures({kind: 'import', statement});
+  if (import_ === undefined) {
+    // Import failed, maybe it could not be loaded.
+    return {successful: false, error: undefined};
+  }
+  // If it was renamed like `import {foo as bar} from 'baz';` then
+  // node.imported.name will be `foo`
+  let exportedAs;
+  if (babel.isImportDefaultSpecifier(node)) {
+    exportedAs = 'default';
+  } else if (babel.isExportNamedDeclaration(node)) {
+    for (const specifier of node.specifiers) {
+      if (specifier.exported.name === identifier) {
+        exportedAs = specifier.local.name;
+      }
+    }
+    if (exportedAs === undefined) {
+      return {successful: false, error: undefined};
+    }
+  } else {
+    exportedAs = node.imported.name;
+  }
+  const [export_] =
+      import_.document.getFeatures({kind: 'export', id: exportedAs});
+  if (export_ === undefined) {
+    // That symbol was not exported from the other file.
+    return {successful: false, error: undefined};
+  }
+  return resolveScopedAt(
+      export_.astNodePath, exportedAs, import_.document, kind);
+}
 
 declare module './queryable' {
   interface FeatureKindMap {
