@@ -14,6 +14,7 @@
 
 import {NodePath} from 'babel-traverse';
 import * as babel from 'babel-types';
+import * as util from 'util';
 
 import * as esutil from '../javascript/esutil';
 import {Annotation} from '../javascript/jsdoc';
@@ -61,13 +62,10 @@ export class ScannedReference<K extends keyof FeatureKindMap> extends
     let feature: undefined|FeatureKindMap[DK];
     const warnings = [...this.warnings];
 
-    const binding = this.astPath.scope.getBinding(this.identifier);
-    if (binding !== undefined) {
-      const result =
-          resolveScopedAt(binding.path, this.identifier, document, kind);
-      if (result.successful) {
-        feature = result.value;
-      }
+    const scopedResult =
+        resolveScopedAt(this.astPath, this.identifier, document, kind);
+    if (scopedResult.successful) {
+      feature = scopedResult.value;
     }
     if (feature === undefined) {
       // We didn't find it by doing principled scope-based analysis. Let's try
@@ -108,41 +106,43 @@ function resolveScopedAt<K extends keyof FeatureKindMap>(
     path: NodePath, identifier: string, document: Document, kind: K):
     Result<FeatureKindMap[K], Warning|undefined> {
   if (isSomeKindOfImport(path)) {
-    return resolveThroughImport(path, identifier, document, kind);
+    const exportedIdentifier = getExportedIdentifier(path.node, identifier);
+    return resolveThroughImport(path, exportedIdentifier, document, kind);
   }
   const statement = esutil.getCanonicalStatement(path);
-  if (!statement) {
+  if (statement === undefined) {
     return {successful: false, error: undefined};
   }
-  const features = document.getFeatures({kind, statement});
+  const features = document.getFeatures({kind, id: identifier, statement});
   if (features.size > 1) {
     // TODO(rictic): narrow down by identifier? warn?
     return {successful: false, error: undefined};
   }
   const [feature] = features;
-  if (feature === undefined) {
+  if (feature !== undefined) {
+    return {successful: true, value: feature};
+  }
+  if (/^[^\.]+\.[^\.]+$/.test(identifier)) {
+    const [namespace, name] = identifier.split('.');
+    const namespaceBinding = path.scope.getBinding(namespace);
+    if (namespaceBinding !== undefined) {
+      const node = namespaceBinding.path.node;
+      if (babel.isImportNamespaceSpecifier(node)) {
+        return resolveThroughImport(
+            namespaceBinding.path, name, document, kind);
+      }
+    }
+  }
+  const binding = path.scope.getBinding(identifier);
+  if (binding === undefined || binding.path.node === path.node) {
     return {successful: false, error: undefined};
   }
-  return {successful: true, value: feature};
-}
-
-
-type ImportIndicator = babel.ImportDefaultSpecifier|babel.ImportSpecifier|
-                       babel.ExportNamedDeclaration|babel.ExportAllDeclaration;
-function isSomeKindOfImport(path: NodePath): path is NodePath<ImportIndicator> {
-  const node = path.node;
-  return babel.isImportSpecifier(node) ||
-      babel.isImportDefaultSpecifier(node) ||
-      (babel.isExportNamedDeclaration(node) && node.source != null) ||
-      (babel.isExportAllDeclaration(node));
+  return resolveScopedAt(binding.path, identifier, document, kind);
 }
 
 function resolveThroughImport<K extends keyof FeatureKindMap>(
-    path: NodePath<ImportIndicator>,
-    identifier: string,
-    document: Document,
-    kind: K): Result<FeatureKindMap[K], Warning|undefined> {
-  const node = path.node;
+    path: NodePath, exportedAs: string, document: Document, kind: K):
+    Result<FeatureKindMap[K], Warning|undefined> {
   const statement = esutil.getCanonicalStatement(path);
   if (statement === undefined) {
     throw new Error(`Internal error, could not get statement for node of type ${
@@ -155,25 +155,6 @@ function resolveThroughImport<K extends keyof FeatureKindMap>(
   }
   // If it was renamed like `import {foo as bar} from 'baz';` then
   // node.imported.name will be `foo`
-  let exportedAs;
-  if (babel.isImportDefaultSpecifier(node)) {
-    exportedAs = 'default';
-  } else if (babel.isExportNamedDeclaration(node)) {
-    for (const specifier of node.specifiers) {
-      if (specifier.exported.name === identifier) {
-        exportedAs = specifier.local.name;
-      }
-    }
-    if (exportedAs === undefined) {
-      return {successful: false, error: undefined};
-    }
-  } else if (babel.isExportAllDeclaration(node)) {
-    // Can't rename through an export all, the name we're looking for in
-    // this file is the same name in the next file.
-    exportedAs = identifier;
-  } else {
-    exportedAs = node.imported.name;
-  }
   const [export_] =
       import_.document.getFeatures({kind: 'export', id: exportedAs});
   if (export_ === undefined) {
@@ -182,6 +163,42 @@ function resolveThroughImport<K extends keyof FeatureKindMap>(
   }
   return resolveScopedAt(
       export_.astNodePath, exportedAs, import_.document, kind);
+}
+
+type ImportIndicator = babel.ImportDefaultSpecifier|babel.ImportSpecifier|
+                       babel.ExportNamedDeclaration|babel.ExportAllDeclaration;
+function isSomeKindOfImport(path: NodePath): path is NodePath<ImportIndicator> {
+  const node = path.node;
+  return babel.isImportSpecifier(node) ||
+      babel.isImportDefaultSpecifier(node) ||
+      (babel.isExportNamedDeclaration(node) && node.source != null) ||
+      (babel.isExportAllDeclaration(node));
+}
+
+function getExportedIdentifier(node: ImportIndicator, localIdentifier: string) {
+  switch (node.type) {
+    case 'ImportDefaultSpecifier':
+      return 'default';
+    case 'ExportNamedDeclaration':
+      for (const specifier of node.specifiers) {
+        if (specifier.exported.name === localIdentifier) {
+          return specifier.local.name;
+        }
+      }
+      throw new Error(`Internal error: could not find import specifier for '${
+          localIdentifier}'. Please report this bug.`);
+    case 'ExportAllDeclaration':
+      // Can't rename through an export all, the name we're looking for in
+      // this file is the same name in the next file.
+      return localIdentifier;
+    case 'ImportSpecifier':
+      return node.imported.name;
+  }
+  return assertNever(node);
+}
+
+function assertNever(never: never): never {
+  throw new Error(`Unexpected ast node: ${util.inspect(never)}`);
 }
 
 declare module './queryable' {
