@@ -40,7 +40,31 @@ suite('JavaScriptExportScanner', () => {
       ['functionName'],
       ['identifierAssignedFunction'],
       ['a', 'b', 'c', 'd'],
-      ['g', 'i', 'k']
+      ['g', 'i', 'k'],
+      ['anotherValue'],
+      ['someValue']
     ]);
+  });
+
+  test('re-exports across multiple files correctly', async () => {
+    const features = await getExports('javascript/re-export-all.js');
+    // Like the list above, but flattened as they're all exported from one
+    // export statement.
+    assert.containSubset([...features].map((f) => [...f.identifiers]), [[
+                           'namedConstIdentifier',
+                           'default',
+                           'ClassName',
+                           'functionName',
+                           'identifierAssignedFunction',
+                           'a',
+                           'b',
+                           'c',
+                           'd',
+                           'g',
+                           'i',
+                           'k',
+                           'anotherValue',
+                           'someValue'
+                         ]]);
   });
 });
