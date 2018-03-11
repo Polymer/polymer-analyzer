@@ -760,7 +760,7 @@ suite('Class', () => {
           [['method1'], ['method2'], ['method3']]);
     });
 
-    test.skip('we resolve imported super classes', async () => {
+    test('we resolve imported super classes', async () => {
       const filename = 'class/super-class-imported.js';
       const analysis = await analyzer.analyze([filename]);
       const result = analysis.getDocument(filename);
@@ -771,10 +771,15 @@ suite('Class', () => {
       const classes = Array.from(document.getFeatures({kind: 'class'}));
       assert.deepEqual(classes.map((c) => c.name), [
         'CL1',
+        'CL2',
+        'CL3',
       ]);
 
-      assert.deepEqual(
-          classes.map((c) => [...c.methods.keys()]), [['method1']]);
+      assert.deepEqual(classes.map((c) => [...c.methods.keys()]), [
+        ['method1'],
+        ['method2'],
+        ['method3'],
+      ]);
     });
   });
 });

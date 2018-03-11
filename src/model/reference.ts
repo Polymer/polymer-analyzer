@@ -12,7 +12,7 @@
  * http://polymer.github.io/PATENTS.txt
  */
 
-import {Binding, NodePath} from 'babel-traverse';
+import {NodePath} from 'babel-traverse';
 import * as babel from 'babel-types';
 
 import * as esutil from '../javascript/esutil';
@@ -63,7 +63,8 @@ export class ScannedReference<K extends keyof FeatureKindMap> extends
 
     const binding = this.astPath.scope.getBinding(this.identifier);
     if (binding !== undefined) {
-      const result = resolveBinding(binding, document, kind);
+      const result =
+          resolveScopedAt(binding.path, this.identifier, document, kind);
       if (result.successful) {
         feature = result.value;
       }
@@ -103,10 +104,37 @@ export class ScannedReference<K extends keyof FeatureKindMap> extends
   }
 }
 
-function resolveBinding<K extends keyof FeatureKindMap>(
-    binding: Binding, document: Document, kind: K):
+function resolveScopedAt<K extends keyof FeatureKindMap>(
+    path: NodePath, _identifier: string, document: Document, kind: K):
     Result<FeatureKindMap[K], Warning|undefined> {
-  const statement = esutil.getCanonicalStatement(binding.path);
+  const node = path.node;
+  if (babel.isImportSpecifier(node) || babel.isImportDefaultSpecifier(node)) {
+    const [import_] = document.getFeatures(
+        {kind: 'import', statement: esutil.getCanonicalStatement(path)});
+    if (import_ === undefined) {
+      console.log('no import in that statement');
+      // Import failed, maybe it could not be loaded.
+      return {successful: false, error: undefined};
+    }
+    // If it was renamed like `import {foo as bar} from 'baz';` then
+    // node.imported.name will be `foo`
+    let exportedAs;
+    if (babel.isImportDefaultSpecifier(node)) {
+      exportedAs = 'default';
+    } else {
+      exportedAs = node.imported.name;
+    }
+    const [export_] =
+        import_.document.getFeatures({kind: 'export', id: exportedAs});
+    if (export_ === undefined) {
+      console.log('no export from other file');
+      // That symbol was not exported from the other file.
+      return {successful: false, error: undefined};
+    }
+    return resolveScopedAt(
+        export_.astNodePath, exportedAs, import_.document, kind);
+  }
+  const statement = esutil.getCanonicalStatement(path);
   if (!statement) {
     return {successful: false, error: undefined};
   }
