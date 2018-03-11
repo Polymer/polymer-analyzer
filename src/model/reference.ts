@@ -128,12 +128,13 @@ function resolveScopedAt<K extends keyof FeatureKindMap>(
 
 
 type ImportIndicator = babel.ImportDefaultSpecifier|babel.ImportSpecifier|
-                       babel.ExportNamedDeclaration;
+                       babel.ExportNamedDeclaration|babel.ExportAllDeclaration;
 function isSomeKindOfImport(path: NodePath): path is NodePath<ImportIndicator> {
   const node = path.node;
   return babel.isImportSpecifier(node) ||
       babel.isImportDefaultSpecifier(node) ||
-      (babel.isExportNamedDeclaration(node) && node.source != null);
+      (babel.isExportNamedDeclaration(node) && node.source != null) ||
+      (babel.isExportAllDeclaration(node));
 }
 
 function resolveThroughImport<K extends keyof FeatureKindMap>(
@@ -166,6 +167,10 @@ function resolveThroughImport<K extends keyof FeatureKindMap>(
     if (exportedAs === undefined) {
       return {successful: false, error: undefined};
     }
+  } else if (babel.isExportAllDeclaration(node)) {
+    // Can't rename through an export all, the name we're looking for in
+    // this file is the same name in the next file.
+    exportedAs = identifier;
   } else {
     exportedAs = node.imported.name;
   }
