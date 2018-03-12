@@ -102,17 +102,20 @@ suite('PackageUrlResolver', function() {
               fileRelativeUrl`//foo.com/bar.html`),
           resolvedUrl`https://foo.com/bar.html`);
     });
+
     test('resolves protocol-relative URLs using provided protocol', () => {
-      const r = new PackageUrlResolver({protocol: 'potato:'});
-      assert.equal(
-          r.resolve(packageRelativeUrl`//abc.xyz/foo.html`),
-          resolvedUrl`potato://abc.xyz/foo.html`);
+      const r = new PackageUrlResolver(
+          {protocol: 'potato:', packageDir: `/1/2`, host: 'foo.com'});
 
       assert.equal(
           r.resolve(
               resolvedUrl`https://foo.com/bar.html`,
               fileRelativeUrl`//foo.com/bar.html`),
-          resolvedUrl`potato://foo.com/bar.html`);
+          rootedFileUrl`1/2/bar.html`);
+
+      assert.equal(
+          r.resolve(packageRelativeUrl`//abc.xyz/foo.html`),
+          resolvedUrl`potato://abc.xyz/foo.html`);
     });
 
     test(`resolves a URL with the right hostname`, () => {
