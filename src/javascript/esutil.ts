@@ -69,13 +69,15 @@ export function matchesCallExpression(
   return false;
 }
 
+export type PropertyOrMethod = babel.ObjectProperty|babel.ObjectMethod|
+                               babel.ClassMethod|babel.SpreadProperty|
+                               babel.AssignmentProperty;
+
 /**
  * Given a property or method, return its name, or undefined if that name can't
  * be determined.
  */
-export function getPropertyName(
-    prop: babel.ObjectProperty|babel.ObjectMethod|babel.ClassMethod|
-    babel.SpreadProperty|babel.AssignmentProperty): string|undefined {
+export function getPropertyName(prop: PropertyOrMethod): string|undefined {
   if (babel.isSpreadProperty(prop)) {
     return undefined;
   }
@@ -192,10 +194,9 @@ export function getEventComments(node: babel.Node): Map<string, ScannedEvent> {
   const eventComments = new Set<string>();
 
   babelTraverse(node, {
-    enter(path: NodePath<babel.Node>) {
+    enter(path: NodePath) {
       const node = path.node;
-      (node.leadingComments || [])
-          .concat(node.trailingComments || [])
+      [...(node.leadingComments || []), ...(node.trailingComments || [])]
           .map((commentAST) => commentAST.value)
           .filter((comment) => comment.indexOf('@event') !== -1)
           .forEach((comment) => eventComments.add(comment));
