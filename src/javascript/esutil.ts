@@ -788,7 +788,11 @@ export function*
   }
 }
 
-// Utility function for getBindingNamesFromDeclaration
+/**
+ * Given an LValue, what are the names it assigns to?
+ *
+ * Internal utility function for getBindingNamesFromDeclaration.
+ */
 function* getNamesFromLValue(lhs: babel.LVal): IterableIterator<string> {
   switch (lhs.type) {
     case 'Identifier':
