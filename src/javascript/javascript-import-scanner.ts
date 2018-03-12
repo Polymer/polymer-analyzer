@@ -88,8 +88,10 @@ export class JavascriptImport extends Import {
   constructor(
       url: ResolvedUrl, originalUrl: FileRelativeUrl, type: string,
       document: Document, sourceRange: SourceRange|undefined,
-      urlSourceRange: SourceRange|undefined, ast: any, warnings: Warning[],
-      lazy: boolean, specifier: string) {
+      urlSourceRange: SourceRange|undefined,
+      ast: babel.ImportDeclaration|babel.CallExpression|
+      babel.ExportAllDeclaration|babel.ExportNamedDeclaration,
+      warnings: Warning[], lazy: boolean, specifier: string) {
     super(
         url,
         originalUrl,
