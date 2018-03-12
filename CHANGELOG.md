@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
+* Resolve same-file references to super classes, behaviors, and mixins using
+  basic JS scope analysis where possible.
 * Now recognizes classes, behaviors, elements, and mixins that are
   declared in an ES6 `export` declaration.
 * Document#getFeatures now supports querying by `statement`. Given the
