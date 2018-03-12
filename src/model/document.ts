@@ -88,6 +88,14 @@ export class ScannedDocument {
   }
 }
 export interface DeclaredWithStatement {
+  /**
+   * This is the nearest statement at or above `this.astNode`.
+   *
+   * This is a fast and simple way to get a canonical, indexable AST node,
+   * so that we can look up a feature syntactically.
+   *
+   * Populate this field with `esutil.getCanonicalStatement`.
+   */
   statementAst: babel.Statement|undefined;
 }
 function isDeclaredWithStatement(

@@ -685,7 +685,21 @@ export function extractPropertiesFromClassOrObjectBody(
 }
 
 /**
- * Get the statement or declaration for the given node.
+ * Get the canonical statement or declaration for the given node.
+ *
+ * It would otherwise be difficult, or require specialized code for each kind of
+ * feature, to determine which node is the canonical node for a feature. This
+ * function is simple, it only walks up, and it stops once it reaches a clear
+ * feature boundary. And since we're calling this function both on the indexing
+ * and the lookup sides, we can be confident that both will agree on the same
+ * node.
+ *
+ * There may be more than one feature within a single statement (e.g. `export
+ * class Foo {}` is both a Class and an Export, but between `kind` and `id` we
+ * should still have enough info to narrow down to the intended feature.
+ *
+ * See `DeclaredWithStatement` and `BaseDocumentQuery` to see where this is
+ * used.
  */
 export function getCanonicalStatement(nodePath: NodePath): babel.Statement|
     undefined {
