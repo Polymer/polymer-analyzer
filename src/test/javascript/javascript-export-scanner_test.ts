@@ -33,7 +33,7 @@ suite('JavaScriptExportScanner', () => {
 
   test('identifies the names that of exports', async () => {
     const features = await getExports('javascript/all-export-types.js');
-    assert.containSubset([...features].map((f) => [...f.identifiers]), [
+    assert.deepEqual([...features].map((f) => [...f.identifiers]), [
       ['namedConstIdentifier'],
       ['default'],
       ['ClassName'],
@@ -50,21 +50,21 @@ suite('JavaScriptExportScanner', () => {
     const features = await getExports('javascript/re-export-all.js');
     // Like the list above, but flattened as they're all exported from one
     // export statement.
-    assert.containSubset([...features].map((f) => [...f.identifiers]), [[
-                           'namedConstIdentifier',
-                           'default',
-                           'ClassName',
-                           'functionName',
-                           'identifierAssignedFunction',
-                           'a',
-                           'b',
-                           'c',
-                           'd',
-                           'g',
-                           'i',
-                           'k',
-                           'anotherValue',
-                           'someValue'
-                         ]]);
+    assert.deepEqual([...features].map((f) => [...f.identifiers]), [[
+                       'namedConstIdentifier',
+                       'default',
+                       'ClassName',
+                       'functionName',
+                       'identifierAssignedFunction',
+                       'a',
+                       'b',
+                       'c',
+                       'd',
+                       'g',
+                       'i',
+                       'k',
+                       'anotherValue',
+                       'someValue'
+                     ]]);
   });
 });

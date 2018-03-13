@@ -54,11 +54,8 @@ export class Export implements Resolvable, Feature {
     this.statementAst = statementAst;
     let exportedIdentifiers;
     if (exportingAllFrom !== undefined) {
-      exportedIdentifiers = (function*() {
-        for (const export_ of exportingAllFrom) {
-          yield* export_.identifiers;
-        }
-      })();
+      exportedIdentifiers =
+          flatMap(exportingAllFrom, (export_) => export_.identifiers);
     } else {
       exportedIdentifiers = esutil.getBindingNamesFromDeclaration(astNode);
     }
@@ -93,6 +90,14 @@ export class Export implements Resolvable, Feature {
     // arbitrarily long chain of references.
 
     return this;
+  }
+}
+
+function*
+    flatMap<In, Out>(inputs: Iterable<In>, map: (input: In) => Iterable<Out>):
+        Iterable<Out> {
+  for (const input of inputs) {
+    yield* map(input);
   }
 }
 
