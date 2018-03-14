@@ -41,7 +41,7 @@ export class FsUrlResolver extends UrlResolver {
   protected readonly packageUrl: ResolvedUrl;
   constructor(
       packageDir: string|undefined, private readonly host?: string,
-      protected readonly protocol: string = 'https:') {
+      protected readonly protocol: string = 'https') {
     super();
     this.packageDir =
         normalizeFsPath(pathlib.resolve(packageDir || process.cwd()));

@@ -56,7 +56,7 @@ suite('IndirectUrlResolver', function() {
     // Protocol-relative urls are resolved with provided protocol
     assert.deepEqual(
         (new IndirectUrlResolver(
-             '/root', '/root/sub/package', mapping, 'potato:'))
+             '/root', '/root/sub/package', mapping, 'potato'))
             .resolve(packageRelativeUrl`//foo.com/bar.html`),
         resolvedUrl`potato://foo.com/bar.html`);
   });

@@ -14,27 +14,29 @@
 
 import {parse as parseUrl_, resolve as resolveUrl_, Url} from 'url';
 
-const unspecifiedProtocol = '-:';
+const unspecifiedProtocol = '-';
 export function parseUrl(
     url: string, defaultProtocol: string = unspecifiedProtocol): Url {
   const urlObject = parseUrl_(ensureProtocol(url, defaultProtocol));
-  if (urlObject.protocol === unspecifiedProtocol) {
+  if (urlObject.protocol &&
+      urlObject.protocol.slice(0, -1) === unspecifiedProtocol) {
     urlObject.protocol = undefined;
     urlObject.href =
-        urlObject.href && urlObject.href.slice(unspecifiedProtocol.length);
+        urlObject.href && urlObject.href.slice(unspecifiedProtocol.length + 1);
   }
   return urlObject;
 }
 
 export function ensureProtocol(url: string, defaultProtocol: string): string {
-  return url.startsWith('//') ? defaultProtocol + url : url;
+  return url.startsWith('//') ? `${defaultProtocol}:${url}` : url;
 }
 
 export function resolveUrl(
     baseUrl: string, targetUrl: string, defaultProtocol: string): string {
-  baseUrl = ensureProtocol(baseUrl, defaultProtocol);
-  targetUrl = ensureProtocol(targetUrl, defaultProtocol);
-  return resolveUrl_(baseUrl, targetUrl);
+  const baseProtocol = (parseUrl_(baseUrl).protocol || '').slice(0, -1);
+  const protocol = baseProtocol !== 'file' && baseProtocol || defaultProtocol;
+  return resolveUrl_(
+      ensureProtocol(baseUrl, protocol), ensureProtocol(targetUrl, protocol));
 }
 
 export function trimLeft(str: string, char: string): string {

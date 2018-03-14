@@ -91,31 +91,62 @@ suite('PackageUrlResolver', function() {
     });
 
     test('resolves protocol-relative URLs using default protocol', () => {
-      const r = new PackageUrlResolver();
+      const r = new PackageUrlResolver({packageDir: `/1/2`, host: 'foo.com'});
       assert.equal(
           r.resolve(packageRelativeUrl`//abc.xyz/foo.html`),
           resolvedUrl`https://abc.xyz/foo.html`);
 
       assert.equal(
           r.resolve(
-              resolvedUrl`http://foo.com/bar.html`,
-              fileRelativeUrl`//foo.com/bar.html`),
-          resolvedUrl`https://foo.com/bar.html`);
+              rootedFileUrl`1/2/bar.html`, fileRelativeUrl`//abc.xyz/foo.html`),
+          resolvedUrl`https://abc.xyz/foo.html`);
+
+      assert.equal(
+          r.resolve(
+              rootedFileUrl`1/2/bar.html`, fileRelativeUrl`//foo.com/baz.html`),
+          rootedFileUrl`1/2/baz.html`);
     });
 
     test('resolves protocol-relative URLs using provided protocol', () => {
       const r = new PackageUrlResolver(
-          {protocol: 'potato:', packageDir: `/1/2`, host: 'foo.com'});
+          {protocol: 'potato', packageDir: `/1/2`, host: 'foo.com'});
 
       assert.equal(
-          r.resolve(
-              resolvedUrl`https://foo.com/bar.html`,
-              fileRelativeUrl`//foo.com/bar.html`),
-          rootedFileUrl`1/2/bar.html`);
+          r.resolve(packageRelativeUrl`//foo.com/bar.html`),
+          rootedFileUrl`1/2/bar.html`,
+          'host matches resolver, resolve to file URL');
 
       assert.equal(
           r.resolve(packageRelativeUrl`//abc.xyz/foo.html`),
-          resolvedUrl`potato://abc.xyz/foo.html`);
+          resolvedUrl`potato://abc.xyz/foo.html`,
+          'host does not match resolver, resolve with protocol option');
+
+      assert.equal(
+          r.resolve(
+              resolvedUrl`spaghetti://abc.xyz/foo.html`,
+              fileRelativeUrl`//foo.com/bar.html`),
+          rootedFileUrl`1/2/bar.html`,
+          'host matches resolver, resolve as file URL');
+
+      assert.equal(
+          r.resolve(
+              resolvedUrl`spaghetti://abc.xyz/foo.html`,
+              fileRelativeUrl`//abc.xyz/foo.html`),
+          resolvedUrl`spaghetti://abc.xyz/foo.html`,
+          'host does not match resolver, inherit non-file protocol from base URL');
+
+      assert.equal(
+          r.resolve(
+              rootedFileUrl`1/2/bar.html`, fileRelativeUrl`//abc.xyz/foo.html`),
+          resolvedUrl`potato://abc.xyz/foo.html`,
+          'host does not match resolver, do not inherit file protocol from base URL');
+
+      assert.equal(
+          r.resolve(
+              resolvedUrl`spaghetti://example.com/`,
+              fileRelativeUrl`//abc.xyz/foo.html`),
+          resolvedUrl`spaghetti://abc.xyz/foo.html`,
+          'host does not match resolver, inherit non-file protocol from base URL');
     });
 
     test(`resolves a URL with the right hostname`, () => {

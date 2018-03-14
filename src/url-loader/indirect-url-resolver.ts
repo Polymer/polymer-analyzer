@@ -55,7 +55,7 @@ export class IndirectUrlResolver extends FsUrlResolver implements UrlResolver {
   constructor(
       rootPath: string, packagePath: string,
       indirectionMap: Map<string, string>,
-      protected readonly protocol: string = 'https:') {
+      protected readonly protocol: string = 'https') {
     super(packagePath);
 
     const rootResolver = new FsUrlResolver(rootPath);
