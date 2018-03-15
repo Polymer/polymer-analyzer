@@ -33,6 +33,7 @@ export class ScannedScriptTagImport extends ScannedImport {
         !document._analysisContext.loader.canLoad(resolvedUrl)) {
       return;
     }
+    console.log('i have a resolvedUrl', resolvedUrl);
 
     // TODO(justinfagnani): warn if the same URL is loaded from more than one
     // non-module script tag
