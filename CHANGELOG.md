@@ -18,7 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Parse concatenated strings in expressions
 * Fixed issue where FsUrlResolver and IndirectUrlResolver didn't correctly
   resolve protocol-relative URLs.  These classes now accept a protocol option
-  which defaults to `https:` that is prepended when resolving these URLs.
+  which defaults to `https` that is prepended when resolving these URLs.
 <!-- Add new, unreleased changes here. -->
 
 ## [3.0.0-pre.14] - 2018-03-09
