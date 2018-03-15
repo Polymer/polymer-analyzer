@@ -29,7 +29,8 @@ export class ScannedScriptTagImport extends ScannedImport {
     }
     const resolvedUrl = document._analysisContext.resolver.resolve(
         document.parsedDocument.baseUrl, this.url, this);
-    if (resolvedUrl === undefined) {
+    if (resolvedUrl === undefined ||
+        !document._analysisContext.loader.canLoad(resolvedUrl)) {
       return;
     }
 
