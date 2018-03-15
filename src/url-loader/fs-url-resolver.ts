@@ -40,7 +40,14 @@ export class FsUrlResolver extends UrlResolver {
   // file:// URL format of `packageDir`.
   protected readonly packageUrl: ResolvedUrl;
   constructor(
-      packageDir: string|undefined, private readonly host?: string,
+      packageDir: string|undefined,
+      // If provided, any URL which matches `host` will attempt to resolve
+      // to a `file` protocol URL regardless of the protocol represented in the
+      // URL to-be-resolved.
+      private readonly host?: string,
+      // When attempting to resolve a protocol-relative URL (that is a URL which
+      // begins `//`), the default protocol to resolve to if the resolver can
+      // not produce a `file` URL.
       protected readonly protocol: string = 'https') {
     super();
     this.packageDir =

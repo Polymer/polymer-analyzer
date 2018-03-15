@@ -26,7 +26,13 @@ import {FsUrlResolver} from './fs-url-resolver';
 export interface PackageUrlResolverOptions {
   packageDir?: string;
   componentDir?: string;
+  // If provided, any URL which matches `host` will attempt to resolve
+  // to a `file` protocol URL regardless of the protocol represented in the
+  // URL to-be-resolved.
   host?: string;
+  // When attempting to resolve a protocol-relative URL (that is a URL which
+  // begins `//`), the default protocol to resolve to if the resolver can
+  // not produce a `file` URL.
   protocol?: string;
 }
 
