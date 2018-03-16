@@ -6,9 +6,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
-* Fixed an issue where warnings were generated for imports of resolved URLs
-  which are not loadable and external to the package.  Now we warn only when
-  unable to load a document we expect to be loadable.
+* Import URLs which are resolved, but for which the URL loader returns
+  `canLoad() === false` result in a `not-loadable` Warning instead of
+  `could-not-load`, which is reserved for other failures, such as parser
+  errors or load errors.
 <!-- Add new, unreleased changes here. -->
 
 ## [3.0.0-pre.15] - 2018-03-15
