@@ -66,7 +66,14 @@ export class ScannedReference<K extends keyof FeatureKindMap> extends
         resolveScopedAt(this.astPath, this.identifier, document, kind);
     if (scopedResult.successful) {
       feature = scopedResult.value;
+    } else {
+      if (scopedResult.error !== undefined) {
+        warnings.push(scopedResult.error);
+      }
     }
+    // TODO(https://github.com/Polymer/polymer-analyzer/issues/917):
+    //     Don't look things up in the global map if the scoped binding
+    //     resolves.
     if (feature === undefined) {
       // We didn't find it by doing principled scope-based analysis. Let's try
       // looking it up in our big global map!
@@ -105,6 +112,10 @@ export class ScannedReference<K extends keyof FeatureKindMap> extends
 function resolveScopedAt<K extends keyof FeatureKindMap>(
     path: NodePath, identifier: string, document: Document, kind: K):
     Result<FeatureKindMap[K], Warning|undefined> {
+  // TODO(https://github.com/Polymer/polymer-analyzer/issues/919): we need to
+  //     emit warnings from this function.
+
+  // Handle all kinds of imports except namespace imports (see below for them).
   if (isSomeKindOfImport(path)) {
     const exportedIdentifier = getExportedIdentifier(path.node, identifier);
     return resolveThroughImport(path, exportedIdentifier, document, kind);
@@ -122,7 +133,10 @@ function resolveScopedAt<K extends keyof FeatureKindMap>(
   if (feature !== undefined) {
     return {successful: true, value: feature};
   }
-  if (/^[^\.]+\.[^\.]+$/.test(identifier)) {
+  // Handle namespace imports. e.g.
+  //     import * as foo from 'foo-library'; class X extends foo.Bar {}
+  const hasASingleDotInName = /^[^\.]+\.[^\.]+$/;
+  if (hasASingleDotInName.test(identifier)) {
     const [namespace, name] = identifier.split('.');
     const namespaceBinding = path.scope.getBinding(namespace);
     if (namespaceBinding !== undefined) {
