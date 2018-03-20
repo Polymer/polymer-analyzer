@@ -15,7 +15,7 @@
 import {assert} from 'chai';
 
 import {Analyzer} from '../../core/analyzer';
-import {FsUrlResolver} from '../../url-loader/fs-url-resolver';
+import {FSUrlResolver} from '../../url-loader/fs-url-resolver';
 import {IndirectUrlResolver} from '../../url-loader/indirect-url-resolver';
 import {InMemoryOverlayUrlLoader} from '../../url-loader/overlay-loader';
 import {fileRelativeUrl, packageRelativeUrl, resolvedUrl, rootedFileUrl} from '../test-utils';
@@ -88,7 +88,7 @@ suite('IndirectUrlResolver', function() {
     const testName = `handles resolving urls with a full mapping from deep ` +
         `subdirs into a flatter runtime url space`;
     test(testName, async () => {
-      const fsUrlResolver = new FsUrlResolver('/root');
+      const fsUrlResolver = new FSUrlResolver('/root');
       const overlayLoader = new InMemoryOverlayUrlLoader();
       overlayLoader.urlContentsMap.set(
           fsUrlResolver.resolve(packageRelativeUrl`sub/package/foo/foo.html`)!,

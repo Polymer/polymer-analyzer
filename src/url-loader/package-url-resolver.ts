@@ -21,7 +21,7 @@ import {parseUrl} from '../core/utils';
 import {FileRelativeUrl, PackageRelativeUrl} from '../index';
 import {ResolvedUrl} from '../model/url';
 
-import {FsUrlResolver} from './fs-url-resolver';
+import {FSUrlResolver} from './fs-url-resolver';
 
 export interface PackageUrlResolverOptions {
   packageDir?: string;
@@ -39,7 +39,7 @@ export interface PackageUrlResolverOptions {
 /**
  * Resolves a URL to a canonical URL within a package.
  */
-export class PackageUrlResolver extends FsUrlResolver {
+export class PackageUrlResolver extends FSUrlResolver {
   readonly componentDir: string;
   private readonly resolvedComponentDir: string;
 

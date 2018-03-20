@@ -34,7 +34,7 @@ const isWindows = process.platform === 'win32';
  * It does no remapping of urls in source to urls on the filesystem, but a
  * subclass can override modifyFsPath for this purpose.
  */
-export class FsUrlResolver extends UrlResolver {
+export class FSUrlResolver extends UrlResolver {
   // The root directory that we resolve package relative URLs to.
   protected readonly packageDir: string;
   // file:// URL format of `packageDir`.

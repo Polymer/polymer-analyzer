@@ -15,7 +15,7 @@
 import {FileRelativeUrlBrand, PackageRelativeUrl, UrlResolver} from '../index';
 import {FileRelativeUrl, ResolvedUrl} from '../model/url';
 
-import {FsUrlResolver} from './fs-url-resolver';
+import {FSUrlResolver} from './fs-url-resolver';
 
 type RuntimeUrl = string&RuntimeUrlBrand;
 
@@ -34,7 +34,7 @@ declare class RuntimeUrlBrand extends FileRelativeUrlBrand {
  * legal to load – from the package directory, which is how the user refers to
  * files on the CLI or the IDE.
  */
-export class IndirectUrlResolver extends FsUrlResolver implements UrlResolver {
+export class IndirectUrlResolver extends FSUrlResolver implements UrlResolver {
   private readonly runtimeUrlToResolvedUrl:
       ReadonlyMap<RuntimeUrl, ResolvedUrl>;
   private readonly resolvedUrlToRuntimeUrl:
@@ -58,7 +58,7 @@ export class IndirectUrlResolver extends FsUrlResolver implements UrlResolver {
       protected readonly protocol: string = 'https') {
     super(packagePath);
 
-    const rootResolver = new FsUrlResolver(rootPath);
+    const rootResolver = new FSUrlResolver(rootPath);
     const urlspaceToFilesystem = new Map<RuntimeUrl, ResolvedUrl>();
     const filesystemToUrlspace = new Map<ResolvedUrl, RuntimeUrl>();
     for (const [u, fsPath] of indirectionMap) {
