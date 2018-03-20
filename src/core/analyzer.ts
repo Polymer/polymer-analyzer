@@ -94,10 +94,11 @@ export class Analyzer {
    * at the given directory, but in the future it may take configuration from
    * files including polymer.json or similar.
    */
-  static createForDirectory(dirname: string): Analyzer {
+  static createForDirectory(dirname: string, componentDir?: string): Analyzer {
     return new Analyzer({
       urlLoader: new FSUrlLoader(dirname),
-      urlResolver: new PackageUrlResolver({packageDir: dirname})
+      urlResolver:
+          new PackageUrlResolver({packageDir: dirname, componentDir})
     });
   }
 

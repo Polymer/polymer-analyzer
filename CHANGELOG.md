@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
 <!-- Add new, unreleased changes here. -->
+* [BREAKING] `PackageUrlResolver` now requires an explicit `componentDir` 
+  option to provide sibling-package component resolution behavior, where it
+  used to assume `bower_components` as a default.  When analyzing an
+  application as opposed to a component, no `componentDir` option should be
+  used.
 * Reference resolution now supports javascript scoping rules, and will follow
   javascript module imports, including aliased imports, namespace imports, and
   re-exports. References to super classes, mixins, and behaviors use this

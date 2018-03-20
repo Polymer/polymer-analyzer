@@ -22,7 +22,8 @@ suite('PackageUrlResolver', function() {
   suite('resolve', () => {
     let resolver: PackageUrlResolver;
     setup(() => {
-      resolver = new PackageUrlResolver({packageDir: `/1/2`});
+      resolver = new PackageUrlResolver(
+          {packageDir: `/1/2`, componentDir: 'bower_components'});
     });
     test(`resolves file:// urls to themselves`, () => {
       const r = new PackageUrlResolver();
@@ -61,8 +62,8 @@ suite('PackageUrlResolver', function() {
 
     test('resolves sibling with matching name prefix to component dir', () => {
       // Regression test for bug in path containment check.
-      const configured =
-          new PackageUrlResolver({packageDir: '/repos/iron-icons'});
+      const configured = new PackageUrlResolver(
+          {packageDir: '/repos/iron-icons', componentDir: 'bower_components'});
       assert.equal(
           configured.resolve(
               rootedFileUrl`repos/iron-iconset-svg/foo.html` as any as

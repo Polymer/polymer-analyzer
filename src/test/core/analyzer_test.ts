@@ -886,7 +886,7 @@ var DuplicateNamespace = {};
 
     test('can get warnings from within and without the package', async () => {
       const analyzer = Analyzer.createForDirectory(
-          path.join(fixtureDir, 'project-with-errors'));
+          path.join(fixtureDir, 'project-with-errors'), 'bower_components');
       const pckage = await analyzer.analyzePackage();
       assert.deepEqual(
           Array.from(pckage['_searchRoots']).map((d) => d.url),

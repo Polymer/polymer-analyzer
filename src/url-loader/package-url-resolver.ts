@@ -40,26 +40,30 @@ export interface PackageUrlResolverOptions {
  * Resolves a URL to a canonical URL within a package.
  */
 export class PackageUrlResolver extends FsUrlResolver {
-  readonly componentDir: string;
-  private readonly resolvedComponentDir: string;
+  readonly componentDir?: string;
+  private readonly resolvedComponentDir?: string;
 
   constructor(options: PackageUrlResolverOptions = {}) {
     super(options.packageDir, options.host, options.protocol);
-    this.componentDir = options.componentDir || 'bower_components/';
-    this.resolvedComponentDir =
-        pathlib.join(this.packageDir, this.componentDir);
+    if (options.componentDir !== undefined) {
+      this.componentDir = options.componentDir;
+      this.resolvedComponentDir =
+          pathlib.join(this.packageDir, this.componentDir);
+    }
   }
 
   protected modifyFsPath(path: string) {
-    // If the path points to a sibling directory, resolve it to the
-    // component directory
-    const parentOfPackageDir = pathlib.dirname(this.packageDir);
-    if (pathIsInside(path, parentOfPackageDir) &&
-        !pathIsInside(path, this.packageDir)) {
-      path = pathlib.join(
-          this.packageDir,
-          this.componentDir,
-          path.substring(parentOfPackageDir.length));
+    if (this.componentDir !== undefined) {
+      // If the path points to a sibling directory, resolve it to the
+      // component directory
+      const parentOfPackageDir = pathlib.dirname(this.packageDir);
+      if (pathIsInside(path, parentOfPackageDir) &&
+          !pathIsInside(path, this.packageDir)) {
+        path = pathlib.join(
+            this.packageDir,
+            this.componentDir,
+            path.substring(parentOfPackageDir.length));
+      }
     }
 
     return path;
@@ -80,27 +84,30 @@ export class PackageUrlResolver extends FsUrlResolver {
   }
 
   private relativeImpl(from: ResolvedUrl, to: ResolvedUrl): FileRelativeUrl {
-    const pathnameInComponentDir = this.pathnameForComponentDirUrl(to);
-    // If the URL we're going to is in the component directory, we need
-    // to correct for that when generating a relative URL...
-    if (pathnameInComponentDir !== undefined) {
-      // ... unless the URL we're coming from is *also* in the component
-      // directory
-      if (this.pathnameForComponentDirUrl(from) === undefined) {
-        // Ok, transform the path from looking like `/path/to/node_modules/foo`
-        // to look instead like `/path/foo` so we get a `../` relative url.
-        const componentDirPath =
-            pathnameInComponentDir.slice(this.resolvedComponentDir.length);
-        const reresolved = this.simpleUrlResolve(
-            this.packageUrl,
-            ('../' + componentDirPath) as FileRelativeUrl,
-            this.protocol);
-        if (reresolved !== undefined) {
-          const reresolvedUrl = parseUrl(reresolved);
-          const toUrl = parseUrl(to);
-          reresolvedUrl.search = toUrl.search;
-          reresolvedUrl.hash = toUrl.hash;
-          to = this.brandAsResolved(urlLibFormat(reresolvedUrl));
+    if (this.resolvedComponentDir !== undefined) {
+      const pathnameInComponentDir = this.pathnameForComponentDirUrl(to);
+      // If the URL we're going to is in the component directory, we need
+      // to correct for that when generating a relative URL...
+      if (pathnameInComponentDir !== undefined) {
+        // ... unless the URL we're coming from is *also* in the component
+        // directory
+        if (this.pathnameForComponentDirUrl(from) === undefined) {
+          // Ok, transform the path from looking like
+          // `/path/to/node_modules/foo` to look instead like `/path/foo` so we
+          // get a `../` relative url.
+          const componentDirPath =
+              pathnameInComponentDir.slice(this.resolvedComponentDir.length);
+          const reresolved = this.simpleUrlResolve(
+              this.packageUrl,
+              ('../' + componentDirPath) as FileRelativeUrl,
+              this.protocol);
+          if (reresolved !== undefined) {
+            const reresolvedUrl = parseUrl(reresolved);
+            const toUrl = parseUrl(to);
+            reresolvedUrl.search = toUrl.search;
+            reresolvedUrl.hash = toUrl.hash;
+            to = this.brandAsResolved(urlLibFormat(reresolvedUrl));
+          }
         }
       }
     }
@@ -124,7 +131,7 @@ export class PackageUrlResolver extends FsUrlResolver {
         return undefined;
       }
       const path = this.filesystemPathForPathname(pathname);
-      if (path && pathIsInside(path, this.resolvedComponentDir)) {
+      if (path && pathIsInside(path, this.resolvedComponentDir!)) {
         return path;
       }
     }
