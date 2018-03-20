@@ -15,7 +15,7 @@
 import {FileRelativeUrlBrand, PackageRelativeUrl, UrlResolver} from '../index';
 import {FileRelativeUrl, ResolvedUrl} from '../model/url';
 
-import {FSUrlResolver} from './fs-url-resolver';
+import {FsUrlResolver} from './fs-url-resolver';
 
 type RuntimeUrl = string&RuntimeUrlBrand;
 
@@ -34,7 +34,7 @@ declare class RuntimeUrlBrand extends FileRelativeUrlBrand {
  * legal to load – from the package directory, which is how the user refers to
  * files on the CLI or the IDE.
  */
-export class IndirectUrlResolver extends FSUrlResolver implements UrlResolver {
+export class IndirectUrlResolver extends FsUrlResolver implements UrlResolver {
   private readonly runtimeUrlToResolvedUrl:
       ReadonlyMap<RuntimeUrl, ResolvedUrl>;
   private readonly resolvedUrlToRuntimeUrl:
@@ -49,7 +49,7 @@ export class IndirectUrlResolver extends FSUrlResolver implements UrlResolver {
    *     files on the filesystem.
    *
    *     The keys must be relative paths, like `paper-button/paper-button.html`.
-   *     The filesystem paths must be be relative FS paths from `rootPath` to
+   *     The filesystem paths must be be relative Fs paths from `rootPath` to
    *     the file on disk that corresponds to the runtime URL.
    */
   constructor(
@@ -58,7 +58,7 @@ export class IndirectUrlResolver extends FSUrlResolver implements UrlResolver {
       protected readonly protocol: string = 'https') {
     super(packagePath);
 
-    const rootResolver = new FSUrlResolver(rootPath);
+    const rootResolver = new FsUrlResolver(rootPath);
     const urlspaceToFilesystem = new Map<RuntimeUrl, ResolvedUrl>();
     const filesystemToUrlspace = new Map<ResolvedUrl, RuntimeUrl>();
     for (const [u, fsPath] of indirectionMap) {
