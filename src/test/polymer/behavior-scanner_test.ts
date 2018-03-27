@@ -140,6 +140,12 @@ suite('BehaviorScanner', () => {
         elements.map((e) => e.tagName),
         ['uses-basic-behavior', 'uses-array-behavior']);
 
+    // Get the toplevel behaviors.
+    assert.deepEqual(
+        elements.map((e) => e.behaviorAssignments.map(ba => ba.identifier)),
+        [['BasicBehavior1'], ['ArrayOfBehaviors']]);
+
+    // Show that ArrayOfBehaviors has been correctly expanded too.
     assert.deepEqual(
         elements.map((e) => [...e.methods.keys()]),
         [['method1'], ['method1', 'method2']]);
