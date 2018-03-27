@@ -130,4 +130,18 @@ suite('BehaviorScanner', () => {
           {name: 'getterSetter', type: undefined, readOnly: false}
         ]);
   });
+
+  const testName = 'Supports behaviors that are just arrays of other behaviors';
+  test(testName, async () => {
+    const {analyzer} = await createForDirectory(fixtureDir);
+    const analysis = await analyzer.analyze(['uses-behaviors.js']);
+    const elements = [...analysis.getFeatures({kind: 'polymer-element'})];
+    assert.deepEqual(
+        elements.map((e) => e.tagName),
+        ['uses-basic-behavior', 'uses-array-behavior']);
+
+    assert.deepEqual(
+        elements.map((e) => [...e.methods.keys()]),
+        [['method1'], ['method1', 'method2']]);
+  });
 });
