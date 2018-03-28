@@ -7,8 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 <!-- ## Unreleased -->
 <!-- Add new, unreleased changes here. -->
-## [3.0.0-pre.18] - 2018-03-27
 
+## [3.0.0-pre.18] - 2018-03-27
 * [BREAKING] Removed Analyzer.createFromDirectory, the replacement will go into
   polymer-project-config.
 * [BREAKING] Import features will now be produced when a document has a broken
