@@ -92,6 +92,10 @@ export function getPropertyName(prop: PropertyOrMethod): string|undefined {
   return undefined;
 }
 
+/**
+ * Yields properties and methods, filters out spread expressions or anything
+ * else.
+ */
 export function* getSimpleObjectProperties(node: babel.ObjectExpression) {
   for (const property of node.properties) {
     if (babel.isObjectProperty(property) || babel.isObjectMethod(property)) {
@@ -604,7 +608,7 @@ export function extractPropertiesFromClassOrObjectBody(
       continue;
     }
 
-    const name = getPropertyName(member)!;
+    const name = getPropertyName(member);
     if (name === undefined) {
       continue;
     }
