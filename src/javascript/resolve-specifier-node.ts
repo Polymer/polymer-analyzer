@@ -70,16 +70,20 @@ export const resolve =
       let effectiveDocumentPath = documentPath;
       if (componentInfo !== undefined) {
         const {packageName, rootDir, componentDir} = componentInfo;
-        const isOwnPackageRequest = !pathIsInside(documentPath, componentDir);
-        if (isOwnPackageRequest) {
+        const isRootPackageRequest = !pathIsInside(documentPath, componentDir);
+        if (isRootPackageRequest) {
+          // Special handling for servers like Polyserve which, when serving a
+          // package "foo", will map the URL "/components/foo" to the root
+          // package directory, so that "foo" can make correct relative path
+          // references to its dependencies.
+          const rootRelativePath = relative(rootDir, documentPath);
           effectiveDocumentPath =
-              join(componentDir, packageName, relative(rootDir, documentPath));
+              join(componentDir, packageName, rootRelativePath);
         }
       }
 
-      let relativeSpecifierUrl =
-          relative(dirname(effectiveDocumentPath), resolvedSpecifier) as
-          FileRelativeUrl;
+      let relativeSpecifierUrl = relative(
+          dirname(effectiveDocumentPath), resolvedSpecifier) as FileRelativeUrl;
 
       if (isWindows()) {
         // normalize path separators to URL format
