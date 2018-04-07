@@ -67,25 +67,19 @@ export const resolve =
             },
       });
 
-      let relativeSpecifierUrl =
-          relative(dirname(documentPath), resolvedSpecifier) as FileRelativeUrl;
-
-      // If this is a component-style URL layout, rewrite the path to reach out
-      // of the current package, rather than directly into the component
-      // directory.
+      let effectiveDocumentPath = documentPath;
       if (componentInfo !== undefined) {
         const {packageName, rootDir, componentDir} = componentInfo;
-        if (pathIsInside(resolvedSpecifier, componentDir)) {
-          const componentDirRelativeToPackage =
-              relative(join(rootDir, packageName), rootDir);
-          const relativePathFromComponentDir =
-              relative(componentDir, resolvedSpecifier);
-          relativeSpecifierUrl =
-              join(
-                  componentDirRelativeToPackage,
-                  relativePathFromComponentDir) as FileRelativeUrl;
+        const isOwnPackageRequest = !pathIsInside(documentPath, componentDir);
+        if (isOwnPackageRequest) {
+          effectiveDocumentPath =
+              join(componentDir, packageName, relative(rootDir, documentPath));
         }
       }
+
+      let relativeSpecifierUrl =
+          relative(dirname(effectiveDocumentPath), resolvedSpecifier) as
+          FileRelativeUrl;
 
       if (isWindows()) {
         // normalize path separators to URL format
@@ -98,5 +92,4 @@ export const resolve =
       }
 
       return relativeSpecifierUrl;
-
     };
